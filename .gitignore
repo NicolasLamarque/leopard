@@ -1,0 +1,28 @@
+
+# Go
+/bin
+/dist
+*.exe
+*.dll
+*.so
+
+# Wails
+/build
+/wailsjs
+
+# Node / Vue
+node_modules
+dist
+.env
+.env.*
+
+# OS / IDE
+.DS_Store
+.vscode
+.idea
+
+# database files
+*.db
+
+# vieux fichiers 
+*.old

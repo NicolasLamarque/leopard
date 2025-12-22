@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #2563eb;
+
+  --color-secondary: #10b981;
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+body {
+  @apply bg-[rgb(var(--bg))] text-[rgb(var(--text))];
+}
+/* Dark mode activé automatiquement avec prefers-color-scheme */
+
+/* OU contrôlé par classe .dark sur <html> */
+:root {
+  --bg: 255 255 255;
+  --bg-muted: 245 245 245;
+  --text: 17 24 39;
+  --card: 255 255 255;
+  --border: 229 231 235;
+}
+
+.dark {
+  --bg: 17 24 39;
+  --bg-muted: 31 41 55;
+  --text: 229 231 235;
+  --card: 31 41 55;
+  --border: 55 65 81;
+}
