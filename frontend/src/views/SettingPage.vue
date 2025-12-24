@@ -38,7 +38,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">Activer le thème sombre pour l'interface</p>
               </div>
               <button 
-                @click="toggleDarkMode"
+                @click="handleToggleDarkMode"
                 :class="[
                   'relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
                   isDark ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
@@ -219,7 +219,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { User, Palette, Lock, Bell, Moon, Sun } from 'lucide-vue-next'
 import { useDarkMode } from '../composables/useDarkMode'
 import { 
@@ -231,7 +231,7 @@ import {
 } from '../../wailsjs/go/main/App'
 
 // ✅ Utiliser le composable GLOBAL pour le dark mode
-const { isDark, toggle: toggleDarkMode } = useDarkMode()
+const { isDark, setTheme } = useDarkMode()
 
 const activeTab = ref('appearance')
 const saving = ref(false)
@@ -247,6 +247,7 @@ const tabs = [
 ]
 
 const settings = ref({
+  theme: 'light',
   language: 'fr',
   notificationsEnabled: true,
   emailNotifications: true
@@ -285,12 +286,16 @@ onMounted(async () => {
     ])
     
     settings.value = {
+      theme: settingsData.theme || 'light',
       language: settingsData.language || 'fr',
       notificationsEnabled: settingsData.notifications_enabled,
       emailNotifications: settingsData.email_notifications
     }
     
     settingsInitial.value = { ...settings.value }
+    
+    // ✅ APPLIQUER le thème chargé depuis la DB
+    setTheme(settings.value.theme)
     
     profile.value = {
       username: profileData.username,
@@ -302,16 +307,44 @@ onMounted(async () => {
   }
 })
 
-// Détecter les changements (sauf le dark mode qui est géré globalement)
+// Détecter les changements (sauf dark mode qui sauvegarde automatiquement)
 watch(settings, () => {
   hasChanges.value = JSON.stringify(settings.value) !== JSON.stringify(settingsInitial.value)
 }, { deep: true })
 
-// Sauvegarder les settings (sans le dark mode, il est déjà persisté)
+// ✅ TOGGLE Dark Mode avec sauvegarde immédiate
+const handleToggleDarkMode = async () => {
+  const newTheme = isDark.value ? 'light' : 'dark'
+  
+  // Mettre à jour l'état local
+  settings.value.theme = newTheme
+  setTheme(newTheme)
+  
+  // Sauvegarder immédiatement dans la DB
+  try {
+    await UpdateSettings({
+      theme: newTheme,
+      language: settings.value.language,
+      notifications_enabled: settings.value.notificationsEnabled,
+      email_notifications: settings.value.emailNotifications
+    })
+    
+    // Mettre à jour la référence initiale
+    settingsInitial.value.theme = newTheme
+    
+    console.log('✅ Thème sauvegardé:', newTheme)
+  } catch (err) {
+    console.error('❌ Erreur sauvegarde thème:', err)
+    alert('Erreur lors de la sauvegarde du thème')
+  }
+}
+
+// Sauvegarder les settings (langue, notifications)
 const saveSettings = async () => {
   saving.value = true
   try {
     await UpdateSettings({
+      theme: settings.value.theme,
       language: settings.value.language,
       notifications_enabled: settings.value.notificationsEnabled,
       email_notifications: settings.value.emailNotifications

@@ -50,16 +50,48 @@ func New(path string) (*Database, error) {
 		prenom TEXT NOT NULL,
 		date_naissance DATE,
 		telephone TEXT,
+		cellulaire TEXT,
 		email TEXT,
 		adresse TEXT,
+		code_postal TEXT,
+		ville TEXT,
+		pays TEXT,
 		numero_assurance_maladie TEXT,
 		numero_securite_sociale TEXT,
 		no_hcm TEXT,
 		no_chaur TEXT,
 		no_dossier_leopard TEXT,
+		medecin_famille_No_Licence TEXT,
+		notaire_id INTEGER,
+		pivot_id INTEGER,
+		rpa_id INTEGER,
+		chsld_id INTEGER,
+		ri_id INTEGER,
+		note_fixe TEXT,
+		Actif INTEGER DEFAULT 1,
+		dcd INTEGER DEFAULT 0,
 		created_by INTEGER,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY(created_by) REFERENCES users(id)
+	);
+
+	CREATE TABLE IF NOT EXISTS medecins (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		licence TEXT NOT NULL,
+		nomComplet TEXT,
+		specialisation TEXT,
+		telephone TEXT,
+		extension TEXT,
+		cellulaire TEXT,
+		email TEXT,
+		adresse TEXT,
+		code_postal TEXT,
+		ville TEXT,
+		pays TEXT,
+		Note_fixe TEXT,
+		actif INTEGER DEFAULT 1,
+		created_by INTEGER,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 	);
 
 	CREATE TABLE IF NOT EXISTS notes (
@@ -74,7 +106,6 @@ func New(path string) (*Database, error) {
 		sujet TEXT,
 		contenu TEXT,
 		objectifs TEXT,
-		FOREIGN KEY(client_id) REFERENCES clients(id) ON DELETE CASCADE,
 		FOREIGN KEY(user_id) REFERENCES users(id)
 	);
 

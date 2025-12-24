@@ -37,35 +37,49 @@ func (db *Database) GetClientByID(id int) (*models.Client, error) {
 
 // CreateClient crée un nouveau client
 func (db *Database) CreateClient(req models.CreateClientRequest, createdBy int) (int64, error) {
-	// On utilise NamedExec pour ne plus se tromper dans l'ordre des arguments
 	query := `
         INSERT INTO clients (
-            nom, prenom, date_naissance, telephone, email, adresse,
-            numero_assurance_maladie, numero_securite_sociale, no_hcm, 
-            no_chaur, no_dossier_leopard, created_by
+            nom, prenom, date_naissance, telephone, cellulaire, email, adresse,
+            code_postal, ville, pays,
+            numero_assurance_maladie, numero_securite_sociale, no_hcm, no_chaur, 
+            no_dossier_leopard, medecin_famille_No_Licence,
+            notaire_id, pivot_id, rpa_id, chsld_id, ri_id,
+            note_fixe, Actif, dcd, created_by
         ) VALUES (
-            :nom, :prenom, :date_naissance, :telephone, :email, :adresse,
-            :numero_assurance_maladie, :numero_securite_sociale, :no_hcm, 
-            :no_chaur, :no_dossier_leopard, :created_by
+            :nom, :prenom, :date_naissance, :telephone, :cellulaire, :email, :adresse,
+            :code_postal, :ville, :pays,
+            :numero_assurance_maladie, :numero_securite_sociale, :no_hcm, :no_chaur,
+            :no_dossier_leopard, :medecin_famille_No_Licence,
+            :notaire_id, :pivot_id, :rpa_id, :chsld_id, :ri_id,
+            :note_fixe, :Actif, :dcd, :created_by
         )`
 
-	// On peut préparer une map pour injecter created_by qui n'est pas dans la struct req
-	// Ou simplement ajouter le tag db:"created_by" à createdBy si on veut être fancy.
-	// Ici, on reste simple :
-
 	resultat, err := db.NamedExec(query, map[string]interface{}{
-		"nom":                      req.Nom,
-		"prenom":                   req.Prenom,
-		"date_naissance":           req.DateNaissance,
-		"telephone":                req.Telephone,
-		"email":                    req.Email,
-		"adresse":                  req.Adresse,
-		"numero_assurance_maladie": req.NumeroAssuranceMaladie,
-		"numero_securite_sociale":  req.NumeroSecuriteSociale,
-		"no_hcm":                   req.NoHCM,
-		"no_chaur":                 req.NoCHAUR,
-		"no_dossier_leopard":       req.NoDossierLeopard,
-		"created_by":               createdBy,
+		"nom":                        req.Nom,
+		"prenom":                     req.Prenom,
+		"date_naissance":             req.DateNaissance,
+		"telephone":                  req.Telephone,
+		"cellulaire":                 req.Cellulaire,
+		"email":                      req.Email,
+		"adresse":                    req.Adresse,
+		"code_postal":                req.CodePostal,
+		"ville":                      req.Ville,
+		"pays":                       req.Pays,
+		"numero_assurance_maladie":   req.NumeroAssuranceMaladie,
+		"numero_securite_sociale":    req.NumeroSecuriteSociale,
+		"no_hcm":                     req.NoHCM,
+		"no_chaur":                   req.NoCHAUR,
+		"no_dossier_leopard":         req.NoDossierLeopard,
+		"medecin_famille_No_Licence": req.MedecinFamilleNoLicence,
+		"notaire_id":                 req.NotaireID,
+		"pivot_id":                   req.PivotID,
+		"rpa_id":                     req.RPAID,
+		"chsld_id":                   req.CHSLDID,
+		"ri_id":                      req.RIID,
+		"note_fixe":                  req.NoteFixe,
+		"Actif":                      req.Actif,
+		"dcd":                        req.DCD,
+		"created_by":                 createdBy,
 	})
 
 	if err != nil {
@@ -77,21 +91,32 @@ func (db *Database) CreateClient(req models.CreateClientRequest, createdBy int) 
 
 // UpdateClient met à jour un client existant
 func (db *Database) UpdateClient(req models.UpdateClientRequest) error {
-	// NamedExec est magique ici : il prend ta struct req et apparie
-	// les noms :nom avec les tags db:"nom" de la struct.
 	query := `
 		UPDATE clients SET
-			nom = :nom, 
-			prenom = :prenom, 
-			date_naissance = :date_naissance, 
-			telephone = :telephone, 
-			email = :email, 
-			adresse = :adresse, 
+			nom = :nom,
+			prenom = :prenom,
+			date_naissance = :date_naissance,
+			telephone = :telephone,
+			cellulaire = :cellulaire,
+			email = :email,
+			adresse = :adresse,
+			code_postal = :code_postal,
+			ville = :ville,
+			pays = :pays,
 			numero_assurance_maladie = :numero_assurance_maladie,
-			numero_securite_sociale = :numero_securite_sociale, 
-			no_hcm = :no_hcm, 
+			numero_securite_sociale = :numero_securite_sociale,
+			no_hcm = :no_hcm,
 			no_chaur = :no_chaur,
-			no_dossier_leopard = :no_dossier_leopard
+			no_dossier_leopard = :no_dossier_leopard,
+			medecin_famille_No_Licence = :medecin_famille_No_Licence,
+			notaire_id = :notaire_id,
+			pivot_id = :pivot_id,
+			rpa_id = :rpa_id,
+			chsld_id = :chsld_id,
+			ri_id = :ri_id,
+			note_fixe = :note_fixe,
+			Actif = :Actif,
+			dcd = :dcd
 		WHERE id = :id`
 
 	_, err := db.NamedExec(query, req)
@@ -100,10 +125,4 @@ func (db *Database) UpdateClient(req models.UpdateClientRequest) error {
 	}
 
 	return nil
-}
-
-// DeleteClient reste simple
-func (db *Database) DeleteClient(id int) error {
-	_, err := db.Exec("DELETE FROM clients WHERE id = ?", id)
-	return err
 }
