@@ -126,3 +126,28 @@ func (db *Database) UpdateClient(req models.UpdateClientRequest) error {
 
 	return nil
 }
+
+// ArchiveClient désactive un client (suppression logique)
+func (db *Database) ArchiveClient(id int) error {
+	query := `
+		UPDATE clients
+		SET Actif = 0
+		WHERE id = ?
+	`
+	_, err := db.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("erreur archivage client %d: %w", id, err)
+	}
+	return nil
+}
+// supprimer DeleteClient supprime un client de la base de données
+// DeleteClient supprime définitivement un client
+func (db *Database) DeleteClient(id int) error {
+	query := `DELETE FROM clients WHERE id = ?`
+	_, err := db.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("erreur suppression physique client %d: %w", id, err)
+	}
+	return nil
+}
+

@@ -91,7 +91,7 @@ func New(path string) (*Database, error) {
 		Note_fixe TEXT,
 		actif INTEGER DEFAULT 1,
 		created_by INTEGER,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 
 	CREATE TABLE IF NOT EXISTS notes (

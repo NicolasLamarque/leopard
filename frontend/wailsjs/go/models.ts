@@ -56,15 +56,28 @@ export namespace models {
 	    nom: string;
 	    prenom: string;
 	    date_naissance?: string;
-	    telephone: string;
-	    email: string;
-	    adresse: string;
-	    numero_assurance_maladie: string;
-	    numero_securite_sociale: string;
-	    no_hcm: string;
-	    no_chaur: string;
-	    no_dossier_leopard: string;
-	    created_by: number;
+	    telephone?: string;
+	    cellulaire?: string;
+	    email?: string;
+	    adresse?: string;
+	    code_postal?: string;
+	    ville?: string;
+	    pays?: string;
+	    numero_assurance_maladie?: string;
+	    numero_securite_sociale?: string;
+	    no_hcm?: string;
+	    no_chaur?: string;
+	    no_dossier_leopard?: string;
+	    medecin_famille_No_Licence?: string;
+	    notaire_id?: number;
+	    pivot_id?: number;
+	    rpa_id?: number;
+	    chsld_id?: number;
+	    ri_id?: number;
+	    note_fixe?: string;
+	    actif: number;
+	    dcd: number;
+	    created_by?: number;
 	    created_at: string;
 	
 	    static createFrom(source: any = {}) {
@@ -78,13 +91,26 @@ export namespace models {
 	        this.prenom = source["prenom"];
 	        this.date_naissance = source["date_naissance"];
 	        this.telephone = source["telephone"];
+	        this.cellulaire = source["cellulaire"];
 	        this.email = source["email"];
 	        this.adresse = source["adresse"];
+	        this.code_postal = source["code_postal"];
+	        this.ville = source["ville"];
+	        this.pays = source["pays"];
 	        this.numero_assurance_maladie = source["numero_assurance_maladie"];
 	        this.numero_securite_sociale = source["numero_securite_sociale"];
 	        this.no_hcm = source["no_hcm"];
 	        this.no_chaur = source["no_chaur"];
 	        this.no_dossier_leopard = source["no_dossier_leopard"];
+	        this.medecin_famille_No_Licence = source["medecin_famille_No_Licence"];
+	        this.notaire_id = source["notaire_id"];
+	        this.pivot_id = source["pivot_id"];
+	        this.rpa_id = source["rpa_id"];
+	        this.chsld_id = source["chsld_id"];
+	        this.ri_id = source["ri_id"];
+	        this.note_fixe = source["note_fixe"];
+	        this.actif = source["actif"];
+	        this.dcd = source["dcd"];
 	        this.created_by = source["created_by"];
 	        this.created_at = source["created_at"];
 	    }
@@ -93,14 +119,27 @@ export namespace models {
 	    nom: string;
 	    prenom: string;
 	    date_naissance?: string;
-	    telephone: string;
-	    email: string;
-	    adresse: string;
-	    numero_assurance_maladie: string;
-	    numero_securite_sociale: string;
-	    no_hcm: string;
-	    no_chaur: string;
-	    no_dossier_leopard: string;
+	    telephone?: string;
+	    cellulaire?: string;
+	    email?: string;
+	    adresse?: string;
+	    code_postal?: string;
+	    ville?: string;
+	    pays?: string;
+	    numero_assurance_maladie?: string;
+	    numero_securite_sociale?: string;
+	    no_hcm?: string;
+	    no_chaur?: string;
+	    no_dossier_leopard?: string;
+	    medecin_famille_No_Licence?: string;
+	    notaire_id?: number;
+	    pivot_id?: number;
+	    rpa_id?: number;
+	    chsld_id?: number;
+	    ri_id?: number;
+	    note_fixe?: string;
+	    actif: number;
+	    dcd: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new CreateClientRequest(source);
@@ -112,13 +151,26 @@ export namespace models {
 	        this.prenom = source["prenom"];
 	        this.date_naissance = source["date_naissance"];
 	        this.telephone = source["telephone"];
+	        this.cellulaire = source["cellulaire"];
 	        this.email = source["email"];
 	        this.adresse = source["adresse"];
+	        this.code_postal = source["code_postal"];
+	        this.ville = source["ville"];
+	        this.pays = source["pays"];
 	        this.numero_assurance_maladie = source["numero_assurance_maladie"];
 	        this.numero_securite_sociale = source["numero_securite_sociale"];
 	        this.no_hcm = source["no_hcm"];
 	        this.no_chaur = source["no_chaur"];
 	        this.no_dossier_leopard = source["no_dossier_leopard"];
+	        this.medecin_famille_No_Licence = source["medecin_famille_No_Licence"];
+	        this.notaire_id = source["notaire_id"];
+	        this.pivot_id = source["pivot_id"];
+	        this.rpa_id = source["rpa_id"];
+	        this.chsld_id = source["chsld_id"];
+	        this.ri_id = source["ri_id"];
+	        this.note_fixe = source["note_fixe"];
+	        this.actif = source["actif"];
+	        this.dcd = source["dcd"];
 	    }
 	}
 	export class UpdateClientRequest {
@@ -126,14 +178,27 @@ export namespace models {
 	    nom: string;
 	    prenom: string;
 	    date_naissance?: string;
-	    telephone: string;
-	    email: string;
-	    adresse: string;
-	    numero_assurance_maladie: string;
-	    numero_securite_sociale: string;
-	    no_hcm: string;
-	    no_chaur: string;
-	    no_dossier_leopard: string;
+	    telephone?: string;
+	    cellulaire?: string;
+	    email?: string;
+	    adresse?: string;
+	    code_postal?: string;
+	    ville?: string;
+	    pays?: string;
+	    numero_assurance_maladie?: string;
+	    numero_securite_sociale?: string;
+	    no_hcm?: string;
+	    no_chaur?: string;
+	    no_dossier_leopard?: string;
+	    medecin_famille_No_Licence?: string;
+	    notaire_id?: number;
+	    pivot_id?: number;
+	    rpa_id?: number;
+	    chsld_id?: number;
+	    ri_id?: number;
+	    note_fixe?: string;
+	    actif: number;
+	    dcd: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new UpdateClientRequest(source);
@@ -146,13 +211,26 @@ export namespace models {
 	        this.prenom = source["prenom"];
 	        this.date_naissance = source["date_naissance"];
 	        this.telephone = source["telephone"];
+	        this.cellulaire = source["cellulaire"];
 	        this.email = source["email"];
 	        this.adresse = source["adresse"];
+	        this.code_postal = source["code_postal"];
+	        this.ville = source["ville"];
+	        this.pays = source["pays"];
 	        this.numero_assurance_maladie = source["numero_assurance_maladie"];
 	        this.numero_securite_sociale = source["numero_securite_sociale"];
 	        this.no_hcm = source["no_hcm"];
 	        this.no_chaur = source["no_chaur"];
 	        this.no_dossier_leopard = source["no_dossier_leopard"];
+	        this.medecin_famille_No_Licence = source["medecin_famille_No_Licence"];
+	        this.notaire_id = source["notaire_id"];
+	        this.pivot_id = source["pivot_id"];
+	        this.rpa_id = source["rpa_id"];
+	        this.chsld_id = source["chsld_id"];
+	        this.ri_id = source["ri_id"];
+	        this.note_fixe = source["note_fixe"];
+	        this.actif = source["actif"];
+	        this.dcd = source["dcd"];
 	    }
 	}
 	export class UpdateProfileRequest {
