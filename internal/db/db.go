@@ -95,19 +95,23 @@ func New(path string) (*Database, error) {
 	);
 
 	CREATE TABLE IF NOT EXISTS notes (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		client_id INTEGER NOT NULL,
-		user_id INTEGER NOT NULL,
-		date_note DATETIME DEFAULT CURRENT_TIMESTAMP,
-		date_intervention DATETIME,
-		mode_intervention TEXT,
-		type_intervention TEXT,
-		type_note TEXT,
-		sujet TEXT,
-		contenu TEXT,
-		objectifs TEXT,
-		FOREIGN KEY(user_id) REFERENCES users(id)
-	);
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    date_note DATETIME DEFAULT CURRENT_TIMESTAMP,
+    date_intervention DATETIME,
+    mode_intervention TEXT,
+    type_intervention TEXT,
+    type_note TEXT,
+    titre TEXT,
+    contenu TEXT,
+    verrouille INTEGER DEFAULT 0,
+    signature_nom TEXT,
+    signature_date DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(client_id) REFERENCES clients(id),
+    FOREIGN KEY(user_id) REFERENCES users(id)
+);
 
 	CREATE TABLE IF NOT EXISTS user_settings (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

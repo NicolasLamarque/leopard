@@ -18,8 +18,16 @@ export function CreateClientFolderStructure(arg1) {
   return window['go']['main']['App']['CreateClientFolderStructure'](arg1);
 }
 
+export function CreateNote(arg1) {
+  return window['go']['main']['App']['CreateNote'](arg1);
+}
+
 export function DeleteClient(arg1) {
   return window['go']['main']['App']['DeleteClient'](arg1);
+}
+
+export function DeleteNote(arg1) {
+  return window['go']['main']['App']['DeleteNote'](arg1);
 }
 
 export function ExportToClientFolder(arg1) {
@@ -38,6 +46,14 @@ export function GetClientFolderInfo(arg1) {
   return window['go']['main']['App']['GetClientFolderInfo'](arg1);
 }
 
+export function GetClientNotes(arg1) {
+  return window['go']['main']['App']['GetClientNotes'](arg1);
+}
+
+export function GetClientNotesFiltered(arg1) {
+  return window['go']['main']['App']['GetClientNotesFiltered'](arg1);
+}
+
 export function GetClients() {
   return window['go']['main']['App']['GetClients']();
 }
@@ -46,12 +62,24 @@ export function GetCurrentUserProfile() {
   return window['go']['main']['App']['GetCurrentUserProfile']();
 }
 
+export function GetNoteByID(arg1) {
+  return window['go']['main']['App']['GetNoteByID'](arg1);
+}
+
+export function GetNotesStats(arg1) {
+  return window['go']['main']['App']['GetNotesStats'](arg1);
+}
+
 export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
 
 export function ListClientFolders() {
   return window['go']['main']['App']['ListClientFolders']();
+}
+
+export function LockNote(arg1) {
+  return window['go']['main']['App']['LockNote'](arg1);
 }
 
 export function Login(arg1, arg2) {
@@ -76,6 +104,10 @@ export function RenameClientFolder(arg1, arg2) {
 
 export function UpdateClient(arg1) {
   return window['go']['main']['App']['UpdateClient'](arg1);
+}
+
+export function UpdateNote(arg1) {
+  return window['go']['main']['App']['UpdateNote'](arg1);
 }
 
 export function UpdateProfile(arg1) {

@@ -172,4 +172,43 @@ func (a *App) GetCurrentUserProfile() (*models.User, error) {
 	return a.db.GetUserByID(int(a.currentUser.ID))
 }
 
-// ✅ FIN DU FICHIER - Toutes les fonctions de dossiers sont dans folders.go
+// ========== NOTES ==========
+
+func (a *App) CreateNote(req models.CreateNoteRequest) (int64, error) {
+	if a.currentUser == nil {
+		return 0, errors.New("non authentifié")
+	}
+	// On passe l'ID et le nom de l'utilisateur connecté pour la signature automatique
+	return a.db.CreateNote(req, int(a.currentUser.ID), a.currentUser.FullName)
+}
+
+func (a *App) GetNoteByID(id int) (*models.Note, error) {
+	return a.db.GetNoteByID(id)
+}
+
+// Utilise NoteListItem pour une liste légère et rapide à charger
+func (a *App) GetClientNotes(clientID int) ([]models.NoteListItem, error) {
+	return a.db.GetClientNotes(clientID)
+}
+
+// On adapte pour recevoir le struct de filtrage que tu as défini dans models
+func (a *App) GetClientNotesFiltered(filter models.NotesFilter) ([]models.NoteListItem, error) {
+	return a.db.GetClientNotesFiltered(filter)
+}
+
+// On garde UpdateNote pour la forme, même si on bloque la modif dans le repo
+func (a *App) UpdateNote(req models.Note) error {
+	return a.db.UpdateNote(req)
+}
+
+func (a *App) DeleteNote(id int) error {
+	return a.db.DeleteNote(id)
+}
+
+func (a *App) LockNote(id int) error {
+	return a.db.LockNote(id)
+}
+
+func (a *App) GetNotesStats(clientID int) (map[string]interface{}, error) {
+	return a.db.GetNotesStats(clientID)
+}

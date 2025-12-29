@@ -1,5 +1,9 @@
 <template>
-  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-800 transition-colors text-gray-900 dark:text-gray-100">
+  
+<div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg dark:shadow-gray-950/30 border border-gray-100 dark:border-gray-800 transition-colors text-gray-900 dark:text-gray-100">
+
+         
+
     <FormKit
       type="form"
       v-model="formData"
@@ -264,6 +268,7 @@
       </div>
     </FormKit>
   </div>
+  
 </template>
 
 <script setup>

@@ -173,6 +173,145 @@ export namespace models {
 	        this.dcd = source["dcd"];
 	    }
 	}
+	export class CreateNoteRequest {
+	    client_id: number;
+	    date_intervention: string;
+	    mode_intervention: string;
+	    type_intervention: string;
+	    type_note: string;
+	    sujet: string;
+	    contenu: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateNoteRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.client_id = source["client_id"];
+	        this.date_intervention = source["date_intervention"];
+	        this.mode_intervention = source["mode_intervention"];
+	        this.type_intervention = source["type_intervention"];
+	        this.type_note = source["type_note"];
+	        this.sujet = source["sujet"];
+	        this.contenu = source["contenu"];
+	    }
+	}
+	export class Note {
+	    id: number;
+	    client_id: number;
+	    user_id: number;
+	    // Go type: time
+	    date_note: any;
+	    // Go type: time
+	    date_intervention?: any;
+	    mode_intervention: string;
+	    type_intervention: string;
+	    type_note: string;
+	    sujet: string;
+	    contenu: string;
+	    verrouille: boolean;
+	    signature_nom: string;
+	    // Go type: time
+	    signature_date?: any;
+	    // Go type: time
+	    created_at: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new Note(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.client_id = source["client_id"];
+	        this.user_id = source["user_id"];
+	        this.date_note = this.convertValues(source["date_note"], null);
+	        this.date_intervention = this.convertValues(source["date_intervention"], null);
+	        this.mode_intervention = source["mode_intervention"];
+	        this.type_intervention = source["type_intervention"];
+	        this.type_note = source["type_note"];
+	        this.sujet = source["sujet"];
+	        this.contenu = source["contenu"];
+	        this.verrouille = source["verrouille"];
+	        this.signature_nom = source["signature_nom"];
+	        this.signature_date = this.convertValues(source["signature_date"], null);
+	        this.created_at = this.convertValues(source["created_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class NoteListItem {
+	    id: number;
+	    type_note: string;
+	    sujet: string;
+	    // Go type: time
+	    date_note: any;
+	    signature_nom: string;
+	    verrouille: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new NoteListItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.type_note = source["type_note"];
+	        this.sujet = source["sujet"];
+	        this.date_note = this.convertValues(source["date_note"], null);
+	        this.signature_nom = source["signature_nom"];
+	        this.verrouille = source["verrouille"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class NotesFilter {
+	    client_id: number;
+	    search_query: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NotesFilter(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.client_id = source["client_id"];
+	        this.search_query = source["search_query"];
+	    }
+	}
 	export class UpdateClientRequest {
 	    id: number;
 	    nom: string;

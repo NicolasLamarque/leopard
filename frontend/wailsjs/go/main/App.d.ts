@@ -11,7 +11,11 @@ export function CreateClient(arg1:models.CreateClientRequest):Promise<number>;
 
 export function CreateClientFolderStructure(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
 
+export function CreateNote(arg1:models.CreateNoteRequest):Promise<number>;
+
 export function DeleteClient(arg1:number):Promise<void>;
+
+export function DeleteNote(arg1:number):Promise<void>;
 
 export function ExportToClientFolder(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
 
@@ -21,13 +25,23 @@ export function GetClientByID(arg1:number):Promise<models.Client>;
 
 export function GetClientFolderInfo(arg1:string):Promise<main.ClientFolderInfo>;
 
+export function GetClientNotes(arg1:number):Promise<Array<models.NoteListItem>>;
+
+export function GetClientNotesFiltered(arg1:models.NotesFilter):Promise<Array<models.NoteListItem>>;
+
 export function GetClients():Promise<Array<models.Client>>;
 
 export function GetCurrentUserProfile():Promise<models.User>;
 
+export function GetNoteByID(arg1:number):Promise<models.Note>;
+
+export function GetNotesStats(arg1:number):Promise<Record<string, any>>;
+
 export function GetSettings():Promise<models.UserSettings>;
 
 export function ListClientFolders():Promise<Array<string>>;
+
+export function LockNote(arg1:number):Promise<void>;
 
 export function Login(arg1:string,arg2:string):Promise<Record<string, any>>;
 
@@ -40,6 +54,8 @@ export function OpenMainClientsFolder():Promise<main.ClientFolderResult>;
 export function RenameClientFolder(arg1:string,arg2:string):Promise<main.ClientFolderResult>;
 
 export function UpdateClient(arg1:models.UpdateClientRequest):Promise<void>;
+
+export function UpdateNote(arg1:models.Note):Promise<void>;
 
 export function UpdateProfile(arg1:models.UpdateProfileRequest):Promise<void>;
 

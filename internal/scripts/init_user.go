@@ -59,8 +59,8 @@ func main() {
 	}
 
 	// Données du premier utilisateur
-	username := "admin"
-	password := "admin123" // Change ce mot de passe!
+	username := "Nil"
+	password := "20195" // Change ce mot de passe!
 	fullName := "Administrateur"
 	role := "admin"
 

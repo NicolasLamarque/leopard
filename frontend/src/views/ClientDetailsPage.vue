@@ -2,24 +2,38 @@
  <div class="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors p-6">
     <div class="max-w-7xl mx-auto">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-            Dossier de {{ store.currentClient?.prenom }} {{ store.currentClient?.nom }}
-          </h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            No Dossier: {{ store.currentClient?.no_dossier_leopard || 'Non généré' }}
-          </p>
-        </div>
-        
-        <button 
-          @click="router.push('/app/clients')" 
-          class="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-5 py-2.5 rounded-lg shadow-sm dark:shadow-gray-900/30 transition-all duration-200 border border-gray-300 dark:border-gray-700"
-        >
-          <ArrowLeft :size="18" />
-          <span class="font-medium">Fermer le dossier</span>
-        </button>
-      </div>
+      <!-- Header -->
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+      Dossier de {{ store.currentClient?.prenom }} {{ store.currentClient?.nom }}
+    </h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      No Dossier: {{ store.currentClient?.no_dossier_leopard || 'Non généré' }}
+    </p>
+  </div>
+  
+  <!-- Boutons d'action -->
+  <div class="flex items-center gap-3">
+    <!-- Bouton Notes -->
+    <button 
+      @click="showNotes = true"
+      class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg shadow-sm transition-all duration-200"
+    >
+      <FileText :size="18" />
+      <span class="font-medium">Notes</span>
+    </button>
+
+    <!-- Bouton Fermer -->
+    <button 
+      @click="router.push('/app/clients')" 
+      class="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-5 py-2.5 rounded-lg shadow-sm transition-all duration-200 border border-gray-300 dark:border-gray-700"
+    >
+      <ArrowLeft :size="18" />
+      <span class="font-medium">Fermer</span>
+    </button>
+  </div>
+</div>
 
       <!-- Loading State -->
       <div v-if="isLoading" class="flex items-center justify-center py-12">
@@ -30,6 +44,10 @@
       </div>
 
       <!-- Client Form -->
+
+
+
+      
       <ClientDetailsForm 
         v-else-if="store.currentClient" 
         :clientData="store.currentClient" 
@@ -58,6 +76,12 @@
         </div>
       </div>
     </div>
+  <!-- Drawer Notes -->
+    <NotesDrawer
+  :is-open="showNotes"
+  :client="store.currentClient"
+  @close="showNotes = false"
+/>
   </div>
 </template>
 
@@ -67,7 +91,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useClientStore } from '../stores/clientStore'
 import { UpdateClient } from '../../wailsjs/go/main/App'
 import ClientDetailsForm from '../components/ClientDetailsForms.vue'
-import { ArrowLeft, Loader2, AlertCircle } from 'lucide-vue-next'
+import { ArrowLeft, Loader2, AlertCircle, FileText } from 'lucide-vue-next'
+import NotesDrawer from '../components/NotesDrawer.vue'  
+
+const showNotes = ref(false)
 
 const route = useRoute()
 const store = useClientStore()
