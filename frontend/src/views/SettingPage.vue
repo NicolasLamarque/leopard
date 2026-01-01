@@ -25,6 +25,11 @@
 
       <!-- Contenu -->
       <div class="lg:col-span-2 space-y-6">
+
+        <!-- RPA Manager -->
+  <div v-if="activeTab === 'rpa'">
+    <RPAManager />
+  </div>
         
         <!-- Onglet Apparence -->
         <div v-if="activeTab === 'appearance'" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
@@ -220,7 +225,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { User, Palette, Lock, Bell, Moon, Sun } from 'lucide-vue-next'
+import { User, Palette, Lock, Bell, Moon, Sun, Building2 } from 'lucide-vue-next'
 import { useDarkMode } from '../composables/useDarkMode'
 import { 
   GetSettings, 
@@ -229,6 +234,10 @@ import {
   UpdateProfile,
   ChangePassword 
 } from '../../wailsjs/go/main/App'
+
+import RPAManager from '../components/RPAManager.vue'
+
+
 
 // ✅ Utiliser le composable GLOBAL pour le dark mode
 const { isDark, setTheme } = useDarkMode()
@@ -244,6 +253,7 @@ const tabs = [
   { id: 'profile', label: 'Profil', icon: User },
   { id: 'security', label: 'Sécurité', icon: Lock },
   { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'rpa', label: 'Gestion RPA', icon: Building2 }, // ← NOUVEAU
 ]
 
 const settings = ref({

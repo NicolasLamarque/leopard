@@ -18,6 +18,10 @@ export function CreateClientFolderStructure(arg1) {
   return window['go']['main']['App']['CreateClientFolderStructure'](arg1);
 }
 
+export function CreateMedecin(arg1) {
+  return window['go']['main']['App']['CreateMedecin'](arg1);
+}
+
 export function CreateNote(arg1) {
   return window['go']['main']['App']['CreateNote'](arg1);
 }
@@ -26,8 +30,16 @@ export function DeleteClient(arg1) {
   return window['go']['main']['App']['DeleteClient'](arg1);
 }
 
+export function DeleteMedecin(arg1) {
+  return window['go']['main']['App']['DeleteMedecin'](arg1);
+}
+
 export function DeleteNote(arg1) {
   return window['go']['main']['App']['DeleteNote'](arg1);
+}
+
+export function DeleteResidence(arg1) {
+  return window['go']['main']['App']['DeleteResidence'](arg1);
 }
 
 export function ExportToClientFolder(arg1) {
@@ -62,6 +74,14 @@ export function GetCurrentUserProfile() {
   return window['go']['main']['App']['GetCurrentUserProfile']();
 }
 
+export function GetMedecinByID(arg1) {
+  return window['go']['main']['App']['GetMedecinByID'](arg1);
+}
+
+export function GetMedecins() {
+  return window['go']['main']['App']['GetMedecins']();
+}
+
 export function GetNoteByID(arg1) {
   return window['go']['main']['App']['GetNoteByID'](arg1);
 }
@@ -70,8 +90,24 @@ export function GetNotesStats(arg1) {
   return window['go']['main']['App']['GetNotesStats'](arg1);
 }
 
+export function GetResidenceByID(arg1) {
+  return window['go']['main']['App']['GetResidenceByID'](arg1);
+}
+
+export function GetResidenceForDetails(arg1, arg2) {
+  return window['go']['main']['App']['GetResidenceForDetails'](arg1, arg2);
+}
+
+export function GetResidences() {
+  return window['go']['main']['App']['GetResidences']();
+}
+
 export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
+}
+
+export function InsertResidence(arg1) {
+  return window['go']['main']['App']['InsertResidence'](arg1);
 }
 
 export function ListClientFolders() {
@@ -102,8 +138,24 @@ export function RenameClientFolder(arg1, arg2) {
   return window['go']['main']['App']['RenameClientFolder'](arg1, arg2);
 }
 
+export function SearchMedecins(arg1) {
+  return window['go']['main']['App']['SearchMedecins'](arg1);
+}
+
+export function SearchResidences(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SearchResidences'](arg1, arg2, arg3);
+}
+
+export function SyncRPA() {
+  return window['go']['main']['App']['SyncRPA']();
+}
+
 export function UpdateClient(arg1) {
   return window['go']['main']['App']['UpdateClient'](arg1);
+}
+
+export function UpdateMedecin(arg1) {
+  return window['go']['main']['App']['UpdateMedecin'](arg1);
 }
 
 export function UpdateNote(arg1) {
@@ -112,6 +164,10 @@ export function UpdateNote(arg1) {
 
 export function UpdateProfile(arg1) {
   return window['go']['main']['App']['UpdateProfile'](arg1);
+}
+
+export function UpdateResidence(arg1) {
+  return window['go']['main']['App']['UpdateResidence'](arg1);
 }
 
 export function UpdateSettings(arg1) {

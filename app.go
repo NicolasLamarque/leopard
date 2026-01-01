@@ -21,7 +21,6 @@ func NewApp() *App {
 	return &App{}
 }
 
-// ✅ MODIFICATION 1 : Ajouter l'initialisation des dossiers
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	db, err := database.New("./app.db")
@@ -30,9 +29,7 @@ func (a *App) startup(ctx context.Context) {
 	}
 	a.db = db
 
-	// 👇 AJOUTE CETTE LIGNE
 	if err := a.initializeLeopardFolders(); err != nil {
-		// On log juste l'erreur mais on ne crash pas l'app
 		println("⚠️ Avertissement: Impossible d'initialiser les dossiers Leopard:", err.Error())
 	}
 }
@@ -55,7 +52,6 @@ func (a *App) Login(username, password string) (map[string]interface{}, error) {
 		return nil, errors.New("erreur base de données")
 	}
 
-	// Vérifier avec bcrypt
 	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
 	if err != nil {
 		return nil, errors.New("identifiants invalides")
@@ -133,7 +129,6 @@ func (a *App) ChangePassword(req models.ChangePasswordRequest) error {
 		return errors.New("non authentifié")
 	}
 
-	// Récupérer le hash actuel
 	var currentHash string
 	err := a.db.QueryRow(
 		"SELECT password FROM users WHERE id = ?",
@@ -144,19 +139,16 @@ func (a *App) ChangePassword(req models.ChangePasswordRequest) error {
 		return errors.New("erreur base de données")
 	}
 
-	// Vérifier l'ancien mot de passe avec bcrypt
 	err = bcrypt.CompareHashAndPassword([]byte(currentHash), []byte(req.CurrentPassword))
 	if err != nil {
 		return errors.New("mot de passe actuel incorrect")
 	}
 
-	// Générer nouveau hash avec bcrypt
 	newHash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), 14)
 	if err != nil {
 		return errors.New("erreur génération mot de passe")
 	}
 
-	// Mettre à jour
 	_, err = a.db.Exec(
 		"UPDATE users SET password = ? WHERE id = ?",
 		string(newHash), a.currentUser.ID,
@@ -178,7 +170,6 @@ func (a *App) CreateNote(req models.CreateNoteRequest) (int64, error) {
 	if a.currentUser == nil {
 		return 0, errors.New("non authentifié")
 	}
-	// On passe l'ID et le nom de l'utilisateur connecté pour la signature automatique
 	return a.db.CreateNote(req, int(a.currentUser.ID), a.currentUser.FullName)
 }
 
@@ -186,17 +177,14 @@ func (a *App) GetNoteByID(id int) (*models.Note, error) {
 	return a.db.GetNoteByID(id)
 }
 
-// Utilise NoteListItem pour une liste légère et rapide à charger
 func (a *App) GetClientNotes(clientID int) ([]models.NoteListItem, error) {
 	return a.db.GetClientNotes(clientID)
 }
 
-// On adapte pour recevoir le struct de filtrage que tu as défini dans models
 func (a *App) GetClientNotesFiltered(filter models.NotesFilter) ([]models.NoteListItem, error) {
 	return a.db.GetClientNotesFiltered(filter)
 }
 
-// On garde UpdateNote pour la forme, même si on bloque la modif dans le repo
 func (a *App) UpdateNote(req models.Note) error {
 	return a.db.UpdateNote(req)
 }
@@ -211,4 +199,95 @@ func (a *App) LockNote(id int) error {
 
 func (a *App) GetNotesStats(clientID int) (map[string]interface{}, error) {
 	return a.db.GetNotesStats(clientID)
+}
+
+// ========== MÉDECINS ==========
+
+func (a *App) GetMedecins() ([]models.Medecin, error) {
+	return a.db.GetAllMedecins()
+}
+
+func (a *App) GetMedecinByID(id int) (*models.Medecin, error) {
+	return a.db.GetMedecinByID(id)
+}
+
+func (a *App) CreateMedecin(req models.CreateMedecinRequest) (int64, error) {
+	if a.currentUser == nil {
+		return 0, errors.New("non authentifié")
+	}
+	return a.db.CreateMedecin(req, int(a.currentUser.ID))
+}
+
+func (a *App) UpdateMedecin(req models.UpdateMedecinRequest) error {
+	return a.db.UpdateMedecin(req)
+}
+
+func (a *App) DeleteMedecin(id int) error {
+	return a.db.DeleteMedecin(id)
+}
+
+func (a *App) SearchMedecins(query string) ([]models.Medecin, error) {
+	return a.db.SearchMedecins(query)
+}
+
+// ========== RÉSIDENCES / RPA ==========
+
+func (a *App) GetResidences() ([]models.Residence, error) {
+	return a.db.GetAllResidences()
+}
+
+// Dans app.go
+// GetResidenceForDetails fait le pont entre le frontend et le repo
+func (a *App) GetResidenceForDetails(registre string, sync bool) (*models.Residence, error) {
+	return a.db.GetResidenceByRegistre(registre, sync)
+}
+
+func (a *App) GetResidenceByID(id int) (*models.Residence, error) {
+	return a.db.GetResidenceByID(id)
+}
+
+func (a *App) InsertResidence(residence *models.Residence) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+	return a.db.InsertResidence(residence)
+}
+
+func (a *App) UpdateResidence(residence *models.Residence) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+	return a.db.UpdateResidence(residence)
+}
+
+func (a *App) DeleteResidence(id int) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+	return a.db.DeleteResidence(id)
+}
+
+func (a *App) SearchResidences(municipalite, nom, statut string) ([]models.Residence, error) {
+	return a.db.SearchResidences(municipalite, nom, statut)
+}
+
+// ✅ Synchronisation RPA depuis le site du MSSS
+func (a *App) SyncRPA() (map[string]interface{}, error) {
+	if a.currentUser == nil {
+		return nil, errors.New("non authentifié")
+	}
+
+	stats, err := a.db.SyncRPAFromMSSS()
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"total_scraped": stats.TotalScraped,
+		"nouveaux":      stats.Nouveaux,
+		"mis_a_jour":    stats.MisAJour,
+		"fermes":        stats.Fermes,
+		"erreurs":       stats.Erreurs,
+		"date_sync":     stats.DateSync,
+	}, nil
 }

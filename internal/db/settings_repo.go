@@ -15,7 +15,6 @@ func (db *Database) UpdateUserSettings(userID int, req models.UpdateSettingsRequ
 	return err
 }
 
-// Cette méthode manquait dans mon message précédent
 func (db *Database) UpdateUserProfile(userID int, req models.UpdateProfileRequest) error {
 	_, err := db.Exec(`
 		UPDATE users 
@@ -25,7 +24,6 @@ func (db *Database) UpdateUserProfile(userID int, req models.UpdateProfileReques
 	return err
 }
 
-// Cette méthode aussi manquait
 func (db *Database) GetUserByID(userID int) (*models.User, error) {
 	var user models.User
 	// sqlx va mapper id, username, full_name, role vers ta struct User

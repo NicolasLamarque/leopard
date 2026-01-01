@@ -140,6 +140,7 @@ func (db *Database) ArchiveClient(id int) error {
 	}
 	return nil
 }
+
 // supprimer DeleteClient supprime un client de la base de données
 // DeleteClient supprime définitivement un client
 func (db *Database) DeleteClient(id int) error {
@@ -151,3 +152,16 @@ func (db *Database) DeleteClient(id int) error {
 	return nil
 }
 
+// UpdateClientAddressFromRPA met à jour l'adresse d'un client depuis son RPA
+func (db *Database) UpdateClientAddressFromRPA(clientID int) error {
+	query := `
+		UPDATE T_Clients 
+		SET adresse = (
+			SELECT adresse FROM T_RPA WHERE id = T_Clients.rpa_id
+		)
+		WHERE id = ? AND rpa_id IS NOT NULL AND adresse_auto_rpa = 1
+	`
+
+	_, err := db.Exec(query, clientID)
+	return err
+}

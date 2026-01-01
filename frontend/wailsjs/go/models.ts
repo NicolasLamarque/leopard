@@ -173,6 +173,42 @@ export namespace models {
 	        this.dcd = source["dcd"];
 	    }
 	}
+	export class CreateMedecinRequest {
+	    licence: string;
+	    nomComplet: string;
+	    specialisation: string;
+	    telephone: string;
+	    extension: string;
+	    cellulaire: string;
+	    email: string;
+	    adresse: string;
+	    code_postal: string;
+	    ville: string;
+	    pays: string;
+	    note_fixe: string;
+	    actif: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateMedecinRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.licence = source["licence"];
+	        this.nomComplet = source["nomComplet"];
+	        this.specialisation = source["specialisation"];
+	        this.telephone = source["telephone"];
+	        this.extension = source["extension"];
+	        this.cellulaire = source["cellulaire"];
+	        this.email = source["email"];
+	        this.adresse = source["adresse"];
+	        this.code_postal = source["code_postal"];
+	        this.ville = source["ville"];
+	        this.pays = source["pays"];
+	        this.note_fixe = source["note_fixe"];
+	        this.actif = source["actif"];
+	    }
+	}
 	export class CreateNoteRequest {
 	    client_id: number;
 	    date_intervention: string;
@@ -196,6 +232,67 @@ export namespace models {
 	        this.sujet = source["sujet"];
 	        this.contenu = source["contenu"];
 	    }
+	}
+	export class Medecin {
+	    id: number;
+	    licence: string;
+	    nomComplet: string;
+	    specialisation: string;
+	    telephone: string;
+	    extension: string;
+	    cellulaire: string;
+	    email: string;
+	    adresse: string;
+	    code_postal: string;
+	    ville: string;
+	    pays: string;
+	    note_fixe: string;
+	    actif: number;
+	    created_by: number;
+	    // Go type: time
+	    created_at: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new Medecin(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.licence = source["licence"];
+	        this.nomComplet = source["nomComplet"];
+	        this.specialisation = source["specialisation"];
+	        this.telephone = source["telephone"];
+	        this.extension = source["extension"];
+	        this.cellulaire = source["cellulaire"];
+	        this.email = source["email"];
+	        this.adresse = source["adresse"];
+	        this.code_postal = source["code_postal"];
+	        this.ville = source["ville"];
+	        this.pays = source["pays"];
+	        this.note_fixe = source["note_fixe"];
+	        this.actif = source["actif"];
+	        this.created_by = source["created_by"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class Note {
 	    id: number;
@@ -312,6 +409,58 @@ export namespace models {
 	        this.search_query = source["search_query"];
 	    }
 	}
+	export class Residence {
+	    id: number;
+	    region: string;
+	    registre: string;
+	    titre: string;
+	    municipalite: string;
+	    adresse: string;
+	    ville: string;
+	    code_postal: string;
+	    telephone: string;
+	    capacite: number;
+	    type_resid: string;
+	    proprietaires: string;
+	    services: string;
+	    date_certification: string;
+	    statut: string;
+	    source_url: string;
+	    notes: string;
+	    derniere_verification: string;
+	    date_ajout: string;
+	    date_maj: string;
+	    date_fermeture: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Residence(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.region = source["region"];
+	        this.registre = source["registre"];
+	        this.titre = source["titre"];
+	        this.municipalite = source["municipalite"];
+	        this.adresse = source["adresse"];
+	        this.ville = source["ville"];
+	        this.code_postal = source["code_postal"];
+	        this.telephone = source["telephone"];
+	        this.capacite = source["capacite"];
+	        this.type_resid = source["type_resid"];
+	        this.proprietaires = source["proprietaires"];
+	        this.services = source["services"];
+	        this.date_certification = source["date_certification"];
+	        this.statut = source["statut"];
+	        this.source_url = source["source_url"];
+	        this.notes = source["notes"];
+	        this.derniere_verification = source["derniere_verification"];
+	        this.date_ajout = source["date_ajout"];
+	        this.date_maj = source["date_maj"];
+	        this.date_fermeture = source["date_fermeture"];
+	    }
+	}
 	export class UpdateClientRequest {
 	    id: number;
 	    nom: string;
@@ -370,6 +519,44 @@ export namespace models {
 	        this.note_fixe = source["note_fixe"];
 	        this.actif = source["actif"];
 	        this.dcd = source["dcd"];
+	    }
+	}
+	export class UpdateMedecinRequest {
+	    id: number;
+	    licence: string;
+	    nomComplet: string;
+	    specialisation: string;
+	    telephone: string;
+	    extension: string;
+	    cellulaire: string;
+	    email: string;
+	    adresse: string;
+	    code_postal: string;
+	    ville: string;
+	    pays: string;
+	    note_fixe: string;
+	    actif: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateMedecinRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.licence = source["licence"];
+	        this.nomComplet = source["nomComplet"];
+	        this.specialisation = source["specialisation"];
+	        this.telephone = source["telephone"];
+	        this.extension = source["extension"];
+	        this.cellulaire = source["cellulaire"];
+	        this.email = source["email"];
+	        this.adresse = source["adresse"];
+	        this.code_postal = source["code_postal"];
+	        this.ville = source["ville"];
+	        this.pays = source["pays"];
+	        this.note_fixe = source["note_fixe"];
+	        this.actif = source["actif"];
 	    }
 	}
 	export class UpdateProfileRequest {

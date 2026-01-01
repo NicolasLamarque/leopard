@@ -11,11 +11,17 @@ export function CreateClient(arg1:models.CreateClientRequest):Promise<number>;
 
 export function CreateClientFolderStructure(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
 
+export function CreateMedecin(arg1:models.CreateMedecinRequest):Promise<number>;
+
 export function CreateNote(arg1:models.CreateNoteRequest):Promise<number>;
 
 export function DeleteClient(arg1:number):Promise<void>;
 
+export function DeleteMedecin(arg1:number):Promise<void>;
+
 export function DeleteNote(arg1:number):Promise<void>;
+
+export function DeleteResidence(arg1:number):Promise<void>;
 
 export function ExportToClientFolder(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
 
@@ -33,11 +39,23 @@ export function GetClients():Promise<Array<models.Client>>;
 
 export function GetCurrentUserProfile():Promise<models.User>;
 
+export function GetMedecinByID(arg1:number):Promise<models.Medecin>;
+
+export function GetMedecins():Promise<Array<models.Medecin>>;
+
 export function GetNoteByID(arg1:number):Promise<models.Note>;
 
 export function GetNotesStats(arg1:number):Promise<Record<string, any>>;
 
+export function GetResidenceByID(arg1:number):Promise<models.Residence>;
+
+export function GetResidenceForDetails(arg1:string,arg2:boolean):Promise<models.Residence>;
+
+export function GetResidences():Promise<Array<models.Residence>>;
+
 export function GetSettings():Promise<models.UserSettings>;
+
+export function InsertResidence(arg1:models.Residence):Promise<void>;
 
 export function ListClientFolders():Promise<Array<string>>;
 
@@ -53,10 +71,20 @@ export function OpenMainClientsFolder():Promise<main.ClientFolderResult>;
 
 export function RenameClientFolder(arg1:string,arg2:string):Promise<main.ClientFolderResult>;
 
+export function SearchMedecins(arg1:string):Promise<Array<models.Medecin>>;
+
+export function SearchResidences(arg1:string,arg2:string,arg3:string):Promise<Array<models.Residence>>;
+
+export function SyncRPA():Promise<Record<string, any>>;
+
 export function UpdateClient(arg1:models.UpdateClientRequest):Promise<void>;
+
+export function UpdateMedecin(arg1:models.UpdateMedecinRequest):Promise<void>;
 
 export function UpdateNote(arg1:models.Note):Promise<void>;
 
 export function UpdateProfile(arg1:models.UpdateProfileRequest):Promise<void>;
+
+export function UpdateResidence(arg1:models.Residence):Promise<void>;
 
 export function UpdateSettings(arg1:models.UpdateSettingsRequest):Promise<void>;

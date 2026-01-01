@@ -62,7 +62,7 @@ export default {
   components: { LeopardLogo },
   emits: ['success'],
   setup(props, { emit }) {
-    const router = useRouter(); // <--- INITIALISE LE
+    //const router = useRouter(); // <--- INITIALISE LE
     const username = ref('')
     const password = ref('')
     const error = ref('')
@@ -75,7 +75,7 @@ export default {
         emit('success', user)
         
         // 2. ON DÉCLENCHE LE DASHBOARD ICI !
-        router.push('/clients') 
+        //router.push('/clients') 
         
       } catch (e) {
         error.value = 'Identifiants invalides'
