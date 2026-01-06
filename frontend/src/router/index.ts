@@ -5,7 +5,7 @@ import HomePage from '../views/homePage.vue'
 import ClientPage from '../views/ClientPage.vue'
 import ClientDetailsPage from '../views/ClientDetailsPage.vue'
 import SettingPage from '../views/SettingPage.vue'
-import RPAPage from '../views/RPAPage.vue'
+import RPAPage from '../views/etablissements/RPAPage.vue'
 
 const routes: Array<RouteRecordRaw> = [
   { 
@@ -54,17 +54,28 @@ const routes: Array<RouteRecordRaw> = [
         name: 'professionnels', 
         component: () => import('../views/ProfessionnelPage.vue')
       },
+      
+      // 🏢 Établissements (page avec onglets RPA/CHSLD/RI)
       { 
         path: 'etablissements', 
         name: 'etablissements', 
-        component: () => import('../views/EtablissementPage.vue')
+        component: () => import('../views/etablissements/EtablissementPage.vue')
       },
-      // 🤖 Gestion RPA
+      
+      // 🏠 RPA (page dédiée - garde-la si tu l'utilises encore)
       {
         path: 'rpa',
         name: 'rpa',
         component: RPAPage
       },
+      
+      // 🏥 CHSLD (nouvelle page dédiée)
+      {
+        path: 'chsld',
+        name: 'chsld',
+        component: () => import('../views/etablissements/CHSLDPage.vue')
+      },
+      
       { 
         path: 'rapports', 
         name: 'rapports', 

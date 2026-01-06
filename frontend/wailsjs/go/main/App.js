@@ -10,6 +10,10 @@ export function ClientFolderExists(arg1) {
   return window['go']['main']['App']['ClientFolderExists'](arg1);
 }
 
+export function CreateCHSLD(arg1) {
+  return window['go']['main']['App']['CreateCHSLD'](arg1);
+}
+
 export function CreateClient(arg1) {
   return window['go']['main']['App']['CreateClient'](arg1);
 }
@@ -18,12 +22,20 @@ export function CreateClientFolderStructure(arg1) {
   return window['go']['main']['App']['CreateClientFolderStructure'](arg1);
 }
 
+export function CreateFirstUser(arg1) {
+  return window['go']['main']['App']['CreateFirstUser'](arg1);
+}
+
 export function CreateMedecin(arg1) {
   return window['go']['main']['App']['CreateMedecin'](arg1);
 }
 
 export function CreateNote(arg1) {
   return window['go']['main']['App']['CreateNote'](arg1);
+}
+
+export function DeleteCHSLD(arg1) {
+  return window['go']['main']['App']['DeleteCHSLD'](arg1);
 }
 
 export function DeleteClient(arg1) {
@@ -46,8 +58,28 @@ export function ExportToClientFolder(arg1) {
   return window['go']['main']['App']['ExportToClientFolder'](arg1);
 }
 
+export function GetAllCHSLD() {
+  return window['go']['main']['App']['GetAllCHSLD']();
+}
+
 export function GetBasePath() {
   return window['go']['main']['App']['GetBasePath']();
+}
+
+export function GetCHSLDByID(arg1) {
+  return window['go']['main']['App']['GetCHSLDByID'](arg1);
+}
+
+export function GetCHSLDByRegion(arg1) {
+  return window['go']['main']['App']['GetCHSLDByRegion'](arg1);
+}
+
+export function GetCHSLDByStatut(arg1) {
+  return window['go']['main']['App']['GetCHSLDByStatut'](arg1);
+}
+
+export function GetCHSLDStats() {
+  return window['go']['main']['App']['GetCHSLDStats']();
 }
 
 export function GetClientByID(arg1) {
@@ -106,6 +138,10 @@ export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
 
+export function GetUserCount() {
+  return window['go']['main']['App']['GetUserCount']();
+}
+
 export function InsertResidence(arg1) {
   return window['go']['main']['App']['InsertResidence'](arg1);
 }
@@ -138,6 +174,10 @@ export function RenameClientFolder(arg1, arg2) {
   return window['go']['main']['App']['RenameClientFolder'](arg1, arg2);
 }
 
+export function SearchCHSLD(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SearchCHSLD'](arg1, arg2, arg3);
+}
+
 export function SearchMedecins(arg1) {
   return window['go']['main']['App']['SearchMedecins'](arg1);
 }
@@ -148,6 +188,10 @@ export function SearchResidences(arg1, arg2, arg3) {
 
 export function SyncRPA() {
   return window['go']['main']['App']['SyncRPA']();
+}
+
+export function UpdateCHSLD(arg1) {
+  return window['go']['main']['App']['UpdateCHSLD'](arg1);
 }
 
 export function UpdateClient(arg1) {

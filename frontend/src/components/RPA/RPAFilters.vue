@@ -2,41 +2,46 @@
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6 sticky top-24">
     <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
       <Filter :size="20" />
-      Filtres
+      Recherche avancée
     </h3>
 
-    <!-- Recherche rapide -->
+    <!-- 1. Nom de la résidence -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Recherche rapide
+        Nom de la résidence
       </label>
       <input
         v-model="localFilters.nom"
         @input="debouncedSearch"
         type="text"
-        placeholder="Nom du RPA..."
+        placeholder="Ex: Manoir, Villa..."
         class="w-full border dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
       />
     </div>
 
-    <!-- Municipalité -->
+    <!-- 2. Municipalité -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Municipalité
+        <span class="text-xs text-gray-400">(min 4 caractères)</span>
       </label>
       <input
         v-model="localFilters.municipalite"
         @input="debouncedSearch"
         type="text"
         placeholder="Ex: Montréal, Québec..."
+        minlength="4"
         class="w-full border dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
       />
+      <p v-if="localFilters.municipalite.length > 0 && localFilters.municipalite.length < 4" class="text-xs text-orange-500 mt-1">
+        ⚠️ Minimum 4 caractères requis
+      </p>
     </div>
 
-    <!-- Région -->
+    <!-- 3. Région sociosanitaire -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Région
+        Région sociosanitaire
       </label>
       <select
         v-model="localFilters.region"
@@ -44,30 +49,45 @@
         class="w-full border dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
       >
         <option value="">Toutes les régions</option>
-        <option value="Abitibi-Témiscamingue">Abitibi-Témiscamingue</option>
-        <option value="Bas-Saint-Laurent">Bas-Saint-Laurent</option>
-        <option value="Capitale-Nationale">Capitale-Nationale</option>
-        <option value="Centre-du-Québec">Centre-du-Québec</option>
-        <option value="Chaudière-Appalaches">Chaudière-Appalaches</option>
-        <option value="Côte-Nord">Côte-Nord</option>
-        <option value="Estrie">Estrie</option>
-        <option value="Gaspésie–Îles-de-la-Madeleine">Gaspésie–Îles-de-la-Madeleine</option>
-        <option value="Lanaudière">Lanaudière</option>
-        <option value="Laurentides">Laurentides</option>
-        <option value="Laval">Laval</option>
-        <option value="Mauricie">Mauricie</option>
-        <option value="Montérégie">Montérégie</option>
-        <option value="Montréal">Montréal</option>
-        <option value="Nord-du-Québec">Nord-du-Québec</option>
-        <option value="Outaouais">Outaouais</option>
-        <option value="Saguenay–Lac-Saint-Jean">Saguenay–Lac-Saint-Jean</option>
+        <option value="Abitibi-Témiscamingue">01 - Abitibi-Témiscamingue</option>
+        <option value="Bas-Saint-Laurent">02 - Bas-Saint-Laurent</option>
+        <option value="Capitale-Nationale">03 - Capitale-Nationale</option>
+        <option value="Centre-du-Québec">04 - Centre-du-Québec</option>
+        <option value="Chaudière-Appalaches">05 - Chaudière-Appalaches</option>
+        <option value="Côte-Nord">06 - Côte-Nord</option>
+        <option value="Estrie">07 - Estrie</option>
+        <option value="Gaspésie—Îles-de-la-Madeleine">08 - Gaspésie—Îles-de-la-Madeleine</option>
+        <option value="Lanaudière">09 - Lanaudière</option>
+        <option value="Laurentides">10 - Laurentides</option>
+        <option value="Laval">11 - Laval</option>
+        <option value="Mauricie">12 - Mauricie</option>
+        <option value="Montérégie">13 - Montérégie</option>
+        <option value="Montréal">14 - Montréal</option>
+        <option value="Nord-du-Québec">15 - Nord-du-Québec</option>
+        <option value="Outaouais">16 - Outaouais</option>
+        <option value="Saguenay—Lac-Saint-Jean">17 - Saguenay—Lac-Saint-Jean</option>
       </select>
     </div>
 
-    <!-- Statut -->
+    <!-- 4. Numéro au registre -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Numéro au registre
+      </label>
+      <input
+        v-model="localFilters.registre"
+        @input="debouncedSearch"
+        type="text"
+        placeholder="Ex: 6540"
+        class="w-full border dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono"
+      />
+    </div>
+
+    <!-- 5. Statut (TON FILTRE PERSO) -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Statut
+        <span class="text-xs text-gray-400">(filtrage local)</span>
       </label>
       <div class="space-y-2">
         <label class="flex items-center gap-2 cursor-pointer">
@@ -161,7 +181,10 @@ let debounceTimer = null
 const debouncedSearch = () => {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
-    handleSearch()
+    // Ne rechercher que si municipalité vide OU >= 4 caractères
+    if (localFilters.value.municipalite === '' || localFilters.value.municipalite.length >= 4) {
+      handleSearch()
+    }
   }, 500)
 }
 
@@ -175,6 +198,7 @@ const handleReset = () => {
     municipalite: '',
     nom: '',
     region: '',
+    registre: '',
     statut: ''
   }
   emit('update:filters', localFilters.value)
@@ -187,6 +211,7 @@ const activeFiltersCount = computed(() => {
   if (localFilters.value.municipalite) count++
   if (localFilters.value.nom) count++
   if (localFilters.value.region) count++
+  if (localFilters.value.registre) count++
   if (localFilters.value.statut) count++
   return count
 })

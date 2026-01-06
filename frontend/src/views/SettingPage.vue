@@ -235,7 +235,7 @@ import {
   ChangePassword 
 } from '../../wailsjs/go/main/App'
 
-import RPAManager from '../components/RPAManager.vue'
+import RPAManager from '../components/RPA/RPAManager.vue'
 
 
 

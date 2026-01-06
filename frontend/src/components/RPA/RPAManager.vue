@@ -292,7 +292,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { RefreshCw, Building2, Eye, X } from 'lucide-vue-next'
-import { SearchResidences, SyncRPA } from '../../wailsjs/go/main/App'
+import { SearchResidences, SyncRPA } from '../../../wailsjs/go/main/App'
 
 
 const syncing = ref(false)

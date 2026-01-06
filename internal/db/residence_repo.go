@@ -2,25 +2,39 @@ package database
 
 import (
 	"database/sql"
-	"fmt" // Ajoute cet import en haut du fichier
-	"strconv"
-
-	models "leopard/internal/model"
+	"fmt"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
+	"unicode"
+
+	models "leopard/internal/model"
 
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/text/encoding/charmap"
 )
 
-// Ajoute ceci pour lire le body
+// 🛠️ Helper pour convertir string → *string
+// Si la string est vide, on retourne nil pour que SQLite enregistre NULL
+func stringPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
 
-// Ajoute ceci pour les accents
+// 🛠️ Helper pour déréférencer *string → string (utile pour les comparaisons)
+func stringVal(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
 
 // ========== CRUD BASIQUE ==========
 
-// GetAllResidences récupère toutes les résidences
 func (db *Database) GetAllResidences() ([]models.Residence, error) {
 	var residences []models.Residence
 	query := `SELECT * FROM residences ORDER BY municipalite, titre`
@@ -33,7 +47,6 @@ func (db *Database) GetAllResidences() ([]models.Residence, error) {
 	return residences, nil
 }
 
-// GetResidenceByID récupère une résidence par ID
 func (db *Database) GetResidenceByID(id int) (*models.Residence, error) {
 	var residence models.Residence
 	query := `SELECT * FROM residences WHERE id = ?`
@@ -44,60 +57,82 @@ func (db *Database) GetResidenceByID(id int) (*models.Residence, error) {
 	}
 	return &residence, nil
 }
+
+// GetResidenceByRegistre - Fonction appelée par app.go
 func (db *Database) GetResidenceByRegistre(registre string, sync bool) (*models.Residence, error) {
+	fmt.Printf("\n📖 [REPO] GetResidenceByRegistre appelé\n")
+	fmt.Printf("   - Registre: %s\n", registre)
+	fmt.Printf("   - Sync demandé: %v\n", sync)
+
 	var res models.Residence
 
-	// 1. Chercher en base de données d'abord
 	query := `SELECT * FROM residences WHERE registre = ?`
 	err := db.Get(&res, query, registre)
 	if err != nil {
+		fmt.Printf("❌ [REPO] Résidence non trouvée en DB: %v\n", err)
 		return nil, err
 	}
 
-	// 2. Si on demande la synchro et qu'on a l'URL
-	if sync && res.SourceURL != "" {
-		// ICI : Ton code de scraping qui remplit res.Services (Section 7)
-		// updatedRes, err := db.ScrapeAndSave(res.SourceURL)
-		// if err == nil { res = *updatedRes }
+	fmt.Printf("✅ [REPO] Résidence trouvée: %s\n", res.Titre)
+
+	// 🔄 SYNCHRONISATION EN TEMPS RÉEL (page abrégée)
+	if sync {
+		fmt.Println("🔄 [REPO] Actualisation en direct depuis MSSS...")
+
+		client := &http.Client{Timeout: 15 * time.Second}
+
+		// On passe la référence pour mettre à jour l'objet
+		db.scrapeRPADetailsSimple(client, &res)
+
+		// Mise à jour des timestamps avec stringPtr
+		nowStr := time.Now().Format("2006-01-02 15:04:05")
+		res.DateMAJ = stringPtr(nowStr)
+		res.DerniereVerification = stringPtr(nowStr)
+
+		// Sauvegarde en DB
+		err = db.InsertResidence(&res)
+		if err != nil {
+			fmt.Printf("⚠️ [REPO] Erreur sauvegarde après sync: %v\n", err)
+		} else {
+			fmt.Println("✅ [REPO] Données actualisées et sauvegardées en DB")
+		}
+	} else {
+		fmt.Println("📴 [REPO] Mode cache - Pas de synchronisation demandée")
 	}
 
 	return &res, nil
 }
 
-// InsertResidence insère une nouvelle résidence avec tous les détails extraits
-func (db *Database) InsertResidence(residence *models.Residence) error {
+// ========== INSERT / UPDATE (Utilisent les NamedExec de sqlx) ==========
+
+func (db *Database) InsertResidence(res *models.Residence) error {
 	query := `
         INSERT INTO residences (
-            region, registre, titre, municipalite, adresse, ville, code_postal,
+            region, registre, numero_interne, titre, municipalite, adresse, ville, code_postal,
             telephone, capacite, type_resid, proprietaires, services, 
-            date_certification, statut, source_url, notes, 
+            date_certification, statut, source_url, source_url_detaillee, 
             date_ajout, date_maj, derniere_verification
-        )
-        VALUES (
-            :region, :registre, :titre, :municipalite, :adresse, :ville, :code_postal,
+        ) VALUES (
+            :region, :registre, :numero_interne, :titre, :municipalite, :adresse, :ville, :code_postal,
             :telephone, :capacite, :type_resid, :proprietaires, :services, 
-            :date_certification, :statut, :source_url, :notes, 
+            :date_certification, :statut, :source_url, :source_url_detaillee, 
             :date_ajout, :date_maj, :derniere_verification
-        )
-        ON CONFLICT(registre) DO UPDATE SET
-            titre = excluded.titre,
-            municipalite = excluded.municipalite,
-            source_url = excluded.source_url,
-            derniere_verification = excluded.derniere_verification,
+        ) ON CONFLICT(registre) DO UPDATE SET
+            numero_interne = excluded.numero_interne,
+            adresse = excluded.adresse,
+            ville = excluded.ville,
+            code_postal = excluded.code_postal,
+            telephone = excluded.telephone,
+            capacite = excluded.capacite,
+            services = excluded.services,
             date_maj = excluded.date_maj
     `
-
-	_, err := db.NamedExec(query, residence)
-	if err != nil {
-		return fmt.Errorf("erreur lors de l'insertion/maj de la résidence: %w", err)
-	}
-	return nil
+	_, err := db.NamedExec(query, res)
+	return err
 }
 
-// UpdateResidence met à jour une résidence existante (utilisé lors de la synchro)
 func (db *Database) UpdateResidence(residence *models.Residence) error {
-	// On force la date de mise à jour à maintenant
-	residence.DateMAJ = time.Now().Format("2006-01-02 15:04:05")
+	residence.DateMAJ = stringPtr(time.Now().Format("2006-01-02 15:04:05"))
 
 	query := `
 		UPDATE residences
@@ -128,7 +163,6 @@ func (db *Database) UpdateResidence(residence *models.Residence) error {
 	return nil
 }
 
-// DeleteResidence supprime une résidence
 func (db *Database) DeleteResidence(id int) error {
 	query := `DELETE FROM residences WHERE id = ?`
 	_, err := db.Exec(query, id)
@@ -140,17 +174,15 @@ func (db *Database) DeleteResidence(id int) error {
 
 // ========== RECHERCHE ==========
 
-// SearchResidences recherche des résidences avec filtres
 func (db *Database) SearchResidences(municipalite, nom, statut string) ([]models.Residence, error) {
 	var residences []models.Residence
 
-	// On utilise % pour que si la chaîne est vide, SQL ignore le filtre
 	query := `
         SELECT * FROM residences 
         WHERE municipalite LIKE ? 
-        AND titre_rpa LIKE ? 
+        AND titre LIKE ? 
         AND statut LIKE ?
-        ORDER BY titre_rpa ASC`
+        ORDER BY titre ASC`
 
 	err := db.Select(&residences, query,
 		"%"+municipalite+"%",
@@ -162,7 +194,6 @@ func (db *Database) SearchResidences(municipalite, nom, statut string) ([]models
 
 // ========== SYNCHRONISATION RPA ==========
 
-// RPAStats statistiques de synchronisation
 type RPAStats struct {
 	TotalScraped int       `json:"total_scraped"`
 	Nouveaux     int       `json:"nouveaux"`
@@ -172,21 +203,21 @@ type RPAStats struct {
 	DateSync     time.Time `json:"date_sync"`
 }
 
-// SyncRPAFromMSSS scrape et synchronise les RPA depuis le site du MSSS
 func (db *Database) SyncRPAFromMSSS() (*RPAStats, error) {
 	stats := &RPAStats{
 		DateSync: time.Now(),
 		Erreurs:  []string{},
 	}
 
-	// 1. On aspire la liste brute (très rapide)
+	fmt.Println("🚀 DÉMARRAGE SYNCHRONISATION MSSS")
+
 	rpasScraped, err := db.scrapeRPAList()
 	if err != nil {
 		return nil, fmt.Errorf("erreur scraping: %w", err)
 	}
 	stats.TotalScraped = len(rpasScraped)
+	fmt.Printf("✅ %d RPA récupérés du MSSS\n", stats.TotalScraped)
 
-	// 2. On charge les existants pour comparer
 	existingRPAs, err := db.GetAllResidences()
 	if err != nil {
 		return nil, fmt.Errorf("erreur récupération existants: %w", err)
@@ -197,22 +228,19 @@ func (db *Database) SyncRPAFromMSSS() (*RPAStats, error) {
 		existingMap[existingRPAs[i].Registre] = &existingRPAs[i]
 	}
 
-	// 3. Traitement avec COMMIT IMMÉDIAT pour chaque ligne
 	for _, rpaNew := range rpasScraped {
 		tx, err := db.Begin()
 		if err != nil {
 			continue
 		}
 
-		// On ignore temporairement scrapeRPADetails pour voir si l'insertion marche
-		// db.scrapeRPADetails(client, &rpaNew)
-
 		if existing, found := existingMap[rpaNew.Registre]; found {
 			if db.needsUpdate(existing, &rpaNew) {
 				err := db.updateRPAInTx(tx, &rpaNew)
 				if err == nil {
 					tx.Commit()
-					fmt.Printf("✅ MAJ en DB: %s\n", rpaNew.Titre)
+					stats.MisAJour++
+					fmt.Printf("🔄 MAJ: %s\n", rpaNew.Titre)
 				} else {
 					tx.Rollback()
 					fmt.Printf("❌ Erreur MAJ: %v\n", err)
@@ -225,7 +253,8 @@ func (db *Database) SyncRPAFromMSSS() (*RPAStats, error) {
 			err := db.insertRPAInTx(tx, &rpaNew)
 			if err == nil {
 				tx.Commit()
-				fmt.Printf("✨ NOUVEAU en DB: %s\n", rpaNew.Titre)
+				stats.Nouveaux++
+				fmt.Printf("✨ NOUVEAU: %s\n", rpaNew.Titre)
 			} else {
 				tx.Rollback()
 				fmt.Printf("❌ Erreur Ajout: %v\n", err)
@@ -233,7 +262,6 @@ func (db *Database) SyncRPAFromMSSS() (*RPAStats, error) {
 		}
 	}
 
-	// 4. Marquer les disparus comme Fermés
 	for _, rpa := range existingMap {
 		if rpa.Statut == "actif" {
 			tx, _ := db.Begin()
@@ -248,11 +276,12 @@ func (db *Database) SyncRPAFromMSSS() (*RPAStats, error) {
 		}
 	}
 
+	fmt.Println("🎉 SYNCHRONISATION TERMINÉE")
 	return stats, nil
 }
+
 func (db *Database) scrapeRPAList() ([]models.Residence, error) {
 	baseURL := "http://k10.pub.msss.rtss.qc.ca"
-	// On utilise l'URL complète que tu as confirmée
 	searchURL := baseURL + "/public/K10FormRecherche.asp?hidPasseParFormulaireRecherche=1&cert=&act=Rechercher&nmResid=&nomMunicipalite=&cdRSS=&cdCLSC=&cdRLS=&cdMRC=&refTpResid=&refStForm=&noResReg=&boolLogeRepas=&boolSoin=&boolAssistance=&boolAlimentation=&boolLoisir=&boolSecurite=&nmProprio=&pnmProprio=&refStRes=F"
 
 	client := &http.Client{Timeout: 60 * time.Second}
@@ -261,7 +290,6 @@ func (db *Database) scrapeRPAList() ([]models.Residence, error) {
 		return nil, err
 	}
 
-	// Simulation d'un navigateur réel
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
 	resp, err := client.Do(req)
@@ -270,7 +298,6 @@ func (db *Database) scrapeRPAList() ([]models.Residence, error) {
 	}
 	defer resp.Body.Close()
 
-	// Correction des accents (Windows-1252 vers UTF-8)
 	utf8Reader := charmap.Windows1252.NewDecoder().Reader(resp.Body)
 	doc, err := goquery.NewDocumentFromReader(utf8Reader)
 	if err != nil {
@@ -280,7 +307,6 @@ func (db *Database) scrapeRPAList() ([]models.Residence, error) {
 	var rpas []models.Residence
 	now := time.Now().Format("2006-01-02 15:04:05")
 
-	// On cible la table. Le site du MSSS n'a pas de classe, on cherche l'entête.
 	doc.Find("table").Each(func(index int, table *goquery.Selection) {
 		if strings.Contains(strings.ToLower(table.Text()), "registre") {
 			table.Find("tr").Each(func(i int, s *goquery.Selection) {
@@ -292,27 +318,17 @@ func (db *Database) scrapeRPAList() ([]models.Residence, error) {
 
 					if reg != "" && reg != "Registre" && !strings.Contains(nom, "Nom de la") {
 						rpa := models.Residence{
-							Region:               cleanText(cols.Eq(1).Text()),
+							Region:               stringPtr(cleanText(cols.Eq(1).Text())),
 							Registre:             reg,
 							Titre:                nom,
-							Municipalite:         cleanText(cols.Eq(4).Text()),
+							Municipalite:         stringPtr(cleanText(cols.Eq(4).Text())),
 							Statut:               "actif",
-							DateAjout:            now,
-							DerniereVerification: now,
+							DateAjout:            stringPtr(now),
+							DerniereVerification: stringPtr(now),
 						}
 
-						// On stocke le LIEN pour usage futur
-						if link, exists := cols.Eq(3).Find("a").Attr("href"); exists {
-							// On s'assure que le lien est complet
-							rpa.SourceURL = baseURL + strings.TrimSpace(link)
-						}
-
-						fmt.Printf("🎯 [%d] %s (URL capturée)\n", len(rpas)+1, rpa.Titre)
-
-						// --- STRATÉGIE : ON NE FAIT PAS ÇA MAINTENANT ---
-						// db.scrapeRPADetails(client, &rpa)
-						// ------------------------------------------------
-
+						url := "http://k10.pub.msss.rtss.qc.ca/public/formulaire/K10FormCons.asp?noForm=" + reg
+						rpa.SourceURL = stringPtr(url)
 						rpas = append(rpas, rpa)
 					}
 				}
@@ -324,18 +340,22 @@ func (db *Database) scrapeRPAList() ([]models.Residence, error) {
 }
 
 func (db *Database) scrapeRPADetails(client *http.Client, rpa *models.Residence) {
-	resp, err := client.Get(rpa.SourceURL)
+	if rpa.SourceURL == nil {
+		return
+	}
+
+	resp, err := client.Get(*rpa.SourceURL)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
 
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	utf8Reader := charmap.Windows1252.NewDecoder().Reader(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(utf8Reader)
 	if err != nil {
 		return
 	}
 
-	// Utilitaire pour extraire la valeur proprement
 	extract := func(txt string, s *goquery.Selection, label string) string {
 		val := cleanText(strings.Replace(txt, label, "", 1))
 		if val == "" {
@@ -344,49 +364,57 @@ func (db *Database) scrapeRPADetails(client *http.Client, rpa *models.Residence)
 		return val
 	}
 
-	doc.Find("td, b, span, div").Each(func(i int, s *goquery.Selection) {
+	var servicesBuilder strings.Builder
+	inServicesSection := false
+
+	doc.Find("td, b, span, div, p").Each(func(i int, s *goquery.Selection) {
 		txt := s.Text()
+
+		if strings.Contains(txt, "7 - ") && strings.Contains(txt, "services offerts") {
+			inServicesSection = true
+			return
+		}
+
+		if inServicesSection && (strings.Contains(txt, "8 -") || strings.Contains(txt, "Commentaires")) {
+			inServicesSection = false
+			return
+		}
+
+		if inServicesSection && txt != "" && !strings.Contains(txt, "7 -") {
+			cleaned := cleanText(txt)
+			if len(cleaned) > 3 {
+				servicesBuilder.WriteString(cleaned)
+				servicesBuilder.WriteString("\n")
+			}
+		}
 
 		switch {
 		case strings.Contains(txt, "Adresse :"):
-			rpa.Adresse = extract(txt, s, "Adresse :")
-
+			rpa.Adresse = stringPtr(extract(txt, s, "Adresse :"))
 		case strings.Contains(txt, "Ville :"):
-			rpa.Ville = extract(txt, s, "Ville :")
-
+			rpa.Ville = stringPtr(extract(txt, s, "Ville :"))
 		case strings.Contains(txt, "Code postal :"):
-			rpa.CodePostal = extract(txt, s, "Code postal :")
-
+			rpa.CodePostal = stringPtr(extract(txt, s, "Code postal :"))
 		case strings.Contains(txt, "Téléphone :"):
-			rpa.Telephone = extract(txt, s, "Téléphone :")
-
+			rpa.Telephone = stringPtr(extract(txt, s, "Téléphone :"))
 		case strings.Contains(txt, "Capacité d'accueil :"):
 			valStr := extract(txt, s, "Capacité d'accueil :")
 			valInt, _ := strconv.Atoi(valStr)
 			rpa.Capacite = valInt
-
 		case strings.Contains(txt, "Propriétaire(s) :"):
-			rpa.Proprietaires = extract(txt, s, "Propriétaire(s) :")
-
+			rpa.Proprietaires = stringPtr(extract(txt, s, "Propriétaire(s) :"))
 		case strings.Contains(txt, "Type de résidence :"):
-			rpa.TypeResid = extract(txt, s, "Type de résidence :")
-
+			rpa.TypeResid = stringPtr(extract(txt, s, "Type de résidence :"))
 		case strings.Contains(txt, "Date de certification :"):
-			rpa.DateCertification = extract(txt, s, "Date de certification :")
-
-		// SECTION 7 - LES SERVICES
-		case strings.Contains(txt, "7 - Services offerts"):
-			// Souvent les services sont dans le bloc qui suit immédiatement ce titre
-			rpa.Services = extract(txt, s, "7 - Services offerts par la résidence")
-			if rpa.Services == "" {
-				// Si c'est un gros bloc en dessous, on prend le parent ou le voisin
-				rpa.Services = cleanText(s.Parent().Next().Text())
-			}
+			rpa.DateCertification = stringPtr(extract(txt, s, "Date de certification :"))
 		}
 	})
+
+	if servicesBuilder.Len() > 0 {
+		rpa.Services = stringPtr(strings.TrimSpace(servicesBuilder.String()))
+	}
 }
 
-// GetResidenceForDetails récupère une résidence et actualise les détails si connecté
 func (db *Database) GetResidenceForDetails(registre string, isConnected bool) (*models.Residence, error) {
 	var rpa models.Residence
 	err := db.Get(&rpa, "SELECT * FROM residences WHERE registre = ?", registre)
@@ -394,15 +422,13 @@ func (db *Database) GetResidenceForDetails(registre string, isConnected bool) (*
 		return nil, err
 	}
 
-	if isConnected && rpa.SourceURL != "" {
-		fmt.Printf("🔍 Actualisation en direct : %s\n", rpa.Titre)
-
-		client := &http.Client{Timeout: 10 * time.Second}
+	if isConnected && rpa.SourceURL != nil {
+		client := &http.Client{Timeout: 15 * time.Second}
 		db.scrapeRPADetails(client, &rpa)
 
-		// On transforme le temps présent en STRING
-		rpa.DateMAJ = time.Now().Format("2006-01-02 15:04:05")
-		rpa.DerniereVerification = time.Now().Format("2006-01-02 15:04:05")
+		nowStr := time.Now().Format("2006-01-02 15:04:05")
+		rpa.DateMAJ = stringPtr(nowStr)
+		rpa.DerniereVerification = stringPtr(nowStr)
 
 		db.InsertResidence(&rpa)
 	}
@@ -410,21 +436,104 @@ func (db *Database) GetResidenceForDetails(registre string, isConnected bool) (*
 	return &rpa, nil
 }
 
-// ========== FONCTIONS UTILITAIRES PRIVÉES ==========
+// ========== NOUVEAU SCRAPER OPTIMISÉ (La page abrégée) ==========
 
-func cleanText(s string) string {
-	s = strings.TrimSpace(s)
-	s = strings.ReplaceAll(s, "\n", " ")
-	s = strings.ReplaceAll(s, "\r", "")
-	return strings.Join(strings.Fields(s), " ")
+func (db *Database) scrapeRPADetailsSimple(client *http.Client, rpa *models.Residence) {
+	url := fmt.Sprintf("http://k10.pub.msss.rtss.qc.ca/public/K10ConsFormAbg.asp?Registre=%s", rpa.Registre)
+	fmt.Printf("\n--- 🌐 SCRAPING RPA #%s ---\n", rpa.Registre)
+
+	resp, err := client.Get(url)
+	if err != nil {
+		fmt.Printf("❌ ERREUR HTTP: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	utf8Reader := charmap.Windows1252.NewDecoder().Reader(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(utf8Reader)
+	if err != nil {
+		return
+	}
+
+	reCodePostal := regexp.MustCompile(`(?i)[A-Z][0-9][A-Z]\s?[0-9][A-Z][0-9]`)
+	reTelephone := regexp.MustCompile(`[0-9]{3}-[0-9]{3}-[0-9]{4}`)
+
+	// --- BLOC 1 : TABLE D'ADRESSE (textedanstableau) ---
+	doc.Find("table.textedanstableau tr td").Each(func(i int, s *goquery.Selection) {
+		line := cleanText(s.Text())
+		if line == "" || strings.Contains(strings.ToLower(line), "certification") {
+			return
+		}
+
+		// --- 1. CODE POSTAL ---
+		if reCodePostal.MatchString(line) {
+			cp := reCodePostal.FindString(line)
+			rpa.CodePostal = stringPtr(strings.ToUpper(cp))
+			fmt.Printf("   ✅ CP: %s\n", cp)
+		}
+
+		// --- 2. TÉLÉPHONE ---
+		if reTelephone.MatchString(line) {
+			tel := reTelephone.FindString(line)
+			rpa.Telephone = stringPtr(tel)
+			fmt.Printf("   ✅ TEL: %s\n", tel)
+		}
+
+		// --- 3. VILLE ---
+		if strings.Contains(line, "(Québec)") || strings.Contains(line, "(Quebec)") {
+			v := strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(line, "(Québec)", ""), "(Quebec)", ""))
+			rpa.Ville = stringPtr(v)
+			fmt.Printf("   ✅ VILLE: %s\n", v)
+		}
+
+		// --- 4. RÉGION ---
+		if strings.Contains(line, "-") && !reTelephone.MatchString(line) && !unicode.IsDigit(rune(line[0])) {
+			rpa.Region = stringPtr(line)
+			fmt.Printf("   ✅ RÉGION: %s\n", line)
+		}
+
+		// --- 5. ADRESSE ---
+		if unicode.IsDigit(rune(line[0])) && !reTelephone.MatchString(line) && !reCodePostal.MatchString(line) {
+			if !strings.Contains(line, " - ") {
+				rpa.Adresse = stringPtr(line)
+				fmt.Printf("   ✅ ADRESSE: %s\n", line)
+			}
+		}
+	})
+
+	// --- BLOC 2 : DÉTAILS TECHNIQUES (tableau) ---
+	doc.Find("table.tableau tr").Each(func(i int, s *goquery.Selection) {
+		label := strings.ToLower(cleanText(s.Find("td").First().Text()))
+		val := cleanText(s.Find("td").Last().Text())
+
+		if strings.Contains(label, "unités locatives de la rpa") {
+			if capVal, err := strconv.Atoi(val); err == nil {
+				rpa.Capacite = capVal
+				fmt.Printf("      ✅ CAPACITÉ: %d\n", capVal)
+			}
+		}
+		if strings.Contains(label, "type de résidence") {
+			rpa.TypeResid = stringPtr(val)
+			fmt.Printf("      ✅ TYPE: %s\n", val)
+		}
+		// Ajout du numéro interne si présent
+		if strings.Contains(label, "numéro interne") {
+			rpa.NumeroInterne = stringPtr(val)
+			fmt.Printf("      ✅ NUMÉRO INTERNE: %s\n", val)
+		}
+	})
+
+	fmt.Printf("--- 🏁 FIN SCRAPING #%s ---\n\n", rpa.Registre)
 }
 
-func (db *Database) needsUpdate(existing, new *models.Residence) bool {
-	return existing.Titre != new.Titre ||
-		existing.Municipalite != new.Municipalite ||
-		existing.Adresse != new.Adresse ||
-		existing.Telephone != new.Telephone || // Ajouté
-		existing.Services != new.Services // Ajouté
+// Fonction utilitaire pour vérifier le début d'une string
+func anyPrefix(s string, prefixes ...string) bool {
+	for _, p := range prefixes {
+		if strings.HasPrefix(s, p) {
+			return true
+		}
+	}
+	return false
 }
 
 func (db *Database) insertRPAInTx(tx *sql.Tx, rpa *models.Residence) error {
@@ -472,6 +581,30 @@ func (db *Database) markRPAFermeInTx(tx *sql.Tx, id int) error {
 		SET statut = 'ferme', date_fermeture = ?, date_maj = ? 
 		WHERE id = ?
 	`
-	_, err := tx.Exec(query, now, now, id)
+	_, err := tx.Exec(query, now, stringPtr(now), id)
 	return err
+}
+
+func cleanText(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "\r", "")
+	s = strings.ReplaceAll(s, "\t", " ")
+	return strings.Join(strings.Fields(s), " ")
+}
+
+func (db *Database) needsUpdate(existing, new *models.Residence) bool {
+	return existing.Titre != new.Titre ||
+		stringVal(existing.Municipalite) != stringVal(new.Municipalite) ||
+		stringVal(existing.Adresse) != stringVal(new.Adresse) ||
+		stringVal(existing.Telephone) != stringVal(new.Telephone) ||
+		stringVal(existing.Services) != stringVal(new.Services) ||
+		stringVal(existing.SourceURL) != stringVal(new.SourceURL)
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

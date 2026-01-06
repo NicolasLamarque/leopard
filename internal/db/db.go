@@ -141,18 +141,56 @@ func New(path string) (*Database, error) {
 	);
 	
 	CREATE TABLE IF NOT EXISTS "T_CHSLD" (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		"Region"	TEXT,
 		"TitreCHSLD"	TEXT,
 		"Adresse"	TEXT,
+		"Municipalite"	TEXT,
+		"CodePostal"	TEXT,
+		"Telephone"	TEXT,
+		telecopieur	TEXT,
+		"Poste_Garde_infirmiere" TEXT,
+		"Capacite"	INTEGER,	
+		"TypeCHSLD"	TEXT,
+		"Proprietaire"	TEXT,
+		"DateCertification"	TEXT,
+		"Statut"	TEXT,
+		"SourceURL"	TEXT,
 		"InfosCHSLD"	TEXT,
-		"EtablissementResponsable"	TEXT,
-		"TypeInstallation"	TEXT
+		"Notes"	TEXT,
+		"DateAjout"	TEXT,
+		"DateMaj"	TEXT
+	);
+
+	CREATE TABLE IF NOT EXISTS "T_RI" (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		"Region"	TEXT,
+		"TitreRI"	TEXT,
+		"Adresse"	TEXT,
+		"Municipalite"	TEXT,
+		"CodePostal"	TEXT,
+		"Telephone"	TEXT,
+		"telecopieur"	TEXT,
+		"direction_generale"	TEXT,
+		"direction_tel"	TEXT,
+		"Poste_Garde_infirmiere" TEXT,
+		"Capacite"	INTEGER,	
+		"TypeRI"	TEXT,
+		"Proprietaire"	TEXT,
+		"DateCertification"	TEXT,
+		"Statut"	TEXT,
+		"SourceURL"	TEXT,
+		"InfosCHSLD"	TEXT,
+		"Notes"	TEXT,
+		"DateAjout"	TEXT,
+		"DateMaj"	TEXT
 	);
 
 CREATE TABLE IF NOT EXISTS residences (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     region TEXT,
     registre TEXT NOT NULL UNIQUE,
+	numero_interne TEXT,
     titre TEXT NOT NULL,
     municipalite TEXT,
     adresse TEXT,
@@ -166,6 +204,7 @@ CREATE TABLE IF NOT EXISTS residences (
     date_certification TEXT,
     statut TEXT DEFAULT 'actif',
     source_url TEXT,
+	source_url_detaillee TEXT,
     notes TEXT,
     date_ajout DATETIME,
     date_maj DATETIME,

@@ -62,7 +62,7 @@
         icon="building"
         color="indigo"
         :count="stats.etablissements"
-        @click="navigate('RPA')"
+        @click="navigate('etablissements')"
       />
 
       <!-- Card Statistiques -->
@@ -132,24 +132,10 @@ const stats = ref({
   notaires: 0,
   professionnels: 0,
   etablissements: 0,
-  RPA: 0
 })
 
 const recentActivities = ref([
-  {
-    id: 1,
-    type: 'client',
-    description: 'Nouveau client ajouté: Marie Tremblay',
-    time: 'Il y a 2 heures',
-    icon: 'user-plus'
-  },
-  {
-    id: 2,
-    type: 'note',
-    description: 'Note créée pour Jean Dupont',
-    time: 'Il y a 4 heures',
-    icon: 'file-text'
-  }
+
 ])
 
 const navigate = (section) => {

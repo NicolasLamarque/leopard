@@ -7,13 +7,19 @@ export function ChangePassword(arg1:models.ChangePasswordRequest):Promise<void>;
 
 export function ClientFolderExists(arg1:string):Promise<boolean>;
 
+export function CreateCHSLD(arg1:models.CHSLD):Promise<void>;
+
 export function CreateClient(arg1:models.CreateClientRequest):Promise<number>;
 
 export function CreateClientFolderStructure(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
 
+export function CreateFirstUser(arg1:main.CreateFirstUserRequest):Promise<void>;
+
 export function CreateMedecin(arg1:models.CreateMedecinRequest):Promise<number>;
 
 export function CreateNote(arg1:models.CreateNoteRequest):Promise<number>;
+
+export function DeleteCHSLD(arg1:number):Promise<void>;
 
 export function DeleteClient(arg1:number):Promise<void>;
 
@@ -25,7 +31,17 @@ export function DeleteResidence(arg1:number):Promise<void>;
 
 export function ExportToClientFolder(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
 
+export function GetAllCHSLD():Promise<Array<models.CHSLD>>;
+
 export function GetBasePath():Promise<string>;
+
+export function GetCHSLDByID(arg1:number):Promise<models.CHSLD>;
+
+export function GetCHSLDByRegion(arg1:string):Promise<Array<models.CHSLD>>;
+
+export function GetCHSLDByStatut(arg1:string):Promise<Array<models.CHSLD>>;
+
+export function GetCHSLDStats():Promise<Record<string, any>>;
 
 export function GetClientByID(arg1:number):Promise<models.Client>;
 
@@ -55,6 +71,8 @@ export function GetResidences():Promise<Array<models.Residence>>;
 
 export function GetSettings():Promise<models.UserSettings>;
 
+export function GetUserCount():Promise<number>;
+
 export function InsertResidence(arg1:models.Residence):Promise<void>;
 
 export function ListClientFolders():Promise<Array<string>>;
@@ -71,11 +89,15 @@ export function OpenMainClientsFolder():Promise<main.ClientFolderResult>;
 
 export function RenameClientFolder(arg1:string,arg2:string):Promise<main.ClientFolderResult>;
 
+export function SearchCHSLD(arg1:string,arg2:string,arg3:string):Promise<Array<models.CHSLD>>;
+
 export function SearchMedecins(arg1:string):Promise<Array<models.Medecin>>;
 
 export function SearchResidences(arg1:string,arg2:string,arg3:string):Promise<Array<models.Residence>>;
 
 export function SyncRPA():Promise<Record<string, any>>;
+
+export function UpdateCHSLD(arg1:models.CHSLD):Promise<void>;
 
 export function UpdateClient(arg1:models.UpdateClientRequest):Promise<void>;
 

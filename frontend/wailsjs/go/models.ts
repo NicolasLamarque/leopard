@@ -32,11 +32,77 @@ export namespace main {
 	        this.error = source["error"];
 	    }
 	}
+	export class CreateFirstUserRequest {
+	    username: string;
+	    password: string;
+	    fullName: string;
+	    role: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateFirstUserRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.username = source["username"];
+	        this.password = source["password"];
+	        this.fullName = source["fullName"];
+	        this.role = source["role"];
+	    }
+	}
 
 }
 
 export namespace models {
 	
+	export class CHSLD {
+	    id: number;
+	    Region: string;
+	    TitreCHSLD: string;
+	    Adresse: string;
+	    Municipalite: string;
+	    CodePostal: string;
+	    Telephone: string;
+	    telecopieur: string;
+	    Poste_Garde_infirmiere: string;
+	    Capacite: number;
+	    TypeCHSLD: string;
+	    Proprietaire: string;
+	    DateCertification: string;
+	    Statut: string;
+	    SourceURL: string;
+	    InfosCHSLD: string;
+	    Notes: string;
+	    DateAjout: string;
+	    DateMaj: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CHSLD(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.Region = source["Region"];
+	        this.TitreCHSLD = source["TitreCHSLD"];
+	        this.Adresse = source["Adresse"];
+	        this.Municipalite = source["Municipalite"];
+	        this.CodePostal = source["CodePostal"];
+	        this.Telephone = source["Telephone"];
+	        this.telecopieur = source["telecopieur"];
+	        this.Poste_Garde_infirmiere = source["Poste_Garde_infirmiere"];
+	        this.Capacite = source["Capacite"];
+	        this.TypeCHSLD = source["TypeCHSLD"];
+	        this.Proprietaire = source["Proprietaire"];
+	        this.DateCertification = source["DateCertification"];
+	        this.Statut = source["Statut"];
+	        this.SourceURL = source["SourceURL"];
+	        this.InfosCHSLD = source["InfosCHSLD"];
+	        this.Notes = source["Notes"];
+	        this.DateAjout = source["DateAjout"];
+	        this.DateMaj = source["DateMaj"];
+	    }
+	}
 	export class ChangePasswordRequest {
 	    current_password: string;
 	    new_password: string;
@@ -411,26 +477,28 @@ export namespace models {
 	}
 	export class Residence {
 	    id: number;
-	    region: string;
+	    region?: string;
 	    registre: string;
+	    numero_interne?: string;
 	    titre: string;
-	    municipalite: string;
-	    adresse: string;
-	    ville: string;
-	    code_postal: string;
-	    telephone: string;
+	    municipalite?: string;
+	    adresse?: string;
+	    ville?: string;
+	    code_postal?: string;
+	    telephone?: string;
 	    capacite: number;
-	    type_resid: string;
-	    proprietaires: string;
-	    services: string;
-	    date_certification: string;
+	    type_resid?: string;
+	    proprietaires?: string;
+	    services?: string;
+	    date_certification?: string;
 	    statut: string;
-	    source_url: string;
-	    notes: string;
-	    derniere_verification: string;
-	    date_ajout: string;
-	    date_maj: string;
-	    date_fermeture: string;
+	    source_url?: string;
+	    source_url_detaillee?: string;
+	    notes?: string;
+	    derniere_verification?: string;
+	    date_ajout?: string;
+	    date_maj?: string;
+	    date_fermeture?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Residence(source);
@@ -441,6 +509,7 @@ export namespace models {
 	        this.id = source["id"];
 	        this.region = source["region"];
 	        this.registre = source["registre"];
+	        this.numero_interne = source["numero_interne"];
 	        this.titre = source["titre"];
 	        this.municipalite = source["municipalite"];
 	        this.adresse = source["adresse"];
@@ -454,6 +523,7 @@ export namespace models {
 	        this.date_certification = source["date_certification"];
 	        this.statut = source["statut"];
 	        this.source_url = source["source_url"];
+	        this.source_url_detaillee = source["source_url_detaillee"];
 	        this.notes = source["notes"];
 	        this.derniere_verification = source["derniere_verification"];
 	        this.date_ajout = source["date_ajout"];

@@ -110,11 +110,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { Building2, RefreshCw, Plus } from 'lucide-vue-next'
-import RPAList from '../components/RPA/RPAList.vue'
-import RPADetails from '../components/RPA/RPADetails.vue'
-import RPAFilters from '../components/RPA/RPAFilters.vue'
-import RPASyncPanel from '../components/RPA/RPASyncPanel.vue'
-import { SearchResidences, DeleteResidence } from '../../wailsjs/go/main/App'
+import RPAList from '../../components/RPA/RPAList.vue'
+import RPADetails from '../../components/RPA/RPADetails.vue'
+import RPAFilters from '../../components/RPA/RPAFilters.vue'
+import RPASyncPanel from '../../components/RPA/RPASyncPanel.vue'
+import { SearchResidences, DeleteResidence } from '../../../wailsjs/go/main/App' // ⬅️ AJOUTÉ
 
 const rpas = ref([])
 const loading = ref(false)
@@ -122,11 +122,13 @@ const selectedRPA = ref(null)
 const detailsMode = ref('view') // 'view', 'edit', 'create'
 const showSyncPanel = ref(false)
 const showNewRPA = ref(false)
+const allRpas = ref([])
 
 const filters = ref({
   municipalite: '',
   nom: '',
   region: '',
+  registre: '',      // ⬅️ AJOUTÉ
   statut: ''
 })
 
@@ -142,21 +144,44 @@ const stats = computed(() => {
 })
 
 // Rechercher les RPA
-const handleSearch = async () => {
-  loading.value = true
-  try {
-    rpas.value = await SearchResidences(
-      filters.value.municipalite,
-      filters.value.nom,
-      filters.value.statut
-    )
-  } catch (err) {
-    console.error('Erreur recherche RPA:', err)
-    alert('Erreur lors de la recherche')
-  } finally {
-    loading.value = false
-  }
+// Fonction de filtrage local
+const handleSearch = () => {
+  console.log('🔍 Filtrage avec:', filters.value)
+  
+  rpas.value = allRpas.value.filter(rpa => {
+    // Filtre nom
+    if (filters.value.nom && !rpa.titre.toLowerCase().includes(filters.value.nom.toLowerCase())) {
+      return false
+    }
+    
+    // Filtre municipalité (min 4 caractères)
+    if (filters.value.municipalite && filters.value.municipalite.length >= 4) {
+      if (!rpa.municipalite.toLowerCase().includes(filters.value.municipalite.toLowerCase())) {
+        return false
+      }
+    }
+    
+    // Filtre région
+    if (filters.value.region && rpa.region !== filters.value.region) {
+      return false
+    }
+    
+    // Filtre registre
+    if (filters.value.registre && !rpa.registre.includes(filters.value.registre)) {
+      return false
+    }
+    
+    // Filtre statut
+    if (filters.value.statut && rpa.statut !== filters.value.statut) {
+      return false
+    }
+    
+    return true
+  })
+  
+  console.log('📊 Résultats filtrés:', rpas.value.length)
 }
+
 
 // Réinitialiser les filtres
 const handleResetFilters = () => {
@@ -164,11 +189,11 @@ const handleResetFilters = () => {
     municipalite: '',
     nom: '',
     region: '',
+    registre: '',
     statut: ''
   }
-  handleSearch()
+  rpas.value = [...allRpas.value]
 }
-
 // Sélectionner un RPA
 const handleSelectRPA = (rpa) => {
   selectedRPA.value = rpa
@@ -178,7 +203,7 @@ const handleSelectRPA = (rpa) => {
 // Sauvegarder les modifications
 const handleSaveRPA = async (updatedRPA) => {
   try {
-    // TODO: Appeler UpdateRPA(updatedRPA)
+    await UpdateRPA(updatedRPA)
     selectedRPA.value = null
     await handleSearch() // Recharger la liste
     alert('✅ RPA mis à jour!')
@@ -191,7 +216,7 @@ const handleSaveRPA = async (updatedRPA) => {
 // Créer un nouveau RPA
 const handleCreateRPA = async (newRPA) => {
   try {
-    // TODO: Appeler CreateRPA(newRPA)
+    await CreateRPA(newRPA)
     showNewRPA.value = false
     await handleSearch()
     alert('✅ RPA créé!')
@@ -222,8 +247,23 @@ const handleSynced = async () => {
   await handleSearch()
 }
 
+// Fonction de chargement initial
+const loadAllRPAs = async () => {
+  loading.value = true
+  try {
+    // Charge TOUT sans filtre
+    allRpas.value = await SearchResidences('', '', '')
+    rpas.value = [...allRpas.value]
+    console.log('✅ RPA chargés:', allRpas.value.length)
+  } catch (err) {
+    console.error('❌ Erreur chargement RPA:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
 // Charger au démarrage
 onMounted(() => {
-  handleSearch()
+  loadAllRPAs() 
 })
 </script>
