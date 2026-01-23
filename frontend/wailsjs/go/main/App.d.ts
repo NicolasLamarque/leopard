@@ -22,6 +22,8 @@ export function CreateMedecin(arg1:models.CreateMedecinRequest):Promise<number>;
 
 export function CreateNote(arg1:models.CreateNoteRequest):Promise<number>;
 
+export function CreateSubfolder(arg1:string,arg2:string):Promise<main.ClientFolderResult>;
+
 export function DeleteCHSLD(arg1:number):Promise<void>;
 
 export function DeleteClient(arg1:number):Promise<void>;
@@ -56,6 +58,8 @@ export function GetClientByID(arg1:number):Promise<models.Client>;
 
 export function GetClientFolderInfo(arg1:string):Promise<main.ClientFolderInfo>;
 
+export function GetClientFolderStructure(arg1:string):Promise<Record<string, any>>;
+
 export function GetClientNotes(arg1:number):Promise<Array<models.NoteListItem>>;
 
 export function GetClientNotesFiltered(arg1:models.NotesFilter):Promise<Array<models.NoteListItem>>;
@@ -66,9 +70,15 @@ export function GetContacts():Promise<Array<models.Contact>>;
 
 export function GetCurrentUserProfile():Promise<models.User>;
 
+export function GetDetailedFolderStructure(arg1:string):Promise<Record<string, any>>;
+
 export function GetExcelFileInfo(arg1:string):Promise<Record<string, any>>;
 
 export function GetMedecinByID(arg1:number):Promise<models.Medecin>;
+
+export function GetMedecinClients(arg1:string):Promise<Array<models.Client>>;
+
+export function GetMedecinClientsCount(arg1:string):Promise<number>;
 
 export function GetMedecins():Promise<Array<models.Medecin>>;
 
@@ -104,9 +114,13 @@ export function Logout():Promise<void>;
 
 export function OpenClientFolder(arg1:string):Promise<main.ClientFolderResult>;
 
+export function OpenFolder(arg1:string):Promise<main.ClientFolderResult>;
+
 export function OpenMainClientsFolder():Promise<main.ClientFolderResult>;
 
 export function RenameClientFolder(arg1:string,arg2:string):Promise<main.ClientFolderResult>;
+
+export function RepairClientFolderStructure(arg1:string):Promise<Record<string, any>>;
 
 export function SaveExcelFile(arg1:string,arg2:main.ExcelFileType):Promise<string>;
 

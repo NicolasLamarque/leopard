@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"time"
 )
 
@@ -63,39 +64,85 @@ func (a *App) initializeLeopardFolders() error {
 	return nil
 }
 
-// CreateClientFolderStructure crée la structure complète du dossier client
 func (a *App) CreateClientFolderStructure(data map[string]interface{}) ClientFolderResult {
+	// 1. Récupérer le numéro Leopard
 	leopardNumber, ok := data["leopardNumber"].(string)
 	if !ok || leopardNumber == "" {
-		return ClientFolderResult{Success: false, Error: "Numéro Leopard manquant"}
-	}
-
-	folderName, ok := data["folderName"].(string)
-	if !ok || folderName == "" {
-		folderName = leopardNumber
-	}
-
-	basePath := a.GetBasePath()
-	clientPath := filepath.Join(basePath, "Clients", folderName)
-
-	if _, err := os.Stat(clientPath); err == nil {
-		return ClientFolderResult{Success: false, Error: "Le dossier existe déjà"}
-	}
-
-	if err := os.MkdirAll(clientPath, 0755); err != nil {
-		return ClientFolderResult{Success: false, Error: fmt.Sprintf("Erreur création dossier: %v", err)}
-	}
-
-	subfolders := []string{"Evaluations", "Notes", "Rapports", "Correspondance", "Documents_medicaux", "Contrats"}
-
-	for _, subfolder := range subfolders {
-		subPath := filepath.Join(clientPath, subfolder)
-		if err := os.MkdirAll(subPath, 0755); err != nil {
-			fmt.Printf("⚠️ Erreur création sous-dossier %s: %v\n", subfolder, err)
+		return ClientFolderResult{
+			Success: false,
+			Error:   "Numéro Leopard manquant",
 		}
 	}
 
-	readmePath := filepath.Join(clientPath, "README.txt")
+	// 2. Récupérer le nom complet du dossier (ou utiliser juste le numéro)
+	folderName, ok := data["folderName"].(string)
+	if !ok || folderName == "" {
+		folderName = leopardNumber // Si pas de nom, on utilise juste le numéro
+	}
+
+	// 3. Construire le chemin complet
+	basePath := a.GetBasePath()
+	clientsPath := filepath.Join(basePath, "Clients")
+	fullClientPath := filepath.Join(clientsPath, folderName)
+
+	// 4. DÉBOGAGE : afficher ce qu'on essaie de créer
+	fmt.Printf("🔍 Tentative de création:\n")
+	fmt.Printf("   Base: %s\n", basePath)
+	fmt.Printf("   Clients: %s\n", clientsPath)
+	fmt.Printf("   Dossier final: %s\n", fullClientPath)
+
+	// 5. Vérifier si le dossier existe déjà
+	if _, err := os.Stat(fullClientPath); err == nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   "Le dossier existe déjà",
+			Path:    fullClientPath,
+		}
+	}
+
+	// 6. Créer le dossier principal
+	if err := os.MkdirAll(fullClientPath, 0755); err != nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Impossible de créer le dossier: %v", err),
+		}
+	}
+
+	fmt.Printf("✅ Dossier principal créé: %s\n", fullClientPath)
+
+	// 7. Créer les sous-dossiers
+	subfolders := []string{
+		"Evaluations",
+		"Notes",
+		"Rapports",
+		"Correspondance",
+		"Documents",
+		"Contrats",
+	}
+
+	for _, subfolder := range subfolders {
+		subPath := filepath.Join(fullClientPath, subfolder)
+		if err := os.MkdirAll(subPath, 0755); err != nil {
+			fmt.Printf("⚠️ Erreur création sous-dossier %s: %v\n", subfolder, err)
+		} else {
+			fmt.Printf("   ✅ Sous-dossier créé: %s\n", subfolder)
+
+			// Si c'est Documents, créer la sous-structure
+			if subfolder == "Documents" {
+				documentsSubfolders := []string{"Medicaux", "Legaux", "Identification", "Consentements"}
+				for _, docSub := range documentsSubfolders {
+					docSubPath := filepath.Join(subPath, docSub)
+					if err := os.MkdirAll(docSubPath, 0755); err != nil {
+						fmt.Printf("      ⚠️ Erreur Documents/%s: %v\n", docSub, err)
+					} else {
+						fmt.Printf("      📄 Créé: Documents/%s\n", docSub)
+					}
+				}
+			}
+		}
+	}
+	// 8. Créer le fichier README
+	readmePath := filepath.Join(fullClientPath, "README.txt")
 	readmeContent := fmt.Sprintf(
 		"Dossier Client Leopard\n"+
 			"=====================\n\n"+
@@ -106,30 +153,53 @@ func (a *App) CreateClientFolderStructure(data map[string]interface{}) ClientFol
 		time.Now().Format("2006-01-02 15:04:05"),
 	)
 
-	os.WriteFile(readmePath, []byte(readmeContent), 0644)
+	if err := os.WriteFile(readmePath, []byte(readmeContent), 0644); err != nil {
+		fmt.Printf("⚠️ Erreur création README: %v\n", err)
+	}
 
-	fmt.Printf("✅ Dossier client créé: %s\n", clientPath)
-
-	return ClientFolderResult{Success: true, Path: clientPath}
+	return ClientFolderResult{
+		Success: true,
+		Path:    fullClientPath,
+	}
 }
 
 // OpenClientFolder ouvre le dossier d'un client dans l'explorateur
-func (a *App) OpenClientFolder(folderName string) ClientFolderResult {
+func (a *App) OpenClientFolder(leopardNumber string) ClientFolderResult {
 	basePath := a.GetBasePath()
-	clientPath := filepath.Join(basePath, "Clients", folderName)
+	clientsPath := filepath.Join(basePath, "Clients")
 
-	if _, err := os.Stat(clientPath); os.IsNotExist(err) {
-		return ClientFolderResult{Success: false, Error: "Le dossier n'existe pas"}
+	// On cherche le dossier qui commence par le numéro Leopard
+	entries, err := os.ReadDir(clientsPath)
+	if err != nil {
+		return ClientFolderResult{Success: false, Error: "Impossible de lire le dossier Clients"}
 	}
 
+	var fullFolderPath string
+	targetLength := len(leopardNumber)
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			name := entry.Name()
+			if len(name) >= targetLength && name[:targetLength] == leopardNumber {
+				fullFolderPath = filepath.Join(clientsPath, name)
+				break
+			}
+		}
+	}
+
+	if fullFolderPath == "" {
+		return ClientFolderResult{Success: false, Error: "Dossier introuvable"}
+	}
+
+	// Ouvrir le dossier dans l'explorateur
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":
-		cmd = exec.Command("explorer", clientPath)
+		cmd = exec.Command("explorer", fullFolderPath)
 	case "darwin":
-		cmd = exec.Command("open", clientPath)
+		cmd = exec.Command("open", fullFolderPath)
 	case "linux":
-		cmd = exec.Command("xdg-open", clientPath)
+		cmd = exec.Command("xdg-open", fullFolderPath)
 	default:
 		return ClientFolderResult{Success: false, Error: "OS non supporté"}
 	}
@@ -138,7 +208,7 @@ func (a *App) OpenClientFolder(folderName string) ClientFolderResult {
 		return ClientFolderResult{Success: false, Error: fmt.Sprintf("Erreur ouverture: %v", err)}
 	}
 
-	return ClientFolderResult{Success: true, Path: clientPath}
+	return ClientFolderResult{Success: true, Path: fullFolderPath}
 }
 
 // ClientFolderExists vérifie si un dossier client existe
@@ -151,15 +221,17 @@ func (a *App) ClientFolderExists(leopardNumber string) bool {
 		return false
 	}
 
+	targetLength := len(leopardNumber) // Toujours la même longueur (17)
+
 	for _, entry := range entries {
 		if entry.IsDir() {
 			name := entry.Name()
-			if len(name) >= len(leopardNumber) && name[:len(leopardNumber)] == leopardNumber {
+			// On s'en crisse du reste : on compare juste le début sur la longueur exacte
+			if len(name) >= targetLength && name[:targetLength] == leopardNumber {
 				return true
 			}
 		}
 	}
-
 	return false
 }
 
@@ -306,4 +378,449 @@ func (a *App) OpenMainClientsFolder() ClientFolderResult {
 	}
 
 	return a.OpenClientFolder("") // On appelle ton OpenClientFolder existant
+}
+
+// GetClientFolderStructure retourne la structure détaillée avec statut de chaque sous-dossier
+func (a *App) GetClientFolderStructure(leopardNumber string) map[string]interface{} {
+	basePath := a.GetBasePath()
+	clientsPath := filepath.Join(basePath, "Clients")
+
+	// Trouver le dossier du client
+	entries, err := os.ReadDir(clientsPath)
+	if err != nil {
+		return map[string]interface{}{
+			"success": false,
+			"error":   "Impossible de lire le dossier Clients",
+		}
+	}
+
+	var clientPath string
+	targetLength := len(leopardNumber)
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			name := entry.Name()
+			if len(name) >= targetLength && name[:targetLength] == leopardNumber {
+				clientPath = filepath.Join(clientsPath, name)
+				break
+			}
+		}
+	}
+
+	if clientPath == "" {
+		return map[string]interface{}{
+			"success": false,
+			"error":   "Dossier client introuvable",
+		}
+	}
+
+	// Vérifier chaque sous-dossier attendu
+	expectedSubfolders := []string{
+		"Evaluations",
+		"Notes",
+		"Rapports",
+		"Correspondance",
+		"Documents",
+		"Contrats",
+	}
+
+	subfolderStatus := make(map[string]bool)
+
+	for _, subfolder := range expectedSubfolders {
+		subPath := filepath.Join(clientPath, subfolder)
+		_, err := os.Stat(subPath)
+		subfolderStatus[subfolder] = (err == nil)
+	}
+
+	return map[string]interface{}{
+		"success":    true,
+		"path":       clientPath,
+		"subfolders": subfolderStatus,
+	}
+}
+
+// RepairClientFolderStructure répare UNIQUEMENT ce qui manque (SAFE)
+func (a *App) RepairClientFolderStructure(leopardNumber string) map[string]interface{} {
+	basePath := a.GetBasePath()
+	clientsPath := filepath.Join(basePath, "Clients")
+
+	// 1. Trouver le dossier du client
+	entries, err := os.ReadDir(clientsPath)
+	if err != nil {
+		return map[string]interface{}{
+			"success": false,
+			"error":   "Impossible de lire le dossier Clients",
+		}
+	}
+
+	var clientPath string
+	targetLength := len(leopardNumber)
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			name := entry.Name()
+			if len(name) >= targetLength && name[:targetLength] == leopardNumber {
+				clientPath = filepath.Join(clientsPath, name)
+				break
+			}
+		}
+	}
+
+	if clientPath == "" {
+		return map[string]interface{}{
+			"success": false,
+			"error":   "Dossier client introuvable. Créez d'abord le dossier principal.",
+		}
+	}
+
+	fmt.Printf("🔧 Réparation sécurisée: %s\n", clientPath)
+
+	// 2. Liste des sous-dossiers attendus
+	expectedSubfolders := []string{
+		"Evaluations",
+		"Notes",
+		"Rapports",
+		"Correspondance",
+		"Documents",
+		"Contrats",
+	}
+
+	// 3. Vérifier et créer SEULEMENT ce qui manque
+	created := []string{}
+	alreadyExists := []string{}
+	errors := []string{}
+
+	for _, subfolder := range expectedSubfolders {
+		subPath := filepath.Join(clientPath, subfolder)
+
+		// Vérifier si existe
+		if _, err := os.Stat(subPath); os.IsNotExist(err) {
+			// N'existe PAS → Créer
+			if err := os.MkdirAll(subPath, 0755); err != nil {
+				errorMsg := fmt.Sprintf("%s: %v", subfolder, err)
+				errors = append(errors, errorMsg)
+				fmt.Printf("   ❌ Erreur: %s\n", errorMsg)
+			} else {
+				created = append(created, subfolder)
+				fmt.Printf("   ✅ Créé: %s\n", subfolder)
+
+				// Si c'est Documents, créer la sous-structure
+				if subfolder == "Documents" {
+					documentsSubfolders := []string{"Medicaux", "Legaux", "Identification", "Consentements"}
+					for _, docSub := range documentsSubfolders {
+						docSubPath := filepath.Join(subPath, docSub)
+						if err := os.MkdirAll(docSubPath, 0755); err != nil {
+							fmt.Printf("      ⚠️ Erreur Documents/%s: %v\n", docSub, err)
+						} else {
+							fmt.Printf("      📄 Créé: Documents/%s\n", docSub)
+						}
+					}
+				}
+			}
+		} else {
+			// Existe déjà → SKIP (sécurité)
+			alreadyExists = append(alreadyExists, subfolder)
+			fmt.Printf("   ℹ️ Ignoré (existe déjà): %s\n", subfolder)
+		}
+	}
+
+	// 4. Créer le README s'il n'existe pas (SAFE)
+	readmePath := filepath.Join(clientPath, "README.txt")
+	if _, err := os.Stat(readmePath); os.IsNotExist(err) {
+		readmeContent := fmt.Sprintf(
+			"Dossier Client Leopard\n"+
+				"=====================\n\n"+
+				"Numéro: %s\n"+
+				"Créé le: %s\n\n"+
+				"Ce dossier contient tous les documents relatifs à ce client.\n",
+			leopardNumber,
+			time.Now().Format("2006-01-02 15:04:05"),
+		)
+		os.WriteFile(readmePath, []byte(readmeContent), 0644)
+	}
+
+	// 5. Rapport détaillé
+	summary := fmt.Sprintf(
+		"Réparation terminée:\n"+
+			"- %d sous-dossiers créés\n"+
+			"- %d déjà existants (ignorés)\n"+
+			"- %d erreurs",
+		len(created),
+		len(alreadyExists),
+		len(errors),
+	)
+
+	fmt.Printf("📊 %s\n", summary)
+
+	return map[string]interface{}{
+		"success":       len(errors) == 0,
+		"created":       created,
+		"alreadyExists": alreadyExists,
+		"errors":        errors,
+		"summary":       summary,
+		"path":          clientPath,
+	}
+}
+
+// CreateSubfolder crée un sous-dossier spécifique (SAFE - ne touche pas à l'existant)
+func (a *App) CreateSubfolder(leopardNumber, subfolderName string) ClientFolderResult {
+	basePath := a.GetBasePath()
+	clientsPath := filepath.Join(basePath, "Clients")
+
+	// Trouver le dossier du client
+	entries, err := os.ReadDir(clientsPath)
+	if err != nil {
+		return ClientFolderResult{Success: false, Error: "Impossible de lire le dossier Clients"}
+	}
+
+	var clientPath string
+	targetLength := len(leopardNumber)
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			name := entry.Name()
+			if len(name) >= targetLength && name[:targetLength] == leopardNumber {
+				clientPath = filepath.Join(clientsPath, name)
+				break
+			}
+		}
+	}
+
+	if clientPath == "" {
+		return ClientFolderResult{Success: false, Error: "Dossier client introuvable"}
+	}
+
+	// Vérifier le chemin du sous-dossier
+	subPath := filepath.Join(clientPath, subfolderName)
+
+	// SÉCURITÉ: Vérifier si existe déjà
+	if info, err := os.Stat(subPath); err == nil {
+		if info.IsDir() {
+			// Compter les fichiers dedans
+			items, _ := os.ReadDir(subPath)
+			fileCount := 0
+			for _, item := range items {
+				if !item.IsDir() {
+					fileCount++
+				}
+			}
+
+			if fileCount > 0 {
+				return ClientFolderResult{
+					Success: false,
+					Error:   fmt.Sprintf("⚠️ Le sous-dossier existe déjà avec %d fichier(s). Opération annulée pour éviter toute perte.", fileCount),
+				}
+			} else {
+				return ClientFolderResult{
+					Success: true,
+					Path:    subPath,
+					Error:   "ℹ️ Le sous-dossier existe déjà (vide).",
+				}
+			}
+		}
+	}
+
+	// Créer le sous-dossier (il n'existe pas)
+	if err := os.MkdirAll(subPath, 0755); err != nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Erreur création: %v", err),
+		}
+	}
+
+	fmt.Printf("✅ Sous-dossier créé: %s/%s\n", clientPath, subfolderName)
+
+	return ClientFolderResult{Success: true, Path: subPath}
+}
+
+// SubfolderDetail contient les détails enrichis d'un sous-dossier
+type SubfolderDetail struct {
+	Name           string            `json:"name"`
+	Exists         bool              `json:"exists"`
+	Path           string            `json:"path"`
+	FileCount      int               `json:"fileCount"`
+	SubfolderCount int               `json:"subfolderCount"`
+	Files          []FileInfo        `json:"files,omitempty"`
+	Children       []SubfolderDetail `json:"children,omitempty"`
+}
+
+// FileInfo contient les métadonnées d'un fichier
+type FileInfo struct {
+	Name         string    `json:"name"`
+	Size         int64     `json:"size"`
+	ModifiedTime time.Time `json:"modifiedTime"`
+	Extension    string    `json:"extension"`
+}
+
+// GetDetailedFolderStructure retourne la structure complète avec métadonnées
+// ⚠️ NOUVELLE FONCTION - Ne remplace PAS GetClientFolderStructure
+func (a *App) GetDetailedFolderStructure(leopardNumber string) map[string]interface{} {
+	basePath := a.GetBasePath()
+	clientsPath := filepath.Join(basePath, "Clients")
+
+	// Trouver le dossier du client
+	entries, err := os.ReadDir(clientsPath)
+	if err != nil {
+		return map[string]interface{}{
+			"success": false,
+			"error":   "Impossible de lire le dossier Clients",
+		}
+	}
+
+	var clientPath string
+	targetLength := len(leopardNumber)
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			name := entry.Name()
+			if len(name) >= targetLength && name[:targetLength] == leopardNumber {
+				clientPath = filepath.Join(clientsPath, name)
+				break
+			}
+		}
+	}
+
+	if clientPath == "" {
+		return map[string]interface{}{
+			"success": false,
+			"error":   "Dossier client introuvable",
+		}
+	}
+
+	// Liste des sous-dossiers attendus (identique à votre liste existante)
+	expectedSubfolders := []string{
+		"Evaluations",
+		"Notes",
+		"Rapports",
+		"Correspondance",
+		"Documents",
+		"Contrats",
+	}
+
+	var folders []SubfolderDetail
+
+	for _, subfolderName := range expectedSubfolders {
+		subPath := filepath.Join(clientPath, subfolderName)
+
+		detail := SubfolderDetail{
+			Name: subfolderName,
+			Path: subPath,
+		}
+
+		// Vérifier si le dossier existe
+		if info, err := os.Stat(subPath); err == nil && info.IsDir() {
+			detail.Exists = true
+
+			// Analyser le contenu (appel fonction ci-dessous)
+			analyzeFolder(&detail, subPath)
+		} else {
+			detail.Exists = false
+		}
+
+		folders = append(folders, detail)
+	}
+
+	return map[string]interface{}{
+		"success": true,
+		"path":    clientPath,
+		"folders": folders,
+	}
+}
+
+// analyzeFolder analyse récursivement le contenu d'un dossier
+// 🆕 FONCTION UTILITAIRE - Ne remplace rien
+func analyzeFolder(detail *SubfolderDetail, folderPath string) {
+	entries, err := os.ReadDir(folderPath)
+	if err != nil {
+		return
+	}
+
+	var files []FileInfo
+	var children []SubfolderDetail
+	fileCount := 0
+	subfolderCount := 0
+
+	for _, entry := range entries {
+		entryPath := filepath.Join(folderPath, entry.Name())
+
+		if entry.IsDir() {
+			// C'est un sous-dossier
+			subfolderCount++
+
+			childDetail := SubfolderDetail{
+				Name:   entry.Name(),
+				Exists: true,
+				Path:   entryPath,
+			}
+
+			// Analyser ce sous-dossier (récursif, max 1 niveau)
+			analyzeFolder(&childDetail, entryPath)
+			children = append(children, childDetail)
+
+		} else {
+			// C'est un fichier
+			fileCount++
+
+			info, err := entry.Info()
+			if err == nil {
+				fileInfo := FileInfo{
+					Name:         entry.Name(),
+					Size:         info.Size(),
+					ModifiedTime: info.ModTime(),
+					Extension:    filepath.Ext(entry.Name()),
+				}
+				files = append(files, fileInfo)
+			}
+		}
+	}
+
+	// Trier les fichiers par date (plus récents en premier)
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].ModifiedTime.After(files[j].ModifiedTime)
+	})
+
+	detail.FileCount = fileCount
+	detail.SubfolderCount = subfolderCount
+	detail.Files = files
+	detail.Children = children
+}
+
+// OpenFolder ouvre un dossier spécifique dans l'explorateur
+// 🆕 NOUVELLE FONCTION - Différente de OpenClientFolder (qui cherche par numéro)
+func (a *App) OpenFolder(folderPath string) ClientFolderResult {
+	// Vérifier que le dossier existe
+	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
+		return ClientFolderResult{
+			Success: false,
+			Error:   "Le dossier n'existe pas",
+		}
+	}
+
+	// Ouvrir dans l'explorateur selon l'OS
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("explorer", folderPath)
+	case "darwin":
+		cmd = exec.Command("open", folderPath)
+	case "linux":
+		cmd = exec.Command("xdg-open", folderPath)
+	default:
+		return ClientFolderResult{
+			Success: false,
+			Error:   "OS non supporté",
+		}
+	}
+
+	if err := cmd.Start(); err != nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Erreur ouverture: %v", err),
+		}
+	}
+
+	return ClientFolderResult{
+		Success: true,
+		Path:    folderPath,
+	}
 }

@@ -111,7 +111,7 @@ export default {
       try {
         const user = await Login(username.value, password.value);
         emit('success', user);
-        router.push('/app/clients');
+        router.push({ name: 'home' });
       } catch (e) {
         error.value = 'Identifiants invalides';
       } finally {
@@ -153,7 +153,7 @@ export default {
         // Connexion automatique après création
         const user = await Login(username.value, password.value);
         emit('success', user);
-        router.push('/app/clients');
+        router.push({ name: 'home' });
       } catch (e) {
         error.value = e.message || 'Erreur lors de la création du compte';
       } finally {

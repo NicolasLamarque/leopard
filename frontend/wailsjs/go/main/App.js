@@ -38,6 +38,10 @@ export function CreateNote(arg1) {
   return window['go']['main']['App']['CreateNote'](arg1);
 }
 
+export function CreateSubfolder(arg1, arg2) {
+  return window['go']['main']['App']['CreateSubfolder'](arg1, arg2);
+}
+
 export function DeleteCHSLD(arg1) {
   return window['go']['main']['App']['DeleteCHSLD'](arg1);
 }
@@ -106,6 +110,10 @@ export function GetClientFolderInfo(arg1) {
   return window['go']['main']['App']['GetClientFolderInfo'](arg1);
 }
 
+export function GetClientFolderStructure(arg1) {
+  return window['go']['main']['App']['GetClientFolderStructure'](arg1);
+}
+
 export function GetClientNotes(arg1) {
   return window['go']['main']['App']['GetClientNotes'](arg1);
 }
@@ -126,12 +134,24 @@ export function GetCurrentUserProfile() {
   return window['go']['main']['App']['GetCurrentUserProfile']();
 }
 
+export function GetDetailedFolderStructure(arg1) {
+  return window['go']['main']['App']['GetDetailedFolderStructure'](arg1);
+}
+
 export function GetExcelFileInfo(arg1) {
   return window['go']['main']['App']['GetExcelFileInfo'](arg1);
 }
 
 export function GetMedecinByID(arg1) {
   return window['go']['main']['App']['GetMedecinByID'](arg1);
+}
+
+export function GetMedecinClients(arg1) {
+  return window['go']['main']['App']['GetMedecinClients'](arg1);
+}
+
+export function GetMedecinClientsCount(arg1) {
+  return window['go']['main']['App']['GetMedecinClientsCount'](arg1);
 }
 
 export function GetMedecins() {
@@ -202,12 +222,20 @@ export function OpenClientFolder(arg1) {
   return window['go']['main']['App']['OpenClientFolder'](arg1);
 }
 
+export function OpenFolder(arg1) {
+  return window['go']['main']['App']['OpenFolder'](arg1);
+}
+
 export function OpenMainClientsFolder() {
   return window['go']['main']['App']['OpenMainClientsFolder']();
 }
 
 export function RenameClientFolder(arg1, arg2) {
   return window['go']['main']['App']['RenameClientFolder'](arg1, arg2);
+}
+
+export function RepairClientFolderStructure(arg1) {
+  return window['go']['main']['App']['RepairClientFolderStructure'](arg1);
 }
 
 export function SaveExcelFile(arg1, arg2) {

@@ -5,12 +5,12 @@
 
 /**
  * Génère le numéro de dossier Leopard
- * Format: NOM(3 lettres) + PRENOM(1 lettre) + _ + DATE(YYYYMMDD)
- * Exemple: DUPA_20231215 pour Dupont Alice créé le 15/12/2023
+ * Format: NOM(3 lettres) + PRENOM(1 lettre) + _ + DATE(YYYYMMDD) + _XXX
+ * Exemple: DUPA_20231215_001 pour Dupont Alice créé le 15/12/2023
  */
 export function generateLeopardNumber(nom, prenom, createdAt = null) {
   try {
-    // Nettoyer et normaliser les noms (enlever accents, espaces, etc.)
+    // Nettoyer et normaliser les noms
     const cleanNom = normalizeString(nom).toUpperCase();
     const cleanPrenom = normalizeString(prenom).toUpperCase();
     
@@ -24,7 +24,7 @@ export function generateLeopardNumber(nom, prenom, createdAt = null) {
     const date = createdAt ? new Date(createdAt) : new Date();
     const datePart = formatDateForFolder(date);
     
-    // Format final: NNNP_YYYYMMDD
+    // Format final: NNNP_YYYYMMDD_XXX (le compteur sera ajouté par le backend)
     return `${nomPart}${prenomPart}_${datePart}`;
   } catch (error) {
     console.error('❌ Erreur génération numéro Leopard:', error);
@@ -41,7 +41,7 @@ function normalizeString(str) {
   return str
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
-    .replace(/[^a-zA-Z0-9]/g, '') // Garder seulement lettres et chiffres
+    .replace(/[^a-zA-Z]/g, '') // Garder SEULEMENT les lettres (pas de chiffres)
     .trim();
 }
 
@@ -73,40 +73,51 @@ const FOLDER_STRUCTURE = {
 /**
  * Crée le dossier complet du client sur le disque
  */
+/**
+ * Crée le dossier complet du client sur le disque
+ */
 export async function createClientFolder(clientData) {
   try {
-    const leopardNumber = clientData.no_dossier_leopard || 
-                         generateLeopardNumber(clientData.nom, clientData.prenom, clientData.created_at);
-    
-    if (!leopardNumber) {
-      throw new Error('Impossible de générer le numéro Leopard');
-    }
-    
-    // Nom du dossier: NNNP_YYYYMMDD - NOM Prénom
-    const folderName = `${leopardNumber} - ${clientData.nom} ${clientData.prenom}`;
+    console.log('📨 Données envoyées au backend:', clientData);
     
     // Vérifier que l'API Wails est disponible
     if (!window.go || !window.go.main || !window.go.main.App) {
       throw new Error('API Wails non disponible');
     }
     
-    // Appel au backend Wails pour créer le dossier
-    const result = await window.go.main.App.CreateClientFolderStructure({
-      leopardNumber,
-      folderName,
-      subfolders: FOLDER_STRUCTURE.subfolders
-    });
+    // Préparer les données pour Go
+    const dataForGo = {
+      leopardNumber: clientData.no_dossier_leopard || clientData.leopardNumber,
+      folderName: clientData.folderName || clientData.no_dossier_leopard
+    };
+    
+    console.log('🔧 Données formatées pour Go:', dataForGo);
+    
+    // Appel au backend
+    const result = await window.go.main.App.CreateClientFolderStructure(dataForGo);
+    
+    console.log('📥 Résultat du backend:', result);
     
     if (result.success) {
-      console.log(`✅ Dossier client créé: ${result.path}`);
       return {
         success: true,
-        leopardNumber,
+        leopardNumber: dataForGo.leopardNumber,
         path: result.path
       };
     }
     
-    throw new Error(result.error);
+    // Si le dossier existe déjà, on considère ça comme un succès
+    if (result.error && result.error.includes('existe déjà')) {
+      return {
+        success: true,
+        leopardNumber: dataForGo.leopardNumber,
+        path: result.path,
+        alreadyExists: true
+      };
+    }
+    
+    throw new Error(result.error || 'Erreur inconnue');
+    
   } catch (error) {
     console.error('❌ Erreur création dossier client:', error);
     return {
@@ -119,27 +130,32 @@ export async function createClientFolder(clientData) {
 /**
  * Ouvre le dossier d'un client spécifique
  */
-export async function openClientFolder(leopardNumber, clientName) {
+export async function openClientFolder(leopardNumber) {
   try {
-    const folderName = `${leopardNumber} - ${clientName}`;
+    console.log('📂 Ouverture du dossier:', leopardNumber);
     
     // Vérifier que l'API Wails est disponible
     if (!window.go || !window.go.main || !window.go.main.App) {
       throw new Error('API Wails non disponible');
     }
     
-    // Appel Wails pour ouvrir le dossier
-    const result = await window.go.main.App.OpenClientFolder(folderName);
+    // Appel Wails - le backend cherchera le dossier automatiquement
+    const result = await window.go.main.App.OpenClientFolder(leopardNumber);
+    
+    console.log('📥 Résultat ouverture:', result);
     
     if (result.success) {
-      console.log(`✅ Dossier ouvert: ${result.path}`);
-      return true;
+      return {
+        success: true,
+        path: result.path
+      };
     }
     
-    throw new Error(result.error);
+    throw new Error(result.error || 'Erreur inconnue');
+    
   } catch (error) {
     console.error('❌ Erreur ouverture dossier:', error);
-    return false;
+    throw error;
   }
 }
 
@@ -155,6 +171,7 @@ export async function clientFolderExists(leopardNumber) {
     }
     
     const result = await window.go.main.App.ClientFolderExists(leopardNumber);
+    console.log(`🔍 Vérification dossier ${leopardNumber}:`, result);
     return result;
   } catch (error) {
     console.error('❌ Erreur vérification dossier:', error);
@@ -242,8 +259,9 @@ export function testLeopardNumberGeneration() {
     { nom: 'Dupont', prenom: 'Alice', date: new Date('2023-12-15'), expected: 'DUPA_20231215' },
     { nom: 'Martin', prenom: 'Bob', date: new Date('2024-01-01'), expected: 'MARB_20240101' },
     { nom: 'Lefebvre', prenom: 'Catherine', date: new Date('2024-06-30'), expected: 'LEFC_20240630' },
-    { nom: 'Li', prenom: 'Jean', date: new Date('2024-12-21'), expected: 'LIXXJ_20241221' }, // Nom trop court
-    { nom: 'José-María', prenom: 'François', date: new Date('2024-03-15'), expected: 'JOSF_20240315' }, // Accents
+    { nom: 'Li', prenom: 'Jean', date: new Date('2024-12-21'), expected: 'LIXXJ_20241221' },
+    
+    { nom: 'José-María', prenom: 'François', date: new Date('2024-03-15'), expected: 'JOSF_20240315' },
   ];
   
   tests.forEach(test => {

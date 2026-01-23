@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"leopard/internal/crypto"
 	models "leopard/internal/model"
 )
 
@@ -156,4 +157,45 @@ func (db *Database) SearchMedecins(searchTerm string) ([]models.Medecin, error) 
 		return nil, fmt.Errorf("erreur recherche médecins: %w", err)
 	}
 	return medecins, nil
+}
+
+// À ajouter dans internal/db/medecin_repo.go
+
+// GetClientsByMedecinLicence récupère tous les clients actifs d'un médecin
+func (db *Database) GetClientsByMedecinLicence(licence string, cryptoSvc *crypto.CryptoService) ([]models.Client, error) {
+	var allClients []models.Client
+	var matchingClients []models.Client
+
+	// Récupérer TOUS les clients actifs (on va filtrer après déchiffrement)
+	query := `SELECT * FROM clients WHERE Actif = 1`
+
+	err := db.Select(&allClients, query)
+	if err != nil {
+		return nil, fmt.Errorf("erreur récupération clients: %w", err)
+	}
+
+	// Déchiffrer et filtrer
+	for i := range allClients {
+		// Déchiffrer le client
+		if err := decryptClient(&allClients[i], cryptoSvc); err != nil {
+			continue // Skip si erreur déchiffrement
+		}
+
+		// Comparer la licence déchiffrée
+		if allClients[i].MedecinFamilleNoLicence != nil &&
+			*allClients[i].MedecinFamilleNoLicence == licence {
+			matchingClients = append(matchingClients, allClients[i])
+		}
+	}
+
+	return matchingClients, nil
+}
+
+// GetMedecinClientsCount retourne le nombre de clients d'un médecin
+func (db *Database) GetMedecinClientsCount(licence string, cryptoSvc *crypto.CryptoService) (int, error) {
+	clients, err := db.GetClientsByMedecinLicence(licence, cryptoSvc)
+	if err != nil {
+		return 0, err
+	}
+	return len(clients), nil
 }

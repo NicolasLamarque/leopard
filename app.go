@@ -304,6 +304,24 @@ func (a *App) SearchMedecins(query string) ([]models.Medecin, error) {
 	return a.db.SearchMedecins(query)
 }
 
+// À ajouter dans app.go dans la section MÉDECINS
+
+// GetMedecinClients récupère tous les clients d'un médecin
+func (a *App) GetMedecinClients(licence string) ([]models.Client, error) {
+	if a.currentUser == nil {
+		return nil, errors.New("non authentifié")
+	}
+	return a.db.GetClientsByMedecinLicence(licence, a.cryptoSvc)
+}
+
+// GetMedecinClientsCount retourne le nombre de clients d'un médecin
+func (a *App) GetMedecinClientsCount(licence string) (int, error) {
+	if a.currentUser == nil {
+		return 0, errors.New("non authentifié")
+	}
+	return a.db.GetMedecinClientsCount(licence, a.cryptoSvc)
+}
+
 // ========== RÉSIDENCES / RPA ==========
 
 // ✅ CONSERVÉ - GetResidences (utilisé dans RPAPage.vue au démarrage)
