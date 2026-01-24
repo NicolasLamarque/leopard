@@ -111,10 +111,6 @@ func New(path string) (*Database, error) {
 		FOREIGN KEY(created_by) REFERENCES users(id)
 	);
 
-
-
-
-
 CREATE TABLE IF NOT EXISTS contacts (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	Nom TEXT NOT NULL,
@@ -143,7 +139,7 @@ CREATE TABLE IF NOT EXISTS contacts (
 	FOREIGN KEY(client_id) REFERENCES clients(id) 
 );
 
-		CREATE TABLE IF NOT EXISTS medecins (
+CREATE TABLE IF NOT EXISTS medecins (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		licence TEXT NOT NULL UNIQUE,
 		civilite TEXT,
@@ -171,7 +167,7 @@ CREATE TABLE IF NOT EXISTS contacts (
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 
-	CREATE TABLE IF NOT EXISTS notes (
+CREATE TABLE IF NOT EXISTS notes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
@@ -195,7 +191,7 @@ CREATE TABLE IF NOT EXISTS contacts (
     FOREIGN KEY(note_liee_id) REFERENCES notes(id) 
 );
 
-	CREATE TABLE IF NOT EXISTS user_settings (
+CREATE TABLE IF NOT EXISTS user_settings (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		user_id INTEGER UNIQUE NOT NULL,
 		theme TEXT DEFAULT 'light',
@@ -206,7 +202,7 @@ CREATE TABLE IF NOT EXISTS contacts (
 		FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 	);
 	
-	CREATE TABLE IF NOT EXISTS "T_CHSLD" (
+CREATE TABLE IF NOT EXISTS "T_CHSLD" (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		"Region"	TEXT,
 		"TitreCHSLD"	TEXT,
@@ -228,7 +224,7 @@ CREATE TABLE IF NOT EXISTS contacts (
 		"DateMaj"	TEXT
 	);
 
-	CREATE TABLE IF NOT EXISTS "T_RI" (
+CREATE TABLE IF NOT EXISTS "T_RI" (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		"Region"	TEXT,
 		"TitreRI"	TEXT,
@@ -277,6 +273,26 @@ CREATE TABLE IF NOT EXISTS residences (
     date_maj DATETIME,
     date_fermeture DATETIME,
     derniere_verification DATETIME
+);
+CREATE TABLE IF NOT EXISTS notaires (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	civilite TEXT NOT NULL,
+	prenom TEXT NOT NULL,
+	nom TEXT NOT NULL,
+	telephone TEXT,
+	cellulaire TEXT,
+	telecopieur TEXT,
+	adresse TEXT,
+	code_postal TEXT,
+	ville TEXT,
+	pays TEXT DEFAULT 'Canada',
+	email TEXT,
+	secteur_activite TEXT,
+	note_fixe TEXT,
+	actif INTEGER DEFAULT 1,
+	created_by INTEGER,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 	`

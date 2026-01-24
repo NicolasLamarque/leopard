@@ -71,6 +71,9 @@ import { Login } from '../../wailsjs/go/main/App';
 import LeopardLogo from './LeopardLogo.vue'; 
 import { useRouter } from 'vue-router';
 
+import { GetUserCount } from '../../wailsjs/go/main/App';
+
+
 export default {
   components: { LeopardLogo },
   emits: ['success'],

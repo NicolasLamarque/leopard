@@ -4,6 +4,8 @@ import {models} from '../models';
 import {main} from '../models';
 import {database} from '../models';
 
+export function ArchiveNotaire(arg1:number):Promise<void>;
+
 export function ChangePassword(arg1:models.ChangePasswordRequest):Promise<void>;
 
 export function ClientFolderExists(arg1:string):Promise<boolean>;
@@ -20,6 +22,8 @@ export function CreateFirstUser(arg1:main.CreateFirstUserRequest):Promise<void>;
 
 export function CreateMedecin(arg1:models.CreateMedecinRequest):Promise<number>;
 
+export function CreateNotaire(arg1:models.CreateNotaireRequest):Promise<number>;
+
 export function CreateNote(arg1:models.CreateNoteRequest):Promise<number>;
 
 export function CreateSubfolder(arg1:string,arg2:string):Promise<main.ClientFolderResult>;
@@ -34,6 +38,8 @@ export function DeleteExcelFile(arg1:string):Promise<void>;
 
 export function DeleteMedecin(arg1:number):Promise<void>;
 
+export function DeleteNotaire(arg1:number):Promise<void>;
+
 export function DeleteNote(arg1:number):Promise<void>;
 
 export function DeleteResidence(arg1:number):Promise<void>;
@@ -43,6 +49,8 @@ export function ExportToClientFolder(arg1:Record<string, any>):Promise<main.Clie
 export function GetAllCHSLD():Promise<Array<models.CHSLD>>;
 
 export function GetAllContactsByClientID(arg1:number):Promise<Array<models.Contact>>;
+
+export function GetAllNotaires():Promise<Array<models.Notaire>>;
 
 export function GetBasePath():Promise<string>;
 
@@ -66,6 +74,8 @@ export function GetClientNotesFiltered(arg1:models.NotesFilter):Promise<Array<mo
 
 export function GetClients():Promise<Array<models.Client>>;
 
+export function GetClientsByNotaire(arg1:number):Promise<Array<models.Client>>;
+
 export function GetContacts():Promise<Array<models.Contact>>;
 
 export function GetCurrentUserProfile():Promise<models.User>;
@@ -81,6 +91,8 @@ export function GetMedecinClients(arg1:string):Promise<Array<models.Client>>;
 export function GetMedecinClientsCount(arg1:string):Promise<number>;
 
 export function GetMedecins():Promise<Array<models.Medecin>>;
+
+export function GetNotaireByID(arg1:number):Promise<models.Notaire>;
 
 export function GetNoteByID(arg1:number):Promise<models.Note>;
 
@@ -149,6 +161,8 @@ export function UpdateClient(arg1:models.UpdateClientRequest):Promise<void>;
 export function UpdateContact(arg1:models.UpdateContactRequest):Promise<void>;
 
 export function UpdateMedecin(arg1:models.UpdateMedecinRequest):Promise<void>;
+
+export function UpdateNotaire(arg1:models.Notaire):Promise<void>;
 
 export function UpdateNote(arg1:models.Note):Promise<void>;
 

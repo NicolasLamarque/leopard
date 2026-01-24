@@ -516,6 +516,42 @@ export namespace models {
 	        this.actif = source["actif"];
 	    }
 	}
+	export class CreateNotaireRequest {
+	    civilite: string;
+	    prenom: string;
+	    nom: string;
+	    telephone?: string;
+	    cellulaire?: string;
+	    telecopieur?: string;
+	    adresse?: string;
+	    code_postal?: string;
+	    ville?: string;
+	    email?: string;
+	    secteur_activite?: string;
+	    note_fixe?: string;
+	    created_by: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateNotaireRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.civilite = source["civilite"];
+	        this.prenom = source["prenom"];
+	        this.nom = source["nom"];
+	        this.telephone = source["telephone"];
+	        this.cellulaire = source["cellulaire"];
+	        this.telecopieur = source["telecopieur"];
+	        this.adresse = source["adresse"];
+	        this.code_postal = source["code_postal"];
+	        this.ville = source["ville"];
+	        this.email = source["email"];
+	        this.secteur_activite = source["secteur_activite"];
+	        this.note_fixe = source["note_fixe"];
+	        this.created_by = source["created_by"];
+	    }
+	}
 	export class CreateNoteRequest {
 	    client_id: number;
 	    date_intervention: string;
@@ -627,6 +663,52 @@ export namespace models {
 		    }
 		    return a;
 		}
+	}
+	export class Notaire {
+	    id: number;
+	    civilite: string;
+	    prenom: string;
+	    nom: string;
+	    telephone?: string;
+	    cellulaire?: string;
+	    telecopieur?: string;
+	    adresse?: string;
+	    code_postal?: string;
+	    ville?: string;
+	    pays: string;
+	    email?: string;
+	    secteur_activite?: string;
+	    note_fixe?: string;
+	    actif: number;
+	    created_by?: number;
+	    created_at: string;
+	    updated_at: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Notaire(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.civilite = source["civilite"];
+	        this.prenom = source["prenom"];
+	        this.nom = source["nom"];
+	        this.telephone = source["telephone"];
+	        this.cellulaire = source["cellulaire"];
+	        this.telecopieur = source["telecopieur"];
+	        this.adresse = source["adresse"];
+	        this.code_postal = source["code_postal"];
+	        this.ville = source["ville"];
+	        this.pays = source["pays"];
+	        this.email = source["email"];
+	        this.secteur_activite = source["secteur_activite"];
+	        this.note_fixe = source["note_fixe"];
+	        this.actif = source["actif"];
+	        this.created_by = source["created_by"];
+	        this.created_at = source["created_at"];
+	        this.updated_at = source["updated_at"];
+	    }
 	}
 	export class Note {
 	    id: number;

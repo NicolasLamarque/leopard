@@ -72,7 +72,7 @@
             <AlertCircle :size="18" class="text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
             <div class="flex-1">
               <p class="text-xs font-bold text-red-900 dark:text-red-100 uppercase tracking-wide mb-1">
-                Contact d'urgence
+                Contact en cas d'urgence
               </p>
               <p class="font-semibold text-red-900 dark:text-red-100">
                 {{ urgenceContact.prenom }} {{ urgenceContact.nom }}
