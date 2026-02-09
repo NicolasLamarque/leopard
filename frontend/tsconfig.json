@@ -30,7 +30,7 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "src/**/*.js"
-  ],
+, "src/components/Notaires/Notairedetails.vue.old"  ],
   "exclude": [
     "node_modules",
     "dist",

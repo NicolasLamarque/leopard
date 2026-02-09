@@ -11,7 +11,8 @@ import {
   UserPlus, 
   FileText, 
   Search,
-  ChevronRight 
+  ChevronRight,
+  Phone
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -38,7 +39,8 @@ const iconComponent = computed(() => {
     'chart': BarChart,
     'user-plus': UserPlus,
     'file-text': FileText,
-    'search': Search
+    'search': Search,
+    'phone': Phone // Remplacer par l'icône téléphone si ajoutée à lucide-vue-next
   }
   // Retourne Users par défaut si la clé n'existe pas pour éviter un crash
   return icons[props.icon] || Users

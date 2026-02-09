@@ -76,6 +76,139 @@ export namespace main {
 
 export namespace models {
 	
+	export class Appel {
+	    id: number;
+	    // Go type: time
+	    date_appel: any;
+	    heure_appel: string;
+	    appelant_nom: string;
+	    appelant_prenom: string;
+	    appelant_telephone: string;
+	    appelant_relation: string;
+	    client_id?: number;
+	    prospect_nom: string;
+	    prospect_prenom: string;
+	    prospect_telephone: string;
+	    type_demande: string;
+	    motif_appel: string;
+	    priorite: string;
+	    statut: string;
+	    notes_internes: string;
+	    rdv_date?: string;
+	    rdv_heure: string;
+	    rdv_lieu: string;
+	    recu_par: number;
+	    assigne_a?: number;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new Appel(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.date_appel = this.convertValues(source["date_appel"], null);
+	        this.heure_appel = source["heure_appel"];
+	        this.appelant_nom = source["appelant_nom"];
+	        this.appelant_prenom = source["appelant_prenom"];
+	        this.appelant_telephone = source["appelant_telephone"];
+	        this.appelant_relation = source["appelant_relation"];
+	        this.client_id = source["client_id"];
+	        this.prospect_nom = source["prospect_nom"];
+	        this.prospect_prenom = source["prospect_prenom"];
+	        this.prospect_telephone = source["prospect_telephone"];
+	        this.type_demande = source["type_demande"];
+	        this.motif_appel = source["motif_appel"];
+	        this.priorite = source["priorite"];
+	        this.statut = source["statut"];
+	        this.notes_internes = source["notes_internes"];
+	        this.rdv_date = source["rdv_date"];
+	        this.rdv_heure = source["rdv_heure"];
+	        this.rdv_lieu = source["rdv_lieu"];
+	        this.recu_par = source["recu_par"];
+	        this.assigne_a = source["assigne_a"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class AppelListItem {
+	    id: number;
+	    // Go type: time
+	    date_appel: any;
+	    heure_appel: string;
+	    appelant_nom: string;
+	    appelant_prenom: string;
+	    appelant_telephone: string;
+	    prospect_nom: string;
+	    prospect_prenom: string;
+	    type_demande: string;
+	    priorite: string;
+	    statut: string;
+	    client_id?: number;
+	    // Go type: time
+	    created_at: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new AppelListItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.date_appel = this.convertValues(source["date_appel"], null);
+	        this.heure_appel = source["heure_appel"];
+	        this.appelant_nom = source["appelant_nom"];
+	        this.appelant_prenom = source["appelant_prenom"];
+	        this.appelant_telephone = source["appelant_telephone"];
+	        this.prospect_nom = source["prospect_nom"];
+	        this.prospect_prenom = source["prospect_prenom"];
+	        this.type_demande = source["type_demande"];
+	        this.priorite = source["priorite"];
+	        this.statut = source["statut"];
+	        this.client_id = source["client_id"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class CHSLD {
 	    id: number;
 	    Region: string;
@@ -306,6 +439,54 @@ export namespace models {
 	        this.created_at = source["created_at"];
 	    }
 	}
+	export class CreateAppelRequest {
+	    date_appel: string;
+	    heure_appel: string;
+	    appelant_nom: string;
+	    appelant_prenom: string;
+	    appelant_telephone: string;
+	    appelant_relation: string;
+	    client_id?: number;
+	    prospect_nom: string;
+	    prospect_prenom: string;
+	    prospect_telephone: string;
+	    type_demande: string;
+	    motif_appel: string;
+	    priorite: string;
+	    statut: string;
+	    notes_internes: string;
+	    rdv_date: string;
+	    rdv_heure: string;
+	    rdv_lieu: string;
+	    assigne_a?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateAppelRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.date_appel = source["date_appel"];
+	        this.heure_appel = source["heure_appel"];
+	        this.appelant_nom = source["appelant_nom"];
+	        this.appelant_prenom = source["appelant_prenom"];
+	        this.appelant_telephone = source["appelant_telephone"];
+	        this.appelant_relation = source["appelant_relation"];
+	        this.client_id = source["client_id"];
+	        this.prospect_nom = source["prospect_nom"];
+	        this.prospect_prenom = source["prospect_prenom"];
+	        this.prospect_telephone = source["prospect_telephone"];
+	        this.type_demande = source["type_demande"];
+	        this.motif_appel = source["motif_appel"];
+	        this.priorite = source["priorite"];
+	        this.statut = source["statut"];
+	        this.notes_internes = source["notes_internes"];
+	        this.rdv_date = source["rdv_date"];
+	        this.rdv_heure = source["rdv_heure"];
+	        this.rdv_lieu = source["rdv_lieu"];
+	        this.assigne_a = source["assigne_a"];
+	    }
+	}
 	export class CreateClientRequest {
 	    nom: string;
 	    prenom: string;
@@ -464,6 +645,40 @@ export namespace models {
 	        this.client_id = source["client_id"];
 	    }
 	}
+	export class CreateEvaluationRequest {
+	    client_id: number;
+	    contexte_evaluation?: string;
+	    motif_reference?: string;
+	    objet_evaluation?: string;
+	    capacites_cognitives?: string;
+	    etat_sante_physique?: string;
+	    dimensions_psycho_sociales?: string;
+	    roles_sociaux?: string;
+	    reseau_social_soutien?: string;
+	    analyse_clinique?: string;
+	    opinion_professionnelle?: string;
+	    recommandations?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateEvaluationRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.client_id = source["client_id"];
+	        this.contexte_evaluation = source["contexte_evaluation"];
+	        this.motif_reference = source["motif_reference"];
+	        this.objet_evaluation = source["objet_evaluation"];
+	        this.capacites_cognitives = source["capacites_cognitives"];
+	        this.etat_sante_physique = source["etat_sante_physique"];
+	        this.dimensions_psycho_sociales = source["dimensions_psycho_sociales"];
+	        this.roles_sociaux = source["roles_sociaux"];
+	        this.reseau_social_soutien = source["reseau_social_soutien"];
+	        this.analyse_clinique = source["analyse_clinique"];
+	        this.opinion_professionnelle = source["opinion_professionnelle"];
+	        this.recommandations = source["recommandations"];
+	    }
+	}
 	export class CreateMedecinRequest {
 	    licence: string;
 	    civilite: string;
@@ -554,14 +769,29 @@ export namespace models {
 	}
 	export class CreateNoteRequest {
 	    client_id: number;
-	    date_intervention: string;
-	    heure_intervention: string;
-	    duree_intervention: string;
-	    mode_intervention: string;
-	    type_intervention: string;
-	    type_note: string;
-	    sujet: string;
-	    contenu: string;
+	    client_NoRAMQ?: string;
+	    client_Nom?: string;
+	    client_Prenom?: string;
+	    client_Telephone?: string;
+	    client_Cellulaire?: string;
+	    client_NoLeopard?: string;
+	    client_Adresse?: string;
+	    client_appartement?: string;
+	    client_code_postal?: string;
+	    client_ville?: string;
+	    client_pays?: string;
+	    client_province?: string;
+	    user_id: number;
+	    date_intervention?: string;
+	    heure_intervention?: string;
+	    duree_intervention?: string;
+	    mode_intervention?: string;
+	    type_intervention?: string;
+	    type_note?: string;
+	    titre?: string;
+	    contenu?: string;
+	    note_tardive: number;
+	    note_de_tier: number;
 	    note_liee_id?: number;
 	    type_lien?: string;
 	
@@ -572,17 +802,221 @@ export namespace models {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.client_id = source["client_id"];
+	        this.client_NoRAMQ = source["client_NoRAMQ"];
+	        this.client_Nom = source["client_Nom"];
+	        this.client_Prenom = source["client_Prenom"];
+	        this.client_Telephone = source["client_Telephone"];
+	        this.client_Cellulaire = source["client_Cellulaire"];
+	        this.client_NoLeopard = source["client_NoLeopard"];
+	        this.client_Adresse = source["client_Adresse"];
+	        this.client_appartement = source["client_appartement"];
+	        this.client_code_postal = source["client_code_postal"];
+	        this.client_ville = source["client_ville"];
+	        this.client_pays = source["client_pays"];
+	        this.client_province = source["client_province"];
+	        this.user_id = source["user_id"];
 	        this.date_intervention = source["date_intervention"];
 	        this.heure_intervention = source["heure_intervention"];
 	        this.duree_intervention = source["duree_intervention"];
 	        this.mode_intervention = source["mode_intervention"];
 	        this.type_intervention = source["type_intervention"];
 	        this.type_note = source["type_note"];
-	        this.sujet = source["sujet"];
+	        this.titre = source["titre"];
 	        this.contenu = source["contenu"];
+	        this.note_tardive = source["note_tardive"];
+	        this.note_de_tier = source["note_de_tier"];
 	        this.note_liee_id = source["note_liee_id"];
 	        this.type_lien = source["type_lien"];
 	    }
+	}
+	export class CreatePlanRequest {
+	    client_id: number;
+	    titre: string;
+	    type_plan: string;
+	    date_debut?: string;
+	    date_fin_prevue?: string;
+	    date_revision_prevue?: string;
+	    contexte?: string;
+	    problematique?: string;
+	    forces?: string;
+	    objectifs?: string;
+	    interventions?: string;
+	    resultats?: string;
+	    ententes?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreatePlanRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.client_id = source["client_id"];
+	        this.titre = source["titre"];
+	        this.type_plan = source["type_plan"];
+	        this.date_debut = source["date_debut"];
+	        this.date_fin_prevue = source["date_fin_prevue"];
+	        this.date_revision_prevue = source["date_revision_prevue"];
+	        this.contexte = source["contexte"];
+	        this.problematique = source["problematique"];
+	        this.forces = source["forces"];
+	        this.objectifs = source["objectifs"];
+	        this.interventions = source["interventions"];
+	        this.resultats = source["resultats"];
+	        this.ententes = source["ententes"];
+	    }
+	}
+	export class EvaluationSocialeDetail {
+	    id: number;
+	    client_id: number;
+	    created_by: number;
+	    contexte_evaluation?: string;
+	    motif_reference?: string;
+	    objet_evaluation?: string;
+	    capacites_cognitives?: string;
+	    etat_sante_physique?: string;
+	    dimensions_psycho_sociales?: string;
+	    roles_sociaux?: string;
+	    reseau_social_soutien?: string;
+	    analyse_clinique?: string;
+	    opinion_professionnelle?: string;
+	    recommandations?: string;
+	    signature_nom?: string;
+	    verrouille: number;
+	    // Go type: time
+	    date_signature?: any;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	    client_nom: string;
+	    client_prenom: string;
+	    client_dn?: string;
+	    client_nam?: string;
+	    client_leopard?: string;
+	    auteur_nom: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EvaluationSocialeDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.client_id = source["client_id"];
+	        this.created_by = source["created_by"];
+	        this.contexte_evaluation = source["contexte_evaluation"];
+	        this.motif_reference = source["motif_reference"];
+	        this.objet_evaluation = source["objet_evaluation"];
+	        this.capacites_cognitives = source["capacites_cognitives"];
+	        this.etat_sante_physique = source["etat_sante_physique"];
+	        this.dimensions_psycho_sociales = source["dimensions_psycho_sociales"];
+	        this.roles_sociaux = source["roles_sociaux"];
+	        this.reseau_social_soutien = source["reseau_social_soutien"];
+	        this.analyse_clinique = source["analyse_clinique"];
+	        this.opinion_professionnelle = source["opinion_professionnelle"];
+	        this.recommandations = source["recommandations"];
+	        this.signature_nom = source["signature_nom"];
+	        this.verrouille = source["verrouille"];
+	        this.date_signature = this.convertValues(source["date_signature"], null);
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	        this.client_nom = source["client_nom"];
+	        this.client_prenom = source["client_prenom"];
+	        this.client_dn = source["client_dn"];
+	        this.client_nam = source["client_nam"];
+	        this.client_leopard = source["client_leopard"];
+	        this.auteur_nom = source["auteur_nom"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class Intervenant {
+	    id: number;
+	    nom_complet: string;
+	    titre_emploi: string;
+	    direction: string;
+	    installation: string;
+	    telephone: string;
+	    poste: string;
+	    cellulaire_pro: string;
+	    cellulaire_perso: string;
+	    courriel_personnel: string;
+	    courriel_professionnel: string;
+	    courrier_interne: string;
+	    actif: boolean;
+	    is_intervenant_social: boolean;
+	    numero_permis: string;
+	    ordre_professionnel: string;
+	    date_naissance: string;
+	    note_fixe: string;
+	    personne_ressource_reseau_dir: string;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new Intervenant(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nom_complet = source["nom_complet"];
+	        this.titre_emploi = source["titre_emploi"];
+	        this.direction = source["direction"];
+	        this.installation = source["installation"];
+	        this.telephone = source["telephone"];
+	        this.poste = source["poste"];
+	        this.cellulaire_pro = source["cellulaire_pro"];
+	        this.cellulaire_perso = source["cellulaire_perso"];
+	        this.courriel_personnel = source["courriel_personnel"];
+	        this.courriel_professionnel = source["courriel_professionnel"];
+	        this.courrier_interne = source["courrier_interne"];
+	        this.actif = source["actif"];
+	        this.is_intervenant_social = source["is_intervenant_social"];
+	        this.numero_permis = source["numero_permis"];
+	        this.ordre_professionnel = source["ordre_professionnel"];
+	        this.date_naissance = source["date_naissance"];
+	        this.note_fixe = source["note_fixe"];
+	        this.personne_ressource_reseau_dir = source["personne_ressource_reseau_dir"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class Medecin {
 	    id: number;
@@ -713,6 +1147,18 @@ export namespace models {
 	export class Note {
 	    id: number;
 	    client_id: number;
+	    client_NoRAMQ?: string;
+	    client_Nom?: string;
+	    client_Prenom?: string;
+	    client_Telephone?: string;
+	    client_Cellulaire?: string;
+	    client_NoLeopard?: string;
+	    client_Adresse?: string;
+	    client_appartement?: string;
+	    client_code_postal?: string;
+	    client_ville?: string;
+	    client_pays?: string;
+	    client_province?: string;
 	    user_id: number;
 	    // Go type: time
 	    date_note: any;
@@ -720,13 +1166,15 @@ export namespace models {
 	    date_intervention?: any;
 	    heure_intervention?: string;
 	    duree_intervention?: string;
-	    mode_intervention: string;
-	    type_intervention: string;
-	    type_note: string;
-	    sujet: string;
-	    contenu: string;
-	    verrouille: boolean;
-	    signature_nom: string;
+	    mode_intervention?: string;
+	    type_intervention?: string;
+	    type_note?: string;
+	    titre?: string;
+	    contenu?: string;
+	    verrouille: number;
+	    note_tardive: number;
+	    note_de_tier: number;
+	    signature_nom?: string;
 	    // Go type: time
 	    signature_date?: any;
 	    note_liee_id?: number;
@@ -742,6 +1190,18 @@ export namespace models {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.client_id = source["client_id"];
+	        this.client_NoRAMQ = source["client_NoRAMQ"];
+	        this.client_Nom = source["client_Nom"];
+	        this.client_Prenom = source["client_Prenom"];
+	        this.client_Telephone = source["client_Telephone"];
+	        this.client_Cellulaire = source["client_Cellulaire"];
+	        this.client_NoLeopard = source["client_NoLeopard"];
+	        this.client_Adresse = source["client_Adresse"];
+	        this.client_appartement = source["client_appartement"];
+	        this.client_code_postal = source["client_code_postal"];
+	        this.client_ville = source["client_ville"];
+	        this.client_pays = source["client_pays"];
+	        this.client_province = source["client_province"];
 	        this.user_id = source["user_id"];
 	        this.date_note = this.convertValues(source["date_note"], null);
 	        this.date_intervention = this.convertValues(source["date_intervention"], null);
@@ -750,9 +1210,11 @@ export namespace models {
 	        this.mode_intervention = source["mode_intervention"];
 	        this.type_intervention = source["type_intervention"];
 	        this.type_note = source["type_note"];
-	        this.sujet = source["sujet"];
+	        this.titre = source["titre"];
 	        this.contenu = source["contenu"];
 	        this.verrouille = source["verrouille"];
+	        this.note_tardive = source["note_tardive"];
+	        this.note_de_tier = source["note_de_tier"];
 	        this.signature_nom = source["signature_nom"];
 	        this.signature_date = this.convertValues(source["signature_date"], null);
 	        this.note_liee_id = source["note_liee_id"];
@@ -780,16 +1242,15 @@ export namespace models {
 	}
 	export class NoteListItem {
 	    id: number;
-	    type_note: string;
-	    sujet: string;
 	    // Go type: time
 	    date_note: any;
-	    signature_nom: string;
-	    verrouille: boolean;
-	    note_liee_id?: number;
+	    // Go type: time
+	    date_intervention?: any;
+	    type_note?: string;
+	    titre: string;
+	    verrouille: number;
+	    note_tardive: number;
 	    type_lien?: string;
-	    note_liee_titre?: string;
-	    note_liee_date?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new NoteListItem(source);
@@ -798,15 +1259,13 @@ export namespace models {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
-	        this.type_note = source["type_note"];
-	        this.sujet = source["sujet"];
 	        this.date_note = this.convertValues(source["date_note"], null);
-	        this.signature_nom = source["signature_nom"];
+	        this.date_intervention = this.convertValues(source["date_intervention"], null);
+	        this.type_note = source["type_note"];
+	        this.titre = source["titre"];
 	        this.verrouille = source["verrouille"];
-	        this.note_liee_id = source["note_liee_id"];
+	        this.note_tardive = source["note_tardive"];
 	        this.type_lien = source["type_lien"];
-	        this.note_liee_titre = source["note_liee_titre"];
-	        this.note_liee_date = source["note_liee_date"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -827,19 +1286,86 @@ export namespace models {
 		    return a;
 		}
 	}
-	export class NotesFilter {
+	export class PlanInterventionDetail {
+	    id: number;
 	    client_id: number;
-	    search_query: string;
+	    created_by: number;
+	    titre: string;
+	    type_plan: string;
+	    statut: string;
+	    date_debut?: string;
+	    date_fin_prevue?: string;
+	    date_revision_prevue?: string;
+	    contexte?: string;
+	    problematique?: string;
+	    forces?: string;
+	    objectifs?: string;
+	    interventions?: string;
+	    resultats?: string;
+	    ententes?: string;
+	    verrouille: number;
+	    signature_nom?: string;
+	    // Go type: time
+	    date_signature?: any;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	    client_nom: string;
+	    client_prenom: string;
+	    client_leopard?: string;
+	    auteur_nom: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new NotesFilter(source);
+	        return new PlanInterventionDetail(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
 	        this.client_id = source["client_id"];
-	        this.search_query = source["search_query"];
+	        this.created_by = source["created_by"];
+	        this.titre = source["titre"];
+	        this.type_plan = source["type_plan"];
+	        this.statut = source["statut"];
+	        this.date_debut = source["date_debut"];
+	        this.date_fin_prevue = source["date_fin_prevue"];
+	        this.date_revision_prevue = source["date_revision_prevue"];
+	        this.contexte = source["contexte"];
+	        this.problematique = source["problematique"];
+	        this.forces = source["forces"];
+	        this.objectifs = source["objectifs"];
+	        this.interventions = source["interventions"];
+	        this.resultats = source["resultats"];
+	        this.ententes = source["ententes"];
+	        this.verrouille = source["verrouille"];
+	        this.signature_nom = source["signature_nom"];
+	        this.date_signature = this.convertValues(source["date_signature"], null);
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	        this.client_nom = source["client_nom"];
+	        this.client_prenom = source["client_prenom"];
+	        this.client_leopard = source["client_leopard"];
+	        this.auteur_nom = source["auteur_nom"];
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class Residence {
 	    id: number;
@@ -895,6 +1421,28 @@ export namespace models {
 	        this.date_ajout = source["date_ajout"];
 	        this.date_maj = source["date_maj"];
 	        this.date_fermeture = source["date_fermeture"];
+	    }
+	}
+	export class StatsAppels {
+	    total: number;
+	    nouveaux: number;
+	    enAttente: number;
+	    rdvPlanifies: number;
+	    urgents: number;
+	    aujourdhui: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new StatsAppels(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.total = source["total"];
+	        this.nouveaux = source["nouveaux"];
+	        this.enAttente = source["enAttente"];
+	        this.rdvPlanifies = source["rdvPlanifies"];
+	        this.urgents = source["urgents"];
+	        this.aujourdhui = source["aujourdhui"];
 	    }
 	}
 	export class UpdateClientRequest {
@@ -1105,6 +1653,42 @@ export namespace models {
 	        this.actif = source["actif"];
 	    }
 	}
+	export class UpdateNoteRequest {
+	    id: number;
+	    date_intervention?: string;
+	    heure_intervention?: string;
+	    duree_intervention?: string;
+	    mode_intervention?: string;
+	    type_intervention?: string;
+	    type_note?: string;
+	    titre?: string;
+	    contenu?: string;
+	    note_tardive: number;
+	    note_de_tier: number;
+	    note_liee_id?: number;
+	    type_lien?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateNoteRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.date_intervention = source["date_intervention"];
+	        this.heure_intervention = source["heure_intervention"];
+	        this.duree_intervention = source["duree_intervention"];
+	        this.mode_intervention = source["mode_intervention"];
+	        this.type_intervention = source["type_intervention"];
+	        this.type_note = source["type_note"];
+	        this.titre = source["titre"];
+	        this.contenu = source["contenu"];
+	        this.note_tardive = source["note_tardive"];
+	        this.note_de_tier = source["note_de_tier"];
+	        this.note_liee_id = source["note_liee_id"];
+	        this.type_lien = source["type_lien"];
+	    }
+	}
 	export class UpdateProfileRequest {
 	    full_name: string;
 	    email: string;
@@ -1142,6 +1726,15 @@ export namespace models {
 	    username: string;
 	    fullName: string;
 	    role: string;
+	    noMembreOrdre: string;
+	    email: string;
+	    telephone: string;
+	    cellulaire: string;
+	    telecopieur: string;
+	    adresse: string;
+	    codePostal: string;
+	    ville: string;
+	    pays: string;
 	    createdAt: string;
 	
 	    static createFrom(source: any = {}) {
@@ -1154,6 +1747,15 @@ export namespace models {
 	        this.username = source["username"];
 	        this.fullName = source["fullName"];
 	        this.role = source["role"];
+	        this.noMembreOrdre = source["noMembreOrdre"];
+	        this.email = source["email"];
+	        this.telephone = source["telephone"];
+	        this.cellulaire = source["cellulaire"];
+	        this.telecopieur = source["telecopieur"];
+	        this.adresse = source["adresse"];
+	        this.codePostal = source["codePostal"];
+	        this.ville = source["ville"];
+	        this.pays = source["pays"];
 	        this.createdAt = source["createdAt"];
 	    }
 	}

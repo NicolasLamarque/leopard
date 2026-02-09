@@ -14,6 +14,10 @@ export function ClientFolderExists(arg1) {
   return window['go']['main']['App']['ClientFolderExists'](arg1);
 }
 
+export function CreateAppel(arg1) {
+  return window['go']['main']['App']['CreateAppel'](arg1);
+}
+
 export function CreateCHSLD(arg1) {
   return window['go']['main']['App']['CreateCHSLD'](arg1);
 }
@@ -46,8 +50,16 @@ export function CreateNote(arg1) {
   return window['go']['main']['App']['CreateNote'](arg1);
 }
 
+export function CreatePlan(arg1) {
+  return window['go']['main']['App']['CreatePlan'](arg1);
+}
+
 export function CreateSubfolder(arg1, arg2) {
   return window['go']['main']['App']['CreateSubfolder'](arg1, arg2);
+}
+
+export function DeleteAppel(arg1) {
+  return window['go']['main']['App']['DeleteAppel'](arg1);
 }
 
 export function DeleteCHSLD(arg1) {
@@ -66,6 +78,10 @@ export function DeleteExcelFile(arg1) {
   return window['go']['main']['App']['DeleteExcelFile'](arg1);
 }
 
+export function DeleteIntervenant(arg1) {
+  return window['go']['main']['App']['DeleteIntervenant'](arg1);
+}
+
 export function DeleteMedecin(arg1) {
   return window['go']['main']['App']['DeleteMedecin'](arg1);
 }
@@ -82,8 +98,16 @@ export function DeleteResidence(arg1) {
   return window['go']['main']['App']['DeleteResidence'](arg1);
 }
 
+export function ExportNotesToPDF(arg1, arg2) {
+  return window['go']['main']['App']['ExportNotesToPDF'](arg1, arg2);
+}
+
 export function ExportToClientFolder(arg1) {
   return window['go']['main']['App']['ExportToClientFolder'](arg1);
+}
+
+export function GetAllAppels() {
+  return window['go']['main']['App']['GetAllAppels']();
 }
 
 export function GetAllCHSLD() {
@@ -94,8 +118,16 @@ export function GetAllContactsByClientID(arg1) {
   return window['go']['main']['App']['GetAllContactsByClientID'](arg1);
 }
 
+export function GetAllIntervenants() {
+  return window['go']['main']['App']['GetAllIntervenants']();
+}
+
 export function GetAllNotaires() {
   return window['go']['main']['App']['GetAllNotaires']();
+}
+
+export function GetAppelByID(arg1) {
+  return window['go']['main']['App']['GetAppelByID'](arg1);
 }
 
 export function GetBasePath() {
@@ -134,8 +166,8 @@ export function GetClientNotes(arg1) {
   return window['go']['main']['App']['GetClientNotes'](arg1);
 }
 
-export function GetClientNotesFiltered(arg1) {
-  return window['go']['main']['App']['GetClientNotesFiltered'](arg1);
+export function GetClientStoragePath(arg1, arg2) {
+  return window['go']['main']['App']['GetClientStoragePath'](arg1, arg2);
 }
 
 export function GetClients() {
@@ -162,6 +194,10 @@ export function GetExcelFileInfo(arg1) {
   return window['go']['main']['App']['GetExcelFileInfo'](arg1);
 }
 
+export function GetIntervenantByID(arg1) {
+  return window['go']['main']['App']['GetIntervenantByID'](arg1);
+}
+
 export function GetMedecinByID(arg1) {
   return window['go']['main']['App']['GetMedecinByID'](arg1);
 }
@@ -186,8 +222,8 @@ export function GetNoteByID(arg1) {
   return window['go']['main']['App']['GetNoteByID'](arg1);
 }
 
-export function GetNotesStats(arg1) {
-  return window['go']['main']['App']['GetNotesStats'](arg1);
+export function GetPlansByClient(arg1) {
+  return window['go']['main']['App']['GetPlansByClient'](arg1);
 }
 
 export function GetResidenceByID(arg1) {
@@ -206,8 +242,16 @@ export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
 
+export function GetStatsAppels() {
+  return window['go']['main']['App']['GetStatsAppels']();
+}
+
 export function GetUserCount() {
   return window['go']['main']['App']['GetUserCount']();
+}
+
+export function ImportIntervenants(arg1) {
+  return window['go']['main']['App']['ImportIntervenants'](arg1);
 }
 
 export function ImportMedecins(arg1) {
@@ -216,6 +260,10 @@ export function ImportMedecins(arg1) {
 
 export function ImportMedecinsWithUpdate(arg1) {
   return window['go']['main']['App']['ImportMedecinsWithUpdate'](arg1);
+}
+
+export function ImportNotaires(arg1) {
+  return window['go']['main']['App']['ImportNotaires'](arg1);
 }
 
 export function InsertResidence(arg1) {
@@ -232,6 +280,10 @@ export function ListExcelFiles(arg1) {
 
 export function LockNote(arg1) {
   return window['go']['main']['App']['LockNote'](arg1);
+}
+
+export function LockPlan(arg1, arg2) {
+  return window['go']['main']['App']['LockPlan'](arg1, arg2);
 }
 
 export function Login(arg1, arg2) {
@@ -266,6 +318,10 @@ export function SaveExcelFile(arg1, arg2) {
   return window['go']['main']['App']['SaveExcelFile'](arg1, arg2);
 }
 
+export function SaveIntervenant(arg1) {
+  return window['go']['main']['App']['SaveIntervenant'](arg1);
+}
+
 export function SearchCHSLD(arg1, arg2, arg3) {
   return window['go']['main']['App']['SearchCHSLD'](arg1, arg2, arg3);
 }
@@ -298,8 +354,16 @@ export function SelectExcelFileForRPA() {
   return window['go']['main']['App']['SelectExcelFileForRPA']();
 }
 
+export function SetCurrentUser(arg1) {
+  return window['go']['main']['App']['SetCurrentUser'](arg1);
+}
+
 export function SyncRPA() {
   return window['go']['main']['App']['SyncRPA']();
+}
+
+export function UpdateAppel(arg1, arg2) {
+  return window['go']['main']['App']['UpdateAppel'](arg1, arg2);
 }
 
 export function UpdateCHSLD(arg1) {
@@ -322,8 +386,12 @@ export function UpdateNotaire(arg1) {
   return window['go']['main']['App']['UpdateNotaire'](arg1);
 }
 
-export function UpdateNote(arg1) {
-  return window['go']['main']['App']['UpdateNote'](arg1);
+export function UpdateNoteDraft(arg1, arg2) {
+  return window['go']['main']['App']['UpdateNoteDraft'](arg1, arg2);
+}
+
+export function UpdatePlan(arg1, arg2) {
+  return window['go']['main']['App']['UpdatePlan'](arg1, arg2);
 }
 
 export function UpdateProfile(arg1) {

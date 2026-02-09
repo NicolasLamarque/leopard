@@ -40,8 +40,13 @@
           <FolderOpen :size="18" />
           <span>Ouvrir dossier</span>
         </button>
-
-
+<button
+  @click="$emit('show-evaluations')"
+  class="flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+>
+  <ShieldCheck :size="18" />
+  <span>Évaluations</span>
+</button>
         <!-- Statuts rapides -->
         <template>
   <div class="ml-auto flex items-center gap-2">
@@ -51,7 +56,7 @@
   </div>
 </template>
       </div>
-
+<div class="mt-6">
       <ClientFolderWidget
   v-if="formData.id"
   :leopard-number="leopardNumber"
@@ -63,6 +68,7 @@
   @refresh="checkFolderExists"
   class="mb-6"
 />
+</div>  
     </div>
 
     <!-- Fiche Rapide Client -->
@@ -577,14 +583,12 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Notaire
-                </label>
-                <input 
-                  v-model="formData.notaire_id"
-                  type="number"
-                  class="w-full px-4 py-2.5 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-                />
+
+                <NotaireSelector 
+      v-model="formData.notaire_id"
+      @notaire-selected="handleNotaireSelected"
+      @view-details="viewNotaireDetails"
+    />
               </div>
 
               <div>
@@ -663,7 +667,12 @@
         </form>
       </div>
     </div>
-
+<!-- Modal Évaluations -->
+<EvaluationView
+  :is-open="showEvaluations"
+  :client="formData"
+  @close="showEvaluations = false"
+/>
   </div>
 </template>
 
@@ -683,13 +692,17 @@ import {
 } from "@/utils/clientFolderManager";
 import ClientFolderWidget from './ClientFolderWidget.vue';
 import RPAselector from '../RPA/RPAselector.vue'
+import NotaireSelector from '@/components/Notaires/NotaireSelector.vue'
+import EvaluationView from '../evaluation/EvaluationView.vue'
 
+
+const showEvaluations = ref(false)
 
 const props = defineProps({
   clientData: { type: Object, required: true }
 })
 
-const emit = defineEmits(['save', 'folderCreated', 'show-notes'])
+const emit = defineEmits(['save', 'folderCreated', 'show-notes', 'show-evaluations'])
 
 const formData = ref({ ...props.clientData })
 const leopardNumber = ref('')

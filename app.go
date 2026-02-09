@@ -8,17 +8,28 @@ import (
 	"fmt"
 	"leopard/internal/crypto"
 	database "leopard/internal/db"
+	repo "leopard/internal/db"
+	"leopard/internal/export"
 	models "leopard/internal/model"
+	"leopard/internal/services"
+	"os"
+	"path/filepath"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type App struct {
-	ctx         context.Context
-	db          *database.Database
-	currentUser *models.User
-	cryptoSvc   *crypto.CryptoService
+	ctx            context.Context
+	db             *database.Database
+	authSvc        *services.AuthService // <--- IL MANQUE ÇA
+	currentUser    *models.User
+	cryptoSvc      *crypto.CryptoService
+	LogRepo        *repo.LogRepo
+	currentUserID  int
+	PIService      *services.PIService
+	IntervenantSvc *services.IntervenantService
+	appPath        string
 }
 
 func NewApp() *App {
@@ -31,18 +42,26 @@ func (a *App) startup(ctx context.Context) {
 		panic(err)
 	}
 	a.db = db
-
-	// 🔐 MOT DE PASSE SIMPLE - Personne ne va le voir dans ton .exe
+	// Initialisez le service d'auth ici
+	a.authSvc = services.NewAuthService(db)
 	masterPassword := "MonMotDePasseSecret2025!"
-
 	cryptoSvc, err := crypto.NewCryptoService(masterPassword)
 	if err != nil {
 		panic(err)
 	}
 	a.cryptoSvc = cryptoSvc
+	a.IntervenantSvc = services.NewIntervenantService(db, cryptoSvc)
 
 	if err := a.initializeLeopardFolders(); err != nil {
 		println("⚠️ Avertissement:", err.Error())
+	}
+
+	// --- ON AJOUTE ÇA ICI : ---
+	templatePath := "data/Modele_Import_Notaires.xlsx"
+	// Si le fichier n'existe pas, on demande à la DB de le créer
+	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
+		// Pas besoin de Mkdir ici car initializeLeopardFolders s'en occupe sûrement
+		a.db.CreateNotaireTemplate(templatePath)
 	}
 }
 
@@ -52,6 +71,7 @@ func (a *App) Login(username, password string) (map[string]interface{}, error) {
 	var user models.User
 	var passwordHash string
 
+	// 1. On garde ta requête SQL intacte
 	err := a.db.QueryRow(
 		"SELECT id, username, password, full_name, role FROM users WHERE username = ?",
 		username,
@@ -64,21 +84,27 @@ func (a *App) Login(username, password string) (map[string]interface{}, error) {
 		return nil, errors.New("erreur base de données")
 	}
 
+	// 2. Ta vérification Bcrypt
 	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
 	if err != nil {
 		return nil, errors.New("identifiants invalides")
 	}
 
+	// 3. ON FIXE L'ID ICI
+	// On s'assure que currentUser est bien assigné
 	a.currentUser = &user
 
+	// On force la conversion en int si jamais user.ID est un int64 dans le model
+	a.currentUserID = int(user.ID)
+
+	// 4. Le retour pour ton FormKit (Vue)
 	return map[string]interface{}{
-		"id":       user.ID,
+		"id":       int(user.ID), // On cast en int pour être certain
 		"username": user.Username,
 		"fullName": user.FullName,
 		"role":     user.Role,
 	}, nil
 }
-
 func (a *App) Logout() {
 	a.currentUser = nil
 }
@@ -239,41 +265,164 @@ func (a *App) GetCurrentUserProfile() (*models.User, error) {
 }
 
 // ========== NOTES ==========
+// ========== NOTES CLINIQUES ==========
 
+// GetClientNotes récupère toutes les notes d'un client (pour la sidebar)
+func (a *App) GetClientNotes(clientID int) ([]models.NoteListItem, error) {
+	if a.currentUser == nil {
+		return nil, errors.New("non authentifié")
+	}
+
+	if clientID == 0 {
+		return nil, errors.New("ID client invalide")
+	}
+
+	return a.db.GetAllNotesByClientID(clientID, a.cryptoSvc)
+}
+
+// GetNoteByID récupère une note complète (pour visualisation/édition)
+func (a *App) GetNoteByID(noteID int) (*models.Note, error) {
+	if a.currentUser == nil {
+		return nil, errors.New("non authentifié")
+	}
+
+	if noteID == 0 {
+		return nil, errors.New("ID note invalide")
+	}
+
+	return a.db.GetNoteByID(noteID, a.cryptoSvc)
+}
+
+// CreateNote crée une nouvelle note (brouillon)
 func (a *App) CreateNote(req models.CreateNoteRequest) (int64, error) {
 	if a.currentUser == nil {
 		return 0, errors.New("non authentifié")
 	}
-	return a.db.CreateNote(req, int(a.currentUser.ID), a.currentUser.FullName)
+
+	// Validation de base
+	if req.ClientID == 0 {
+		return 0, errors.New("ID client requis")
+	}
+
+	// Assigner l'utilisateur courant
+	req.UserID = int(a.currentUser.ID)
+
+	return a.db.CreateNote(req, a.cryptoSvc)
 }
 
-func (a *App) GetNoteByID(id int) (*models.Note, error) {
-	return a.db.GetNoteByID(id)
+// UpdateNoteDraft met à jour un brouillon existant
+func (a *App) UpdateNoteDraft(noteID int, req models.UpdateNoteRequest) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+
+	if noteID == 0 {
+		return errors.New("ID note invalide")
+	}
+
+	req.ID = noteID
+	return a.db.UpdateNote(req, a.cryptoSvc)
 }
 
-func (a *App) GetClientNotes(clientID int) ([]models.NoteListItem, error) {
-	return a.db.GetClientNotes(clientID)
+// DeleteNote supprime un brouillon
+func (a *App) DeleteNote(noteID int) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+
+	if noteID == 0 {
+		return errors.New("ID note invalide")
+	}
+
+	return a.db.DeleteNote(noteID)
 }
 
-func (a *App) GetClientNotesFiltered(filter models.NotesFilter) ([]models.NoteListItem, error) {
-	return a.db.GetClientNotesFiltered(filter)
+// LockNote verrouille et signe une note (irréversible)
+func (a *App) LockNote(noteID int) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+
+	if noteID == 0 {
+		return errors.New("ID note invalide")
+	}
+
+	// Utiliser le nom complet de l'utilisateur comme signature
+	signatureNom := a.currentUser.FullName
+	// DEBUG
+	fmt.Printf("🔍 DEBUG LockNote - FullName: '%s'\n", signatureNom)
+	return a.db.LockNote(noteID, signatureNom, a.cryptoSvc)
 }
 
-func (a *App) UpdateNote(req models.Note) error {
-	return a.db.UpdateNote(req)
+// ExportNotesToPDF génère un PDF avec les notes sélectionnées
+func (a *App) ExportNotesToPDF(leopardNumber string, noteIDs []int) (string, error) {
+	if a.currentUser == nil {
+		return "", errors.New("non authentifié")
+	}
+
+	if leopardNumber == "" {
+		return "", errors.New("numéro Léopard requis")
+	}
+
+	if len(noteIDs) == 0 {
+		return "", errors.New("aucune note sélectionnée")
+	}
+
+	// Récupérer les notes
+	notes, err := a.db.GetNotesByIDs(noteIDs, a.cryptoSvc)
+	if err != nil {
+		return "", fmt.Errorf("erreur récupération notes: %w", err)
+	}
+
+	if len(notes) == 0 {
+		return "", errors.New("aucune note trouvée")
+	}
+
+	// Utiliser le système de dossiers existant
+	basePath := a.GetBasePath()
+	clientsPath := filepath.Join(basePath, "Clients")
+
+	// Trouver le dossier du client
+	entries, err := os.ReadDir(clientsPath)
+	if err != nil {
+		return "", fmt.Errorf("erreur lecture dossier Clients: %w", err)
+	}
+
+	var clientPath string
+	targetLength := len(leopardNumber)
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			name := entry.Name()
+			if len(name) >= targetLength && name[:targetLength] == leopardNumber {
+				clientPath = filepath.Join(clientsPath, name)
+				break
+			}
+		}
+	}
+
+	if clientPath == "" {
+		return "", fmt.Errorf("dossier client introuvable pour %s", leopardNumber)
+	}
+
+	// Le PDF va dans le sous-dossier "Notes"
+	outputDir := filepath.Join(clientPath, "Notes")
+
+	// Créer le dossier Notes s'il n'existe pas
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return "", fmt.Errorf("erreur création dossier Notes: %w", err)
+	}
+
+	// Générer le PDF
+	pdfPath, err := export.GenerateNotesPDF(notes, leopardNumber, outputDir)
+	if err != nil {
+		return "", fmt.Errorf("erreur génération PDF: %w", err)
+	}
+
+	return pdfPath, nil
 }
 
-func (a *App) DeleteNote(id int) error {
-	return a.db.DeleteNote(id)
-}
-
-func (a *App) LockNote(id int) error {
-	return a.db.LockNote(id)
-}
-
-func (a *App) GetNotesStats(clientID int) (map[string]interface{}, error) {
-	return a.db.GetNotesStats(clientID)
-}
+// ========== FIN SECTION NOTES ==========
 
 // ========== MÉDECINS ==========
 
@@ -531,4 +680,172 @@ func (a *App) DeleteContact(id int) error {
 		return errors.New("non authentifié")
 	}
 	return a.db.DeleteContact(id)
+}
+
+// ========== APPELS SIMPLIFIÉS - À AJOUTER DANS app.go ==========
+
+// GetAllAppels retourne tous les appels (liste)
+func (a *App) GetAllAppels() ([]models.AppelListItem, error) {
+	repo := database.NewAppelRepository(a.db)
+	return repo.GetAll(a.cryptoSvc)
+}
+
+// GetAppelByID retourne un appel complet par ID
+func (a *App) GetAppelByID(id int) (*models.Appel, error) {
+	repo := database.NewAppelRepository(a.db)
+	return repo.GetByID(id, a.cryptoSvc)
+}
+
+// CreateAppel crée un nouvel appel
+func (a *App) CreateAppel(req models.CreateAppelRequest) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+
+	repo := database.NewAppelRepository(a.db)
+	_, err := repo.Create(req, int(a.currentUser.ID), a.cryptoSvc)
+	return err
+}
+
+// UpdateAppel met à jour un appel existant
+func (a *App) UpdateAppel(id int, req models.CreateAppelRequest) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+
+	repo := database.NewAppelRepository(a.db)
+
+	// Conversion de int64 vers int ici :
+	return repo.Update(id, req, int(a.currentUser.ID), a.cryptoSvc)
+}
+
+// DeleteAppel supprime un appel
+func (a *App) DeleteAppel(id int) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+
+	repo := database.NewAppelRepository(a.db)
+	return repo.Delete(id)
+}
+
+// GetStatsAppels retourne les statistiques des appels
+func (a *App) GetStatsAppels() (*models.StatsAppels, error) {
+	repo := database.NewAppelRepository(a.db)
+	return repo.GetStats()
+}
+
+// SetCurrentUser définit l'utilisateur courant (à appeler après login)
+func (a *App) SetCurrentUser(userID int) {
+	a.currentUserID = userID
+
+	// Si vous utilisez le contexte Wails
+	if a.ctx != nil {
+		a.ctx = context.WithValue(a.ctx, "user_id", userID)
+	}
+}
+func (a *App) GetPlansByClient(clientID int) ([]models.PlanInterventionDetail, error) {
+	return a.PIService.GetPlans(clientID)
+}
+
+func (a *App) CreatePlan(req models.CreatePlanRequest) (int64, error) {
+	if a.currentUser == nil {
+		return 0, errors.New("non authentifié")
+	}
+	return a.PIService.Create(req, a.currentUser.ID)
+}
+
+func (a *App) LockPlan(planID int, signature string) error {
+	return a.PIService.Lock(planID, signature)
+}
+
+// app.go
+func (a *App) UpdatePlan(planID int, req models.CreatePlanRequest) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+
+	// On appelle le service avec l'ID d'abord, puis la structure req
+	// On ne passe PAS userID ici car ton s.db.UpdatePlan ne le demande pas
+	return a.PIService.Update(planID, req)
+}
+
+// Dans app.go
+
+// GetClientStoragePath garantit l'existence du dossier et sous-dossier
+// Usage: path, err := a.GetClientStoragePath("2023-001", "Notes")
+func (a *App) GetClientStoragePath(leopardNumber string, subFolder string) (string, error) {
+	basePath := a.GetBasePath() // Déjà dans folders.go
+	clientsPath := filepath.Join(basePath, "Clients")
+
+	// 1. Trouver le dossier client par le numéro Leopard
+	entries, err := os.ReadDir(clientsPath)
+	if err != nil {
+		return "", fmt.Errorf("dossier Clients introuvable")
+	}
+
+	var targetPath string
+	for _, entry := range entries {
+		if entry.IsDir() && len(entry.Name()) >= len(leopardNumber) && entry.Name()[:len(leopardNumber)] == leopardNumber {
+			targetPath = filepath.Join(clientsPath, entry.Name(), subFolder)
+			break
+		}
+	}
+
+	if targetPath == "" {
+		return "", fmt.Errorf("dossier du client %s introuvable", leopardNumber)
+	}
+
+	// 2. Créer le sous-dossier (Notes, PI, etc.) s'il n'existe pas
+	if err := os.MkdirAll(targetPath, 0755); err != nil {
+		return "", err
+	}
+
+	return targetPath, nil
+}
+
+// ========== INTERVENANTS ==========
+
+func (a *App) GetAllIntervenants() ([]models.Intervenant, error) {
+	if a.IntervenantSvc == nil {
+		return nil, errors.New("service intervenant non initialisé")
+	}
+	return a.IntervenantSvc.GetList()
+}
+
+func (a *App) GetIntervenantByID(id int) (*models.Intervenant, error) {
+	if a.IntervenantSvc == nil {
+		return nil, errors.New("service intervenant non initialisé")
+	}
+	return a.IntervenantSvc.GetByID(id)
+}
+
+func (a *App) SaveIntervenant(intervenant models.Intervenant) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+	if a.IntervenantSvc == nil {
+		return errors.New("service intervenant non initialisé")
+	}
+	return a.IntervenantSvc.Save(intervenant)
+}
+
+func (a *App) DeleteIntervenant(id int) error {
+	if a.currentUser == nil {
+		return errors.New("non authentifié")
+	}
+	if a.IntervenantSvc == nil {
+		return errors.New("service intervenant non initialisé")
+	}
+	return a.IntervenantSvc.Delete(id)
+}
+
+// AJOUTE AUSSI DANS LA FONCTION startup() APRÈS cryptoSvc :
+
+// Initialiser le service des intervenants
+func ptrToString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

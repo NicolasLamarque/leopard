@@ -38,7 +38,7 @@ func (s *AuthService) hashPassword(password, salt string) string {
 
 // --- Inscription ---
 
-func (s *AuthService) Register(username, password, fullName, role string) error {
+func (s *AuthService) Register(username, password, fullName, role, NoMembreOrdre, email, telephone, cellulaire, telecopieur, adresse, code_postal, ville, pays string) error {
 	if username == "" || password == "" || fullName == "" {
 		return errors.New("tous les champs sont requis")
 	}
@@ -53,8 +53,8 @@ func (s *AuthService) Register(username, password, fullName, role string) error 
 	// 2. Requête avec paramètres nommés
 	// On utilise :user, :pass, etc. au lieu des ?
 	query := `
-		INSERT INTO users (username, password, salt, full_name, role)
-		VALUES (:user, :pass, :salt, :name, :role)`
+		INSERT INTO users (username, password, salt, full_name, role, NoMembreOrdre, email, telephone, cellulaire, telecopieur, adresse, code_postal, ville, pays)
+		VALUES (:user, :pass, :salt, :name, :role, :nomembreordre, :email, :telephone, :cellulaire, :telecopieur, :adresse, :codepostal, :ville, :pays)`
 
 	// 3. On passe une map pour lier les noms aux valeurs
 	_, err = s.db.NamedExec(query, map[string]interface{}{
@@ -63,6 +63,15 @@ func (s *AuthService) Register(username, password, fullName, role string) error 
 		"salt": salt,
 		"name": fullName,
 		"role": role,
+		"nomembreordre": NoMembreOrdre,
+		"email": email,
+		"telephone": telephone,
+		"cellulaire": cellulaire,
+		"telecopieur": telecopieur,
+		"adresse": adresse,
+		"codepostal": code_postal,
+		"ville": ville,
+		"pays": pays,
 	})
 
 	return err
@@ -102,6 +111,15 @@ func (s *AuthService) Login(username, passwordClair string) (map[string]interfac
 			"username": user.Username,
 			"fullName": user.FullName,
 			"role":     user.Role,
+			"NoMembreOrdre": user.NoMembreOrdre,
+			"email": user.Email,
+			"telephone": user.Telephone,
+			"cellulaire": user.Cellulaire,
+			"telecopieur": user.Telecopieur,
+			"adresse": user.Adresse,
+			"code_postal": user.CodePostal,
+			"ville": user.Ville,
+			"pays": user.Pays,
 		},
 	}, nil
 }

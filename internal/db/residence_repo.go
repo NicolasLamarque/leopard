@@ -215,6 +215,15 @@ func (db *Database) SyncRPAFromMSSS() (*RPAStats, error) {
 	if err != nil {
 		return nil, fmt.Errorf("erreur scraping: %w", err)
 	}
+
+	// --- LA SOLUTION EST ICI ---
+	// On retire maintenant les 4 premières lignes
+	if len(rpasScraped) > 3 {
+		rpasScraped = rpasScraped[3:]
+	} else {
+		return stats, nil
+	}
+
 	stats.TotalScraped = len(rpasScraped)
 	fmt.Printf("✅ %d RPA récupérés du MSSS\n", stats.TotalScraped)
 

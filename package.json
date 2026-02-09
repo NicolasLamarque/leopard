@@ -7,7 +7,6 @@
     "tailwindcss": "^4.1.18"
   },
   "dependencies": {
-    "pdfmake": "^0.2.21",
     "vue-router": "^4.6.4"
   }
 }

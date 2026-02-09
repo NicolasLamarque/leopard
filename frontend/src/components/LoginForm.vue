@@ -1,81 +1,75 @@
 <template>
-<div class="form-container">
-  <form @submit.prevent="isSetupMode ? createFirstUser() : login()" class="form">
-    <h1 class="h1-title">{{ isSetupMode ? 'Premier utilisateur' : 'Connexion' }}</h1>
-    
-    <div class="overlay" style="text-align: center; margin-bottom: 1rem;">
-      <LeopardLogo size="400" class="brand-icon" /> 
+  <div class="glass-form">
+    <div class="header-text">
+      <h2>{{ isSetupMode ? 'Initialisation Leopard' : 'Connexion' }}</h2>
+      <p v-if="isSetupMode" class="setup-hint">👋 Créez le premier compte administrateur (Loi 25)</p>
     </div>
 
-    <!-- Message de bienvenue en mode Setup -->
-    <div v-if="isSetupMode" class="setup-message">
-      <p>👋 Bienvenue ! Créez le premier compte administrateur.</p>
-    </div>
+    <form @submit.prevent="isSetupMode ? createFirstUser() : login()" class="form-grid">
+      
+      <div class="input-field full">
+        <input v-model="username" placeholder="Nom d'utilisateur" required :disabled="loading" />
+      </div>
+      <div class="input-field full">
+        <input v-model="password" type="password" placeholder="Mot de passe" required :disabled="loading" />
+      </div>
 
-    <!-- Champs communs -->
-    <input 
-      v-model="username" 
-      placeholder="Nom d'utilisateur" 
-      required 
-      :disabled="loading"
-    />
-    <input 
-      v-model="password" 
-      type="password" 
-      placeholder="Mot de passe" 
-      required 
-      :disabled="loading"
-    />
+      <template v-if="isSetupMode">
+        <div class="input-field full">
+          <input v-model="confirmPassword" type="password" placeholder="Confirmer le mot de passe" required />
+        </div>
+        <div class="input-field full">
+          <input v-model="fullName" placeholder="Nom complet" required />
+        </div>
+        
+        <div class="input-field half">
+          <input v-model="email" type="email" placeholder="Adresse e-mail" />
+        </div>
+        <div class="input-field half">
+          <input v-model="phone" type="tel" placeholder="Téléphone" />
+        </div>
 
-    <!-- Champs supplémentaires en mode Setup -->
-    <template v-if="isSetupMode">
-      <input 
-        v-model="confirmPassword" 
-        type="password" 
-        placeholder="Confirmer le mot de passe" 
-        required 
-        :disabled="loading"
-      />
-      <input 
-        v-model="fullName" 
-        placeholder="Nom complet" 
-        required 
-        :disabled="loading"
-      />
-    </template>
+        <div class="input-field half">
+          <input v-model="cellPhone" type="tel" placeholder="Cellulaire" />
+        </div>
+        <div class="input-field half">
+          <input v-model="address" placeholder="Adresse" />
+        </div>
 
-    <!-- Bouton -->
-    <button type="submit" :disabled="loading">
-      {{ loading ? '⏳ Chargement...' : (isSetupMode ? 'Créer le compte' : 'Se connecter') }}
-    </button>
+        <div class="input-field third">
+          <input v-model="city" placeholder="Ville" />
+        </div>
+        <div class="input-field third">
+          <input v-model="province" placeholder="Province" />
+        </div>
+        <div class="input-field third">
+          <input v-model="postalCode" placeholder="Code postal" />
+        </div>
+        
+        <div class="input-field full">
+          <input v-model="country" placeholder="Pays" />
+        </div>
+      </template>
 
-    <!-- Erreur -->
-    <p v-if="error" class="error">{{ error }}</p>
+      <button type="submit" class="submit-btn" :disabled="loading">
+        {{ loading ? '⏳ Chargement...' : (isSetupMode ? 'Lancer le système' : 'Entrer') }}
+      </button>
 
-    <!-- Toggle manuel (optionnel, si tu veux forcer le mode) -->
-    <button 
-      v-if="!loading && userCount > 0" 
-      type="button" 
-      @click="toggleMode" 
-      class="toggle-btn"
-    >
-      {{ isSetupMode ? '← Retour à la connexion' : 'Créer un nouveau compte' }}
-    </button>
-  </form>
-</div>
+      <p v-if="error" class="error-msg">{{ error }}</p>
+
+      <button v-if="!loading && userCount > 0" type="button" @click="toggleMode" class="toggle-link">
+        {{ isSetupMode ? '← Retour à la connexion' : 'Créer un compte' }}
+      </button>
+    </form>
+  </div>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue';
 import { Login } from '../../wailsjs/go/main/App';
-import LeopardLogo from './LeopardLogo.vue'; 
 import { useRouter } from 'vue-router';
 
-import { GetUserCount } from '../../wailsjs/go/main/App';
-
-
 export default {
-  components: { LeopardLogo },
   emits: ['success'],
   setup(props, { emit }) {
     const router = useRouter();
@@ -83,215 +77,130 @@ export default {
     const password = ref('');
     const confirmPassword = ref('');
     const fullName = ref('');
+    // Tes variables setup
+    const email = ref('');
+    const phone = ref('');
+    const cellPhone = ref('');
+    const address = ref('');
+    const city = ref('');
+    const province = ref('');
+    const postalCode = ref('');
+    const country = ref('');
+
     const error = ref('');
     const loading = ref(false);
     const isSetupMode = ref(false);
     const userCount = ref(0);
 
-    // Vérifier s'il existe déjà des utilisateurs
     const checkUserCount = async () => {
       try {
-        // Appel à une fonction Go qui vérifie si des users existent
         const count = await window.go.main.App.GetUserCount();
         userCount.value = count;
-        
-        // Si aucun user, activer le mode Setup automatiquement
-        if (count === 0) {
-          isSetupMode.value = true;
-        }
-      } catch (e) {
-        console.error('Erreur vérification users:', e);
-        // En cas d'erreur, on suppose qu'il faut créer le premier user
-        isSetupMode.value = true;
-      }
+        if (count === 0) isSetupMode.value = true;
+      } catch (e) { isSetupMode.value = true; }
     };
 
-    // Login classique
     const login = async () => {
       loading.value = true;
       error.value = '';
-      
       try {
         const user = await Login(username.value, password.value);
         emit('success', user);
         router.push({ name: 'home' });
-      } catch (e) {
-        error.value = 'Identifiants invalides';
-      } finally {
-        loading.value = false;
-      }
+      } catch (e) { error.value = 'Identifiants invalides'; }
+      finally { loading.value = false; }
     };
 
-    // Créer le premier utilisateur
     const createFirstUser = async () => {
       error.value = '';
-
-      // Validations
-      if (password.value !== confirmPassword.value) {
-        error.value = 'Les mots de passe ne correspondent pas';
-        return;
-      }
-
-      if (password.value.length < 5) {
-        error.value = 'Le mot de passe doit contenir au moins 5 caractères';
-        return;
-      }
-
-      if (!fullName.value.trim()) {
-        error.value = 'Le nom complet est requis';
-        return;
-      }
-
+      if (password.value !== confirmPassword.value) { error.value = 'Mots de passe différents'; return; }
       loading.value = true;
-
       try {
-        // Appel à la fonction Go pour créer le premier user (admin)
         await window.go.main.App.CreateFirstUser({
           username: username.value,
           password: password.value,
           fullName: fullName.value,
-          role: 'admin'
+          role: 'admin',
+          email: email.value,
+          telephone: phone.value,
+          cellulaire: cellPhone.value,
+          adresse: address.value,
+          ville: city.value,
+          province: province.value,
+          code_postal: postalCode.value,
+          pays: country.value
         });
-
-        // Connexion automatique après création
         const user = await Login(username.value, password.value);
         emit('success', user);
         router.push({ name: 'home' });
-      } catch (e) {
-        error.value = e.message || 'Erreur lors de la création du compte';
-      } finally {
-        loading.value = false;
-      }
+      } catch (e) { error.value = e.message || 'Erreur création'; }
+      finally { loading.value = false; }
     };
 
-    // Toggle entre login et setup
     const toggleMode = () => {
       isSetupMode.value = !isSetupMode.value;
       error.value = '';
-      password.value = '';
-      confirmPassword.value = '';
     };
 
-    // Vérifier au montage
-    onMounted(() => {
-      checkUserCount();
-    });
+    onMounted(checkUserCount);
 
     return { 
-      username, 
-      password, 
-      confirmPassword,
-      fullName,
-      error, 
-      loading,
-      isSetupMode,
-      userCount,
-      login,
-      createFirstUser,
-      toggleMode
+      username, password, confirmPassword, fullName, email, phone, cellPhone, 
+      address, city, province, postalCode, country,
+      error, loading, isSetupMode, userCount, login, createFirstUser, toggleMode 
     };
   }
 }
 </script>
 
 <style scoped>
-.form-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.glass-form {
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(15px);
+  padding: 3rem;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  width: 100%;
 }
 
-.form {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  width: 450px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-}
+.header-text h2 { color: #f8fafc; font-weight: 300; font-size: 1.8rem; margin-bottom: 0.5rem; }
+.setup-hint { color: #38bdf8; font-size: 0.9rem; margin-bottom: 2rem; }
 
-.h1-title {
-  text-align: center;
-  margin-bottom: 0.5rem;
-  color: #0e6b6b;
-  font-size: 30px;
-}
+.form-grid { display: flex; flex-wrap: wrap; gap: 12px; }
 
-.setup-message {
-  background: #e6f7ff;
-  border: 1px solid #91d5ff;
-  border-radius: 6px;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.setup-message p {
-  margin: 0;
-  color: #0050b3;
-  font-size: 0.9rem;
-}
+.input-field { display: flex; flex-direction: column; }
+.full { width: 100%; }
+.half { width: calc(50% - 6px); }
+.third { width: calc(33.33% - 8px); }
 
 input {
-  width: 100%;
-  padding: 0.75rem;
-  margin: 0.5rem 0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  box-sizing: border-box;
-}
-
-input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-input:disabled {
-  background: #f5f5f5;
-  cursor: not-allowed;
-}
-
-button {
-  width: 100%;
-  padding: 0.75rem;
-  background: #667eea;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.9rem;
+  border-radius: 10px;
   color: white;
+  width: 100%;
+}
+
+input:focus { border-color: #38bdf8; outline: none; background: rgba(15, 23, 42, 0.9); }
+
+.submit-btn {
+  width: 100%;
+  background: #0ea5e9;
+  color: white;
+  padding: 1rem;
+  border-radius: 12px;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
   font-weight: 600;
-  transition: background 0.3s;
-  margin-top: 0.5rem;
-}
-
-button:hover:not(:disabled) {
-  background: #5568d3;
-}
-
-button:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-}
-
-.toggle-btn {
-  background: transparent;
-  color: #667eea;
-  border: 1px solid #667eea;
+  cursor: pointer;
   margin-top: 1rem;
-  font-weight: normal;
 }
 
-.toggle-btn:hover {
-  background: #f7fafc;
+.toggle-link {
+  background: none; border: none; color: #94a3b8; width: 100%; 
+  margin-top: 1rem; cursor: pointer; font-size: 0.8rem;
 }
 
-.error { 
-  color: #e53e3e;
-  text-align: center;
-  margin-top: 1rem;
-  font-size: 0.9rem;
-}
+.error-msg { color: #fb7185; width: 100%; text-align: center; margin-top: 1rem; }
 </style>

@@ -1,21 +1,31 @@
 <template>
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
     <!-- En-tête -->
-    <div class="px-6 py-4 border-b dark:border-gray-700 flex items-center justify-between">
+    <div
+      class="px-6 py-4 border-b dark:border-gray-700 flex items-center justify-between"
+    >
       <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
         Liste des RPA ({{ rpas?.length || 0 }})
       </h2>
       <div class="flex items-center gap-2">
         <button
           @click="viewMode = 'grid'"
-          :class="viewMode === 'grid' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : 'text-gray-400'"
+          :class="
+            viewMode === 'grid'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+              : 'text-gray-400'
+          "
           class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <LayoutGrid :size="18" />
         </button>
         <button
           @click="viewMode = 'table'"
-          :class="viewMode === 'table' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : 'text-gray-400'"
+          :class="
+            viewMode === 'table'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+              : 'text-gray-400'
+          "
           class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <List :size="18" />
@@ -25,13 +35,18 @@
 
     <!-- Loading -->
     <div v-if="loading" class="p-12 text-center">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"
+      ></div>
       <p class="mt-4 text-gray-500 dark:text-gray-400">Chargement...</p>
     </div>
 
     <!-- Vide -->
     <div v-else-if="!rpas || rpas.length === 0" class="p-12 text-center">
-      <Building2 :size="64" class="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+      <Building2
+        :size="64"
+        class="mx-auto text-gray-300 dark:text-gray-600 mb-4"
+      />
       <p class="text-gray-500 dark:text-gray-400 text-lg">Aucun RPA trouvé</p>
       <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">
         Essayez de modifier vos filtres ou lancez une synchronisation
@@ -39,7 +54,10 @@
     </div>
 
     <!-- Vue Grille -->
-    <div v-else-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+    <div
+      v-else-if="viewMode === 'grid'"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6"
+    >
       <div
         v-for="rpa in rpas"
         :key="rpa.id"
@@ -61,7 +79,9 @@
           </button>
         </div>
 
-        <h3 class="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+        <h3
+          class="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2"
+        >
           {{ rpa.titre }}
         </h3>
 
@@ -87,22 +107,34 @@
       <table class="w-full">
         <thead class="bg-gray-50 dark:bg-gray-900">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+            >
               Statut
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+            >
               Nom
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+            >
               Municipalité
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+            >
               Région
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+            >
               Registre
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+            >
               Actions
             </th>
           </tr>
@@ -115,7 +147,10 @@
             class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
           >
             <td class="px-6 py-4 whitespace-nowrap">
-              <span :class="getStatutClass(rpa.statut)" class="px-2.5 py-0.5 rounded-full text-xs font-medium">
+              <span
+                :class="getStatutClass(rpa.statut)"
+                class="px-2.5 py-0.5 rounded-full text-xs font-medium"
+              >
                 {{ rpa.statut }}
               </span>
             </td>
@@ -123,17 +158,26 @@
               <div class="font-medium text-gray-900 dark:text-white">
                 {{ rpa.titre }}
               </div>
-              <div v-if="rpa.adresse" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <div
+                v-if="rpa.adresse"
+                class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+              >
                 {{ rpa.adresse }}
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+            <td
+              class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white"
+            >
               {{ rpa.municipalite }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+            <td
+              class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+            >
               {{ rpa.region }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500 dark:text-gray-400">
+            <td
+              class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500 dark:text-gray-400"
+            >
               {{ rpa.registre }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -145,13 +189,16 @@
                 >
                   <Eye :size="18" />
                 </button>
-                <button
-                  @click.stop="$emit('delete', rpa)"
-                  class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
-                  title="Supprimer"
-                >
-                  <Trash2 :size="18" />
-                </button>
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    @click.stop="$emit('delete', rpa)"
+                    class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200"
+                    title="Supprimer cette ligne de merde"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                  <ChevronRight class="w-5 h-5 text-gray-300" />
+                </div>
               </div>
             </td>
           </tr>
@@ -162,30 +209,57 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { Building2, Eye, Trash2, MapPin, Home, Hash, LayoutGrid, List } from 'lucide-vue-next'
+import { ref } from "vue";
+import {
+  Building2,
+  Eye,
+  Trash2,
+  MapPin,
+  Home,
+  Hash,
+  LayoutGrid,
+  List,
+} from "lucide-vue-next";
 
 defineProps({
   rpas: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   loading: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-defineEmits(['select', 'delete'])
+defineEmits(["select", "delete"]);
 
-const viewMode = ref('table') // 'table' ou 'grid'
+const viewMode = ref("table"); // 'table' ou 'grid'
 
 const getStatutClass = (statut) => {
   const classes = {
-    'actif': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    'ferme': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-    'suspendu': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-  }
-  return classes[statut] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-}
+    actif:
+      "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+    ferme: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    suspendu:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  };
+  return (
+    classes[statut] ||
+    "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+  );
+};
+
+// Dans RPAList.vue, modifie (ou ajoute) la section computed :
+
+const displayRPAs = computed(() => {
+  return props.rpas.filter(rpa => {
+    // Si c'est l'entête du site ou une ligne vide, on l'ignore complètement
+    const isGarbage = rpa.registre === 'Numéro registre' || 
+                     rpa.titre.includes('Résultats') ||
+                     !rpa.registre;
+    
+    return !isGarbage;
+  });
+});
 </script>

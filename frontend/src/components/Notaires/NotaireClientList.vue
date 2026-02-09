@@ -44,9 +44,12 @@
           </div>
         </div>
 
-        <button class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-teal-600 group-hover:text-white transition-all">
-          <ExternalLink :size="16" />
-        </button>
+        <button 
+    @click="handleNavigate(client.id)"
+    class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-teal-600 group-hover:text-white transition-all"
+  >
+    <ExternalLink :size="16" />
+  </button>
       </div>
     </div>
 
@@ -65,6 +68,8 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { Users, Loader2, ExternalLink, UserPlus } from 'lucide-vue-next'
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 const props = defineProps({
   notaireId: { type: Number, required: true }
@@ -102,8 +107,10 @@ const calculateAge = (dob) => {
 }
 
 const handleNavigate = (clientId) => {
-  console.log("Navigation vers le client ID:", clientId)
-}
+
+  // On utilise le nom de la route défini dans le router
+  router.push({ name: 'client-details', params: { id: clientId } });
+};
 
 watch(() => props.notaireId, () => {
   loadLinkedClients()

@@ -334,3 +334,15 @@ func (a *App) ImportMedecinsWithUpdate(filePath string) (*database.ImportStats, 
 
 	return a.db.ImportMedecinsFromExcelWithUpdate(filePath, int(a.currentUser.ID))
 }
+
+// DANS excel_handlers.go
+func (a *App) ImportIntervenants(filePath string) (string, error) {
+	// On demande à la db (le repo) de faire le sale boulot
+	count, err := a.db.ImportIntervenantsFromExcel(filePath)
+
+	if err != nil {
+		return "", fmt.Errorf("erreur lors de l'import : %w", err)
+	}
+
+	return fmt.Sprintf("%d intervenants importés avec succès", count), nil
+}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"leopard/internal/crypto"
 	models "leopard/internal/model"
+
+	"github.com/xuri/excelize/v2"
 )
 
 // GetAllNotaires récupère tous les notaires actifs
@@ -160,4 +162,54 @@ func (db *Database) GetClientsByNotaire(notaireID int, cryptoSvc *crypto.CryptoS
 		decryptClient(&clients[i], cryptoSvc)
 	}
 	return clients, nil
+}
+
+// ImportNotairesFromExcel lit le fichier Excel et insère les données en DB
+// On ajoute (userID et cryptoSvc) pour matcher l'appel du handler
+// ImportNotairesFromExcel lit le fichier Excel et insère les données en DB
+// ImportNotairesFromExcel - La version originale qui fonctionnait
+func (db *Database) ImportNotairesFromExcel(path string, userID int, cryptoSvc *crypto.CryptoService) (int64, error) {
+	f, err := excelize.OpenFile(path)
+	if err != nil {
+		return 0, fmt.Errorf("impossible d'ouvrir l'excel: %w", err)
+	}
+	defer f.Close()
+
+	// On essaie de lire "Sheet1" comme avant
+	rows, err := f.GetRows("Sheet1")
+	if err != nil {
+		return 0, fmt.Errorf("impossible de lire la feuille: %w", err)
+	}
+
+	var count int64 = 0
+	for i, row := range rows {
+		// On skip l'entête et on s'assure d'avoir les 3 colonnes (Prénom, Nom, Ville)
+		if i == 0 || len(row) < 3 {
+			continue
+		}
+
+		query := `INSERT INTO notaires (prenom, nom, ville, created_by, actif) VALUES (?, ?, ?, ?, 1)`
+		_, err := db.Exec(query, row[0], row[1], row[2], userID)
+		if err == nil {
+			count++
+		}
+	}
+
+	return count, nil
+}
+
+// Et voici la fonction pour créer le modèle si il manque
+func (db *Database) CreateNotaireTemplate(path string) error {
+	f := excelize.NewFile()
+	defer f.Close()
+
+	// Créer l'entête
+	f.SetCellValue("Sheet1", "A1", "Prénom")
+	f.SetCellValue("Sheet1", "B1", "Nom")
+	f.SetCellValue("Sheet1", "C1", "Ville")
+
+	if err := f.SaveAs(path); err != nil {
+		return err
+	}
+	return nil
 }

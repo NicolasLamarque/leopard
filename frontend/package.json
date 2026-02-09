@@ -12,8 +12,6 @@
     "@formkit/themes": "^1.7.1",
     "@formkit/vue": "^1.7.1",
     "@tailwindcss/vite": "^4.1.18",
-    "jspdf": "^3.0.4",
-    "jspdf-autotable": "^5.0.2",
     "lucide-vue-next": "^0.562.0",
     "pinia": "^3.0.4",
     "primevue": "^4.5.4",

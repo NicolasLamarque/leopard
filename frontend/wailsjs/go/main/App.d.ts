@@ -10,6 +10,8 @@ export function ChangePassword(arg1:models.ChangePasswordRequest):Promise<void>;
 
 export function ClientFolderExists(arg1:string):Promise<boolean>;
 
+export function CreateAppel(arg1:models.CreateAppelRequest):Promise<void>;
+
 export function CreateCHSLD(arg1:models.CHSLD):Promise<void>;
 
 export function CreateClient(arg1:models.CreateClientRequest):Promise<number>;
@@ -26,7 +28,11 @@ export function CreateNotaire(arg1:models.CreateNotaireRequest):Promise<number>;
 
 export function CreateNote(arg1:models.CreateNoteRequest):Promise<number>;
 
+export function CreatePlan(arg1:models.CreatePlanRequest):Promise<number>;
+
 export function CreateSubfolder(arg1:string,arg2:string):Promise<main.ClientFolderResult>;
+
+export function DeleteAppel(arg1:number):Promise<void>;
 
 export function DeleteCHSLD(arg1:number):Promise<void>;
 
@@ -36,6 +42,8 @@ export function DeleteContact(arg1:number):Promise<void>;
 
 export function DeleteExcelFile(arg1:string):Promise<void>;
 
+export function DeleteIntervenant(arg1:number):Promise<void>;
+
 export function DeleteMedecin(arg1:number):Promise<void>;
 
 export function DeleteNotaire(arg1:number):Promise<void>;
@@ -44,13 +52,21 @@ export function DeleteNote(arg1:number):Promise<void>;
 
 export function DeleteResidence(arg1:number):Promise<void>;
 
+export function ExportNotesToPDF(arg1:string,arg2:Array<number>):Promise<string>;
+
 export function ExportToClientFolder(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
+
+export function GetAllAppels():Promise<Array<models.AppelListItem>>;
 
 export function GetAllCHSLD():Promise<Array<models.CHSLD>>;
 
 export function GetAllContactsByClientID(arg1:number):Promise<Array<models.Contact>>;
 
+export function GetAllIntervenants():Promise<Array<models.Intervenant>>;
+
 export function GetAllNotaires():Promise<Array<models.Notaire>>;
+
+export function GetAppelByID(arg1:number):Promise<models.Appel>;
 
 export function GetBasePath():Promise<string>;
 
@@ -70,7 +86,7 @@ export function GetClientFolderStructure(arg1:string):Promise<Record<string, any
 
 export function GetClientNotes(arg1:number):Promise<Array<models.NoteListItem>>;
 
-export function GetClientNotesFiltered(arg1:models.NotesFilter):Promise<Array<models.NoteListItem>>;
+export function GetClientStoragePath(arg1:string,arg2:string):Promise<string>;
 
 export function GetClients():Promise<Array<models.Client>>;
 
@@ -84,6 +100,8 @@ export function GetDetailedFolderStructure(arg1:string):Promise<Record<string, a
 
 export function GetExcelFileInfo(arg1:string):Promise<Record<string, any>>;
 
+export function GetIntervenantByID(arg1:number):Promise<models.Intervenant>;
+
 export function GetMedecinByID(arg1:number):Promise<models.Medecin>;
 
 export function GetMedecinClients(arg1:string):Promise<Array<models.Client>>;
@@ -96,7 +114,7 @@ export function GetNotaireByID(arg1:number):Promise<models.Notaire>;
 
 export function GetNoteByID(arg1:number):Promise<models.Note>;
 
-export function GetNotesStats(arg1:number):Promise<Record<string, any>>;
+export function GetPlansByClient(arg1:number):Promise<Array<models.PlanInterventionDetail>>;
 
 export function GetResidenceByID(arg1:number):Promise<models.Residence>;
 
@@ -106,11 +124,17 @@ export function GetResidences():Promise<Array<models.Residence>>;
 
 export function GetSettings():Promise<models.UserSettings>;
 
+export function GetStatsAppels():Promise<models.StatsAppels>;
+
 export function GetUserCount():Promise<number>;
+
+export function ImportIntervenants(arg1:string):Promise<string>;
 
 export function ImportMedecins(arg1:string):Promise<string>;
 
 export function ImportMedecinsWithUpdate(arg1:string):Promise<database.ImportStats>;
+
+export function ImportNotaires(arg1:string):Promise<string>;
 
 export function InsertResidence(arg1:models.Residence):Promise<void>;
 
@@ -119,6 +143,8 @@ export function ListClientFolders():Promise<Array<string>>;
 export function ListExcelFiles(arg1:main.ExcelFileType):Promise<Array<Record<string, any>>>;
 
 export function LockNote(arg1:number):Promise<void>;
+
+export function LockPlan(arg1:number,arg2:string):Promise<void>;
 
 export function Login(arg1:string,arg2:string):Promise<Record<string, any>>;
 
@@ -136,6 +162,8 @@ export function RepairClientFolderStructure(arg1:string):Promise<Record<string, 
 
 export function SaveExcelFile(arg1:string,arg2:main.ExcelFileType):Promise<string>;
 
+export function SaveIntervenant(arg1:models.Intervenant):Promise<void>;
+
 export function SearchCHSLD(arg1:string,arg2:string,arg3:string):Promise<Array<models.CHSLD>>;
 
 export function SearchMedecins(arg1:string):Promise<Array<models.Medecin>>;
@@ -152,7 +180,11 @@ export function SelectExcelFileForMedecins():Promise<string>;
 
 export function SelectExcelFileForRPA():Promise<string>;
 
+export function SetCurrentUser(arg1:number):Promise<void>;
+
 export function SyncRPA():Promise<Record<string, any>>;
+
+export function UpdateAppel(arg1:number,arg2:models.CreateAppelRequest):Promise<void>;
 
 export function UpdateCHSLD(arg1:models.CHSLD):Promise<void>;
 
@@ -164,7 +196,9 @@ export function UpdateMedecin(arg1:models.UpdateMedecinRequest):Promise<void>;
 
 export function UpdateNotaire(arg1:models.Notaire):Promise<void>;
 
-export function UpdateNote(arg1:models.Note):Promise<void>;
+export function UpdateNoteDraft(arg1:number,arg2:models.UpdateNoteRequest):Promise<void>;
+
+export function UpdatePlan(arg1:number,arg2:models.CreatePlanRequest):Promise<void>;
 
 export function UpdateProfile(arg1:models.UpdateProfileRequest):Promise<void>;
 

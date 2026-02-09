@@ -15,6 +15,14 @@
   
   <!-- Boutons d'action -->
   <div class="flex items-center gap-3">
+
+    <button 
+    @click="isPIOpen = true"
+    class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg shadow-sm transition-all duration-200"
+  >
+    <FilePlus :size="18" />
+    <span class="font-medium">Nouveau PI</span>
+  </button>
     <!-- Bouton Notes -->
     <button 
       @click="showNotes = true"
@@ -54,7 +62,7 @@
         @save="onSave"
         @folderCreated="onFolderCreated"
         @show-notes="showNotes = true"
-
+        @show-evaluations="isEvalOpen = true"
       />
 
       <!-- Error State -->
@@ -84,6 +92,24 @@
   :client="store.currentClient"
   @close="showNotes = false"
 />
+
+
+
+<!-- Drawer Evaluations -->
+<EvaluationView
+  :is-open="isEvalOpen"
+  :client="store.currentClient"
+  @close="isEvalOpen = false"
+/>
+
+<div v-if="isPIOpen" class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white dark:bg-gray-900 w-full max-w-6xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl">
+        <PIViewer
+          :client="store.currentClient"
+          @close="isPIOpen = false"
+        />
+      </div>
+    </div>
 <!-- Client Details Form -->
 <!-- ClientDetailsForm 
   :clientData="store.currentClient" 
@@ -100,17 +126,22 @@ import { useRoute, useRouter } from 'vue-router'
 import { useClientStore } from '../stores/clientStore'
 import { UpdateClient } from '../../wailsjs/go/main/App'
 import ClientDetailsForm from '../components/clients/ClientDetailsForms.vue'
-import { ArrowLeft, Loader2, AlertCircle, FileText } from 'lucide-vue-next'
-import NotesDrawer from '../components/NotesDrawer.vue'  
+import { ArrowLeft, Loader2, AlertCircle, FileText, FilePlus, } from 'lucide-vue-next'
+import NotesDrawer from '../components/Notes/NotesDrawer.vue'  
 import {GetAllContactsByClientID, CreateContact, UpdateContact, DeleteContact} from '../../wailsjs/go/main/App'
 import { createClientFolder } from '@/utils/clientFolderManager'
+import EvaluationView from '../components/evaluation/EvaluationView.vue'
 
+import PIViewer from '../components/pi/PIViewer.vue' // Ton composant PI
+
+const isPIOpen = ref(false) // Pour contrôler l'ouverture
 const showNotes = ref(false)
 
 const route = useRoute()
 const store = useClientStore()
 const router = useRouter()
 const isLoading = ref(true)
+const isEvalOpen = ref(false)
 
 const onSave = async (data) => {
   try {

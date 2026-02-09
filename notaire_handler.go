@@ -5,6 +5,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	models "leopard/internal/model"
 )
 
@@ -94,4 +95,18 @@ func (a *App) GetClientsByNotaire(notaireID int) ([]models.Client, error) {
 	}
 
 	return a.db.GetClientsByNotaire(notaireID, a.cryptoSvc)
+}
+
+// ImportNotaires déclenche l'importation Excel pour les notaires
+func (a *App) ImportNotaires(filePath string) (string, error) {
+	// On récupère l'ID de l'utilisateur actuel (à adapter selon ta gestion de session)
+	createdBy := 1
+
+	// On appelle la fonction que tu as écrite dans internal/db/notaire_import.go
+	count, err := a.db.ImportNotairesFromExcel(filePath, createdBy, a.cryptoSvc)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%d notaires ont été importés avec succès", count), nil
 }
