@@ -25,3 +25,7 @@ export function LockEvaluation(arg1, arg2) {
 export function SignerEvaluation(arg1, arg2) {
   return window['go']['main']['EvalHandler']['SignerEvaluation'](arg1, arg2);
 }
+
+export function UpdateEvaluationBrouillon(arg1, arg2) {
+  return window['go']['main']['EvalHandler']['UpdateEvaluationBrouillon'](arg1, arg2);
+}

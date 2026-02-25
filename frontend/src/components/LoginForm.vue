@@ -2,7 +2,7 @@
   <div class="glass-form">
     <div class="header-text">
       <h2>{{ isSetupMode ? 'Initialisation Leopard' : 'Connexion' }}</h2>
-      <p v-if="isSetupMode" class="setup-hint">👋 Créez le premier compte administrateur (Loi 25)</p>
+      <p v-if="isSetupMode" class="setup-hint">Veuillez Créez le premier compte administrateur</p>
     </div>
 
     <form @submit.prevent="isSetupMode ? createFirstUser() : login()" class="form-grid">

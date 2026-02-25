@@ -131,6 +131,7 @@
     @create-subfolder="handleCreateSubfolder"
     @create-nested="handleCreateNestedFolder"
     @refresh="loadFolderStructure"
+    @open-file="handleOpenFile"
   />
 </div>
           </div>
@@ -504,7 +505,22 @@ const handleCreateNestedFolder = async ({ parentFolder, subfolderName }) => {
   }
 };
 
-
+// Dans <script setup> de ClientFolderWidget.vue
+const handleOpenFile = async (filePath) => {
+  if (!filePath) return;
+  
+  isLoading.value = true;
+  try {
+    const result = await window.go.main.App.OpenFile(filePath);
+    if (!result.success) {
+      alert(`Erreur : ${result.error}`);
+    }
+  } catch (e) {
+    console.error("Erreur lors de l'ouverture du fichier:", e);
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 // 🆕 Charge la structure enrichie avec détails
 const loadFolderStructure = async () => {

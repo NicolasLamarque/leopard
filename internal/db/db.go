@@ -29,6 +29,7 @@ func New(path string) (*Database, error) {
 	fullSchema := schema.System + // Municipalités, pays
 		schema.Users + // Utilisateurs
 		schema.Logs + // Journal d'audit (Loi 25) - Nécessite Users
+		schema.TablePharmacies + // Ressources
 		schema.TableMedecins + // Ressources
 		schema.TableNotaires +
 		schema.TableResidence +
@@ -45,6 +46,16 @@ func New(path string) (*Database, error) {
 	_, err = db.Exec(fullSchema)
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de la création du schéma: %w", err)
+	}
+	// ÉTAPE B : Tes finances (Le tableau !)
+	// On boucle sur chaque élément du tableau "AllFinanceTables"
+	for _, tableSQL := range schema.AllFinanceTables {
+		_, err := db.Exec(tableSQL)
+		if err != nil {
+			// C'est ICI que c'est puissant :
+			// Si ça plante, il va te dire EXACTEMENT quelle table pose problème
+			return nil, fmt.Errorf("Erreur SQL Finance sur : %s \nErreur: %w", tableSQL, err)
+		}
 	}
 
 	return &Database{db}, nil

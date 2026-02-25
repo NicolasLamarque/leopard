@@ -36,6 +36,7 @@ var TableClients = `
 		no_dossier_leopard TEXT,
 		medecin_famille_No_Licence TEXT,
 		notaire_id INTEGER,
+		pharmacie_id INTEGER,
 		pivot_id INTEGER,
 		rpa_id INTEGER,
 		chsld_id INTEGER,

@@ -346,3 +346,21 @@ func (a *App) ImportIntervenants(filePath string) (string, error) {
 
 	return fmt.Sprintf("%d intervenants importés avec succès", count), nil
 }
+
+// ImportPharmacies importe les pharmacies depuis un fichier CSV (; separator)
+func (a *App) ImportPharmacies(filePath string) (string, error) {
+	// 1. Validation de base
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return "", fmt.Errorf("le fichier n'existe pas : %s", filePath)
+	}
+
+	// 2. Appel au repository (le code DB)
+	// On passe le chemin du fichier à la fonction qu'on va créer dans internal/db
+	count, err := a.db.ImportPharmaciesFromCSV(filePath)
+
+	if err != nil {
+		return "", fmt.Errorf("erreur lors de l'import des pharmacies : %w", err)
+	}
+
+	return fmt.Sprintf("✅ %d pharmacies importées avec succès", count), nil
+}

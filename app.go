@@ -4,18 +4,21 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"leopard/internal/crypto"
 	database "leopard/internal/db"
 	repo "leopard/internal/db"
-	"leopard/internal/export"
 	models "leopard/internal/model"
 	"leopard/internal/services"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -37,30 +40,48 @@ func NewApp() *App {
 }
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	// 1. Charger les variables d'environnement (le .env)
+	// On le fait au tout début avant d'en avoir besoin
+	if err := godotenv.Load(); err != nil {
+		println("ℹ️ Note: Aucun fichier .env trouvé, utilisation des variables système")
+	}
+
+	// 2. Initialisation de la Base de Données
 	db, err := database.New("./app.db")
 	if err != nil {
 		panic(err)
 	}
 	a.db = db
-	// Initialisez le service d'auth ici
+
+	// 3. Services de base
 	a.authSvc = services.NewAuthService(db)
-	masterPassword := "MonMotDePasseSecret2025!"
+
+	// 4. RÉCUPÉRATION DU SECRET
+	masterPassword := os.Getenv("LEOPARD_MASTER_KEY")
+	if masterPassword == "" {
+		// En mode dev, c'est pratique, mais en prod on paniquera
+		masterPassword = "CLE_DE_SECOURS_PAS_SECURE"
+		println("⚠️ ATTENTION: Utilisation d'une clé non-sécurisée")
+	}
+
+	// 5. Initialisation du Chiffrement
 	cryptoSvc, err := crypto.NewCryptoService(masterPassword)
 	if err != nil {
 		panic(err)
 	}
 	a.cryptoSvc = cryptoSvc
+
+	// 6. Autres services dépendant du CryptoSvc
 	a.IntervenantSvc = services.NewIntervenantService(db, cryptoSvc)
 
+	// 7. Dossiers et Templates
 	if err := a.initializeLeopardFolders(); err != nil {
 		println("⚠️ Avertissement:", err.Error())
 	}
 
-	// --- ON AJOUTE ÇA ICI : ---
 	templatePath := "data/Modele_Import_Notaires.xlsx"
-	// Si le fichier n'existe pas, on demande à la DB de le créer
 	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
-		// Pas besoin de Mkdir ici car initializeLeopardFolders s'en occupe sûrement
 		a.db.CreateNotaireTemplate(templatePath)
 	}
 }
@@ -354,43 +375,50 @@ func (a *App) LockNote(noteID int) error {
 	return a.db.LockNote(noteID, signatureNom, a.cryptoSvc)
 }
 
-// ExportNotesToPDF génère un PDF avec les notes sélectionnées
-func (a *App) ExportNotesToPDF(leopardNumber string, noteIDs []int) (string, error) {
+// ExportNotesToPDF reçoit le PDF généré par le frontend et le sauvegarde dans le dossier client sécurisé
+func (a *App) ExportNotesToPDF(leopardNumber string, noteIDs []int, pdfBase64 string) (string, error) {
+	// 1. VALIDATIONS DE SÉCURITÉ (Ton code solide)
 	if a.currentUser == nil {
-		return "", errors.New("non authentifié")
+		return "", errors.New("non authentifié : accès refusé")
 	}
 
 	if leopardNumber == "" {
-		return "", errors.New("numéro Léopard requis")
+		return "", errors.New("numéro Léopard requis pour l'exportation")
 	}
 
 	if len(noteIDs) == 0 {
 		return "", errors.New("aucune note sélectionnée")
 	}
 
-	// Récupérer les notes
-	notes, err := a.db.GetNotesByIDs(noteIDs, a.cryptoSvc)
+	if pdfBase64 == "" {
+		return "", errors.New("le contenu du PDF est vide")
+	}
+
+	// 2. PRÉPARATION DU CONTENU PDF
+	// On nettoie le base64 au cas où le frontend inclut l'en-tête data:application/pdf;base64
+	cleanedBase64 := pdfBase64
+	if strings.Contains(pdfBase64, ",") {
+		cleanedBase64 = strings.Split(pdfBase64, ",")[1]
+	}
+
+	pdfData, err := base64.StdEncoding.DecodeString(cleanedBase64)
 	if err != nil {
-		return "", fmt.Errorf("erreur récupération notes: %w", err)
+		return "", fmt.Errorf("erreur de décodage des données PDF: %w", err)
 	}
 
-	if len(notes) == 0 {
-		return "", errors.New("aucune note trouvée")
-	}
-
-	// Utiliser le système de dossiers existant
+	// 3. RECHERCHE DU DOSSIER CLIENT (Ta logique de repérage par préfixe)
 	basePath := a.GetBasePath()
 	clientsPath := filepath.Join(basePath, "Clients")
 
-	// Trouver le dossier du client
 	entries, err := os.ReadDir(clientsPath)
 	if err != nil {
-		return "", fmt.Errorf("erreur lecture dossier Clients: %w", err)
+		return "", fmt.Errorf("impossible de lire le répertoire Clients: %w", err)
 	}
 
 	var clientPath string
 	targetLength := len(leopardNumber)
 
+	// On cherche le dossier qui commence par le numéro Léopard
 	for _, entry := range entries {
 		if entry.IsDir() {
 			name := entry.Name()
@@ -402,22 +430,32 @@ func (a *App) ExportNotesToPDF(leopardNumber string, noteIDs []int) (string, err
 	}
 
 	if clientPath == "" {
-		return "", fmt.Errorf("dossier client introuvable pour %s", leopardNumber)
+		return "", fmt.Errorf("dossier client introuvable pour le numéro : %s", leopardNumber)
 	}
 
-	// Le PDF va dans le sous-dossier "Notes"
+	// 4. CRÉATION DU CHEMIN DE SORTIE
 	outputDir := filepath.Join(clientPath, "Notes")
-
-	// Créer le dossier Notes s'il n'existe pas
+	// 0755 pour le dossier afin que le système puisse y accéder, mais 0700 serait encore plus strict
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
-		return "", fmt.Errorf("erreur création dossier Notes: %w", err)
+		return "", fmt.Errorf("erreur lors de la création du dossier Notes: %w", err)
 	}
 
-	// Générer le PDF
-	pdfPath, err := export.GenerateNotesPDF(notes, leopardNumber, outputDir)
+	// Nom du fichier : YYYYMMDD_NumLeopard_Export.pdf
+	filename := fmt.Sprintf("%s_%s_Export.pdf", time.Now().Format("20060102"), leopardNumber)
+	pdfPath := filepath.Join(outputDir, filename)
+
+	// 5. ÉCRITURE SÉCURISÉE DU FICHIER (Loi 25)
+	// 0600 = Seul l'utilisateur propriétaire peut lire et écrire ce fichier
+	err = os.WriteFile(pdfPath, pdfData, 0600)
 	if err != nil {
-		return "", fmt.Errorf("erreur génération PDF: %w", err)
+		return "", fmt.Errorf("erreur lors de l'écriture du fichier PDF sur le disque: %w", err)
 	}
+
+	// 6. LOG ET RETOUR
+	fmt.Printf("PDF exporté avec succès : %s\n", pdfPath)
+
+	// Optionnel : Si tu veux que l'app ouvre le dossier ou le fichier après
+	// a.OpenFile(pdfPath)
 
 	return pdfPath, nil
 }
@@ -848,4 +886,24 @@ func ptrToString(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+// / Result définit la structure de retour pour le frontend
+type Result struct {
+	Success bool   `json:"success"`
+	Path    string `json:"path"`
+	Error   string `json:"error"`
+}
+
+// OpenFile utilise la commande système pour ouvrir le fichier avec l'app par défaut
+func (a *App) OpenFile(filePath string) Result {
+	var err error
+
+	// Sur Windows, "start" lance l'application associée à l'extension (.docx, .pdf, etc.)
+	err = exec.Command("cmd", "/C", "start", "", filePath).Start()
+
+	if err != nil {
+		return Result{Success: false, Error: err.Error()}
+	}
+	return Result{Success: true, Path: filePath}
 }

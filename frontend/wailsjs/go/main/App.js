@@ -6,6 +6,14 @@ export function ArchiveNotaire(arg1) {
   return window['go']['main']['App']['ArchiveNotaire'](arg1);
 }
 
+export function ArchiverOrganisation(arg1) {
+  return window['go']['main']['App']['ArchiverOrganisation'](arg1);
+}
+
+export function ArchiverService(arg1) {
+  return window['go']['main']['App']['ArchiverService'](arg1);
+}
+
 export function ChangePassword(arg1) {
   return window['go']['main']['App']['ChangePassword'](arg1);
 }
@@ -34,6 +42,18 @@ export function CreateContact(arg1) {
   return window['go']['main']['App']['CreateContact'](arg1);
 }
 
+export function CreateContrat(arg1) {
+  return window['go']['main']['App']['CreateContrat'](arg1);
+}
+
+export function CreateDepense(arg1) {
+  return window['go']['main']['App']['CreateDepense'](arg1);
+}
+
+export function CreateFacture(arg1) {
+  return window['go']['main']['App']['CreateFacture'](arg1);
+}
+
 export function CreateFirstUser(arg1) {
   return window['go']['main']['App']['CreateFirstUser'](arg1);
 }
@@ -50,8 +70,24 @@ export function CreateNote(arg1) {
   return window['go']['main']['App']['CreateNote'](arg1);
 }
 
+export function CreateOrganisation(arg1) {
+  return window['go']['main']['App']['CreateOrganisation'](arg1);
+}
+
+export function CreatePayeur(arg1) {
+  return window['go']['main']['App']['CreatePayeur'](arg1);
+}
+
 export function CreatePlan(arg1) {
   return window['go']['main']['App']['CreatePlan'](arg1);
+}
+
+export function CreateRevenu(arg1) {
+  return window['go']['main']['App']['CreateRevenu'](arg1);
+}
+
+export function CreateService(arg1) {
+  return window['go']['main']['App']['CreateService'](arg1);
 }
 
 export function CreateSubfolder(arg1, arg2) {
@@ -74,6 +110,10 @@ export function DeleteContact(arg1) {
   return window['go']['main']['App']['DeleteContact'](arg1);
 }
 
+export function DeleteDepense(arg1) {
+  return window['go']['main']['App']['DeleteDepense'](arg1);
+}
+
 export function DeleteExcelFile(arg1) {
   return window['go']['main']['App']['DeleteExcelFile'](arg1);
 }
@@ -94,12 +134,36 @@ export function DeleteNote(arg1) {
   return window['go']['main']['App']['DeleteNote'](arg1);
 }
 
+export function DeleteOrganisation(arg1) {
+  return window['go']['main']['App']['DeleteOrganisation'](arg1);
+}
+
+export function DeletePharmacie(arg1) {
+  return window['go']['main']['App']['DeletePharmacie'](arg1);
+}
+
 export function DeleteResidence(arg1) {
   return window['go']['main']['App']['DeleteResidence'](arg1);
 }
 
-export function ExportNotesToPDF(arg1, arg2) {
-  return window['go']['main']['App']['ExportNotesToPDF'](arg1, arg2);
+export function DeleteRevenu(arg1) {
+  return window['go']['main']['App']['DeleteRevenu'](arg1);
+}
+
+export function DeleteService(arg1) {
+  return window['go']['main']['App']['DeleteService'](arg1);
+}
+
+export function DetectLeopardKey() {
+  return window['go']['main']['App']['DetectLeopardKey']();
+}
+
+export function EnregistrerPaiement(arg1) {
+  return window['go']['main']['App']['EnregistrerPaiement'](arg1);
+}
+
+export function ExportNotesToPDF(arg1, arg2, arg3) {
+  return window['go']['main']['App']['ExportNotesToPDF'](arg1, arg2, arg3);
 }
 
 export function ExportToClientFolder(arg1) {
@@ -118,12 +182,44 @@ export function GetAllContactsByClientID(arg1) {
   return window['go']['main']['App']['GetAllContactsByClientID'](arg1);
 }
 
+export function GetAllContrats(arg1, arg2) {
+  return window['go']['main']['App']['GetAllContrats'](arg1, arg2);
+}
+
+export function GetAllDepenses(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['GetAllDepenses'](arg1, arg2, arg3, arg4);
+}
+
+export function GetAllFactures(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GetAllFactures'](arg1, arg2, arg3);
+}
+
 export function GetAllIntervenants() {
   return window['go']['main']['App']['GetAllIntervenants']();
 }
 
 export function GetAllNotaires() {
   return window['go']['main']['App']['GetAllNotaires']();
+}
+
+export function GetAllOrganisations(arg1, arg2) {
+  return window['go']['main']['App']['GetAllOrganisations'](arg1, arg2);
+}
+
+export function GetAllPays() {
+  return window['go']['main']['App']['GetAllPays']();
+}
+
+export function GetAllPharmacies() {
+  return window['go']['main']['App']['GetAllPharmacies']();
+}
+
+export function GetAllRevenus(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['GetAllRevenus'](arg1, arg2, arg3, arg4);
+}
+
+export function GetAllServices(arg1, arg2) {
+  return window['go']['main']['App']['GetAllServices'](arg1, arg2);
 }
 
 export function GetAppelByID(arg1) {
@@ -178,12 +274,24 @@ export function GetClientsByNotaire(arg1) {
   return window['go']['main']['App']['GetClientsByNotaire'](arg1);
 }
 
+export function GetClientsForPharmacie(arg1) {
+  return window['go']['main']['App']['GetClientsForPharmacie'](arg1);
+}
+
 export function GetContacts() {
   return window['go']['main']['App']['GetContacts']();
 }
 
+export function GetContratByID(arg1) {
+  return window['go']['main']['App']['GetContratByID'](arg1);
+}
+
 export function GetCurrentUserProfile() {
   return window['go']['main']['App']['GetCurrentUserProfile']();
+}
+
+export function GetDashboardData() {
+  return window['go']['main']['App']['GetDashboardData']();
 }
 
 export function GetDetailedFolderStructure(arg1) {
@@ -192,6 +300,10 @@ export function GetDetailedFolderStructure(arg1) {
 
 export function GetExcelFileInfo(arg1) {
   return window['go']['main']['App']['GetExcelFileInfo'](arg1);
+}
+
+export function GetFactureByID(arg1) {
+  return window['go']['main']['App']['GetFactureByID'](arg1);
 }
 
 export function GetIntervenantByID(arg1) {
@@ -222,8 +334,60 @@ export function GetNoteByID(arg1) {
   return window['go']['main']['App']['GetNoteByID'](arg1);
 }
 
+export function GetOrganisationByID(arg1) {
+  return window['go']['main']['App']['GetOrganisationByID'](arg1);
+}
+
+export function GetOrganisationsListItems() {
+  return window['go']['main']['App']['GetOrganisationsListItems']();
+}
+
+export function GetParametresFinance() {
+  return window['go']['main']['App']['GetParametresFinance']();
+}
+
+export function GetPayeursByClient(arg1) {
+  return window['go']['main']['App']['GetPayeursByClient'](arg1);
+}
+
+export function GetPaysByAlpha2(arg1) {
+  return window['go']['main']['App']['GetPaysByAlpha2'](arg1);
+}
+
+export function GetPaysByAlpha3(arg1) {
+  return window['go']['main']['App']['GetPaysByAlpha3'](arg1);
+}
+
+export function GetPaysByID(arg1) {
+  return window['go']['main']['App']['GetPaysByID'](arg1);
+}
+
+export function GetPaysCount() {
+  return window['go']['main']['App']['GetPaysCount']();
+}
+
+export function GetPaysForSelect() {
+  return window['go']['main']['App']['GetPaysForSelect']();
+}
+
+export function GetPharmacieByID(arg1) {
+  return window['go']['main']['App']['GetPharmacieByID'](arg1);
+}
+
+export function GetPharmacieForClient(arg1) {
+  return window['go']['main']['App']['GetPharmacieForClient'](arg1);
+}
+
 export function GetPlansByClient(arg1) {
   return window['go']['main']['App']['GetPlansByClient'](arg1);
+}
+
+export function GetRapportFiscalAnnuel(arg1) {
+  return window['go']['main']['App']['GetRapportFiscalAnnuel'](arg1);
+}
+
+export function GetRentabiliteParClient(arg1) {
+  return window['go']['main']['App']['GetRentabiliteParClient'](arg1);
 }
 
 export function GetResidenceByID(arg1) {
@@ -238,12 +402,24 @@ export function GetResidences() {
   return window['go']['main']['App']['GetResidences']();
 }
 
+export function GetRevenusByClient(arg1) {
+  return window['go']['main']['App']['GetRevenusByClient'](arg1);
+}
+
+export function GetServiceByID(arg1) {
+  return window['go']['main']['App']['GetServiceByID'](arg1);
+}
+
 export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
 
 export function GetStatsAppels() {
   return window['go']['main']['App']['GetStatsAppels']();
+}
+
+export function GetStatsMensuelles(arg1, arg2) {
+  return window['go']['main']['App']['GetStatsMensuelles'](arg1, arg2);
 }
 
 export function GetUserCount() {
@@ -264,6 +440,14 @@ export function ImportMedecinsWithUpdate(arg1) {
 
 export function ImportNotaires(arg1) {
   return window['go']['main']['App']['ImportNotaires'](arg1);
+}
+
+export function ImportNotairesWithUpdate(arg1) {
+  return window['go']['main']['App']['ImportNotairesWithUpdate'](arg1);
+}
+
+export function ImportPharmacies(arg1) {
+  return window['go']['main']['App']['ImportPharmacies'](arg1);
 }
 
 export function InsertResidence(arg1) {
@@ -298,6 +482,10 @@ export function OpenClientFolder(arg1) {
   return window['go']['main']['App']['OpenClientFolder'](arg1);
 }
 
+export function OpenFile(arg1) {
+  return window['go']['main']['App']['OpenFile'](arg1);
+}
+
 export function OpenFolder(arg1) {
   return window['go']['main']['App']['OpenFolder'](arg1);
 }
@@ -314,6 +502,10 @@ export function RepairClientFolderStructure(arg1) {
   return window['go']['main']['App']['RepairClientFolderStructure'](arg1);
 }
 
+export function ResoudrePayeur(arg1) {
+  return window['go']['main']['App']['ResoudrePayeur'](arg1);
+}
+
 export function SaveExcelFile(arg1, arg2) {
   return window['go']['main']['App']['SaveExcelFile'](arg1, arg2);
 }
@@ -322,12 +514,24 @@ export function SaveIntervenant(arg1) {
   return window['go']['main']['App']['SaveIntervenant'](arg1);
 }
 
+export function SaveParametresFinance(arg1) {
+  return window['go']['main']['App']['SaveParametresFinance'](arg1);
+}
+
+export function SavePharmacie(arg1) {
+  return window['go']['main']['App']['SavePharmacie'](arg1);
+}
+
 export function SearchCHSLD(arg1, arg2, arg3) {
   return window['go']['main']['App']['SearchCHSLD'](arg1, arg2, arg3);
 }
 
 export function SearchMedecins(arg1) {
   return window['go']['main']['App']['SearchMedecins'](arg1);
+}
+
+export function SearchPays(arg1) {
+  return window['go']['main']['App']['SearchPays'](arg1);
 }
 
 export function SearchResidences(arg1, arg2, arg3) {
@@ -358,6 +562,14 @@ export function SetCurrentUser(arg1) {
   return window['go']['main']['App']['SetCurrentUser'](arg1);
 }
 
+export function SignerContrat(arg1, arg2) {
+  return window['go']['main']['App']['SignerContrat'](arg1, arg2);
+}
+
+export function StartUsbListener(arg1) {
+  return window['go']['main']['App']['StartUsbListener'](arg1);
+}
+
 export function SyncRPA() {
   return window['go']['main']['App']['SyncRPA']();
 }
@@ -378,6 +590,18 @@ export function UpdateContact(arg1) {
   return window['go']['main']['App']['UpdateContact'](arg1);
 }
 
+export function UpdateContrat(arg1) {
+  return window['go']['main']['App']['UpdateContrat'](arg1);
+}
+
+export function UpdateDepense(arg1) {
+  return window['go']['main']['App']['UpdateDepense'](arg1);
+}
+
+export function UpdateFactureStatut(arg1, arg2) {
+  return window['go']['main']['App']['UpdateFactureStatut'](arg1, arg2);
+}
+
 export function UpdateMedecin(arg1) {
   return window['go']['main']['App']['UpdateMedecin'](arg1);
 }
@@ -388,6 +612,10 @@ export function UpdateNotaire(arg1) {
 
 export function UpdateNoteDraft(arg1, arg2) {
   return window['go']['main']['App']['UpdateNoteDraft'](arg1, arg2);
+}
+
+export function UpdateOrganisation(arg1) {
+  return window['go']['main']['App']['UpdateOrganisation'](arg1);
 }
 
 export function UpdatePlan(arg1, arg2) {
@@ -402,10 +630,22 @@ export function UpdateResidence(arg1) {
   return window['go']['main']['App']['UpdateResidence'](arg1);
 }
 
+export function UpdateRevenu(arg1) {
+  return window['go']['main']['App']['UpdateRevenu'](arg1);
+}
+
+export function UpdateService(arg1) {
+  return window['go']['main']['App']['UpdateService'](arg1);
+}
+
 export function UpdateSettings(arg1) {
   return window['go']['main']['App']['UpdateSettings'](arg1);
 }
 
 export function ValidateExcelFile(arg1) {
   return window['go']['main']['App']['ValidateExcelFile'](arg1);
+}
+
+export function VerifierFacturesEnRetard() {
+  return window['go']['main']['App']['VerifierFacturesEnRetard']();
 }

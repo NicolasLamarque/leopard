@@ -115,7 +115,7 @@ func (db *Database) CreateNote(req models.CreateNoteRequest, cryptoSvc *crypto.C
 
 	query := `
 		INSERT INTO notes (
-			client_id, client_NoRAMQ, client_Nom, client_Prenom, 
+			client_id, client_NoRAMQ, client_Nom, client_Prenom, client_date_naissance,
 			client_Telephone, client_Cellulaire, client_NoLeopard,
 			client_Adresse, client_appartement, client_code_postal, 
 			client_ville, client_pays, client_province,
@@ -124,7 +124,7 @@ func (db *Database) CreateNote(req models.CreateNoteRequest, cryptoSvc *crypto.C
 			titre, contenu, note_tardive, note_de_tier,
 			note_liee_id, type_lien, verrouille
 		) VALUES (
-			:client_id, :client_NoRAMQ, :client_Nom, :client_Prenom,
+			:client_id, :client_NoRAMQ, :client_Nom, :client_Prenom, :client_date_naissance,
 			:client_Telephone, :client_Cellulaire, :client_NoLeopard,
 			:client_Adresse, :client_appartement, :client_code_postal,
 			:client_ville, :client_pays, :client_province,
@@ -292,6 +292,11 @@ func encryptCreateNoteRequest(req models.CreateNoteRequest, cryptoSvc *crypto.Cr
 	if err != nil {
 		return req, err
 	}
+	//encrypt date_naissance client
+	//encrypted.ClientDateNaissance, err = cryptoSvc.EncryptStringPtr(req.ClientDateNaissance)
+	//if err != nil {
+	//	return req, err
+	//}
 
 	encrypted.ClientTelephone, err = cryptoSvc.EncryptStringPtr(req.ClientTelephone)
 	if err != nil {

@@ -1,5 +1,5 @@
 <template>
-    <div class="notaire-page">
+    <div class="intervenants-page">
         <h1>Professionnels</h1>
     </div>
 </template>

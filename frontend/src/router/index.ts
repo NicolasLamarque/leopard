@@ -6,6 +6,14 @@ import ClientPage from "../views/ClientPage.vue";
 import ClientDetailsPage from "../views/ClientDetailsPage.vue";
 import SettingPage from "../views/SettingPage.vue";
 import RPAPage from "../views/etablissements/RPAPage.vue";
+import PharmaciesPage from "@/views/PharmaciesPage.vue";
+import MedecinPage from "../views/MedecinPage.vue";
+import NotairePage from "../views/NotairePage.vue";
+import IntervenantPage from "../views/IntervenantPage.vue";
+import EtablissementPage from "../views/etablissements/EtablissementPage.vue";
+import RevenusPage from "../views/RevenusPage.vue";
+import ServicePage from "../views/ServicePage.vue";
+import { R } from "vue-router/dist/router-CWoNjPRp.mjs";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -40,27 +48,26 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "medecins",
         name: "medecins",
-        component: () => import("../views/MedecinPage.vue"),
+        component: MedecinPage,
       },
 
       // 📋 Autres sections (lazy loading)
       {
         path: "notaires",
         name: "notaires",
-        component: () => import("../views/NotairePage.vue"),
+        component: NotairePage,
       },
       {
         path: "intervenants",
         name: "intervenants",
-        component: () => import("../views/IntervenantPage.vue"),
+        component: IntervenantPage,
       },
 
       // 🏢 Établissements (page avec onglets RPA/CHSLD/RI)
       {
         path: "etablissements",
         name: "etablissements",
-        component: () =>
-          import("../views/etablissements/EtablissementPage.vue"),
+        component: EtablissementPage,
       },
 
       // 🏠 RPA (page dédiée - garde-la si tu l'utilises encore)
@@ -76,11 +83,23 @@ const routes: Array<RouteRecordRaw> = [
         name: "chsld",
         component: () => import("../views/etablissements/CHSLDPage.vue"),
       },
+      // 🏘️ pharmacies
+      {
+        path: "pharmacies",
+        name: "pharmacies",
+        component: PharmaciesPage,
+      },
 
       {
         path: "rapports",
         name: "rapports",
-        component: () => import("../views/RapportPage.vue"),
+        component: ServicePage,
+      },
+
+         {
+        path: "admin",
+        name: "admin",
+        component: RevenusPage,
       },
       {
         path: "appels",

@@ -39,6 +39,8 @@
         <div v-if="activeTab === 'notaires'">
           <NotairesImporter />
         </div>
+
+
         
         <!-- Onglet Apparence -->
         <div v-if="activeTab === 'appearance'" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
@@ -236,7 +238,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { User, Palette, Lock, Bell, Moon, Sun, Building2, Heart, Shield } from 'lucide-vue-next'
+import { User, Palette, Lock, Bell, Moon, Sun, Building2, Heart, Shield, Globe } from 'lucide-vue-next'
 import { useDarkMode } from '../composables/useDarkMode'
 import { 
   GetSettings, 
@@ -249,6 +251,8 @@ import {
 import RPAManager from '../components/RPA/RPAManager.vue'
 import MedecinImporter from '../components/Medecins/MedecinImporter.vue' //
 import NotairesImporter from '../components/Notaires/NotairesImporter.vue' //
+
+
 
 
 
@@ -268,7 +272,7 @@ const tabs = [
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'rpa', label: 'Gestion RPA', icon: Building2 }, // ← NOUVEAU
   { id: 'medecins', label: 'Importation de medecins', icon: Heart },
-  { id: 'notaires', label: 'Importation de notaires', icon: Shield }
+  { id: 'notaires', label: 'Importation de notaires', icon: Shield },
 ]
 
 const settings = ref({

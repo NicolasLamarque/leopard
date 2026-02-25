@@ -10,7 +10,7 @@ import router from './router' // 1. Importe ton fichier router/index.ts
 const app = createApp(App)
 
 app.use(createPinia())
-app.use(router) 
+app.use(router as any) // 2. Utilise le router dans ton application
 app.use(plugin, defaultConfig)
 
 app.mount('#app')

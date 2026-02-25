@@ -74,14 +74,30 @@
   :count="stats.appels"
   @click="openAppels" 
 />
-
+      <!-- Card Pharmacie (NOUVEAU) -->
+      <NavCard
+  title="Pharmacies"
+  description="Gestion des pharmaciens partenaires"
+  icon="building-store"
+  color="cyan"
+  :count="stats.pharmacies"
+  @click="navigate('pharmacies')"
+/>
       <!-- Card Rapports -->
       <NavCard
-        title="Rapports"
+        title="Services"
         description="Statistiques et analyses"
         icon="chart"
         color="rose"
         @click="navigate('rapports')"
+      />
+
+       <NavCard
+        title="Admin"
+        description="Gestion administrative"
+        icon="cash-register"
+        color="rose"
+        @click="navigate('admin')"
       />
       
     </div>
@@ -141,6 +157,7 @@ import NavCard from '../components/NavCard.vue'
 import QuickAction from '../components/QuickAction.vue'
 import ActivityItem from '../components/ActivityItem.vue'
 
+
 import { useAppels } from '../composables/useAppels'
 
 const router = useRouter()
@@ -151,8 +168,9 @@ const stats = ref({
   medecins: 0,
   notaires: 0,
   professionnels: 0,
-   intervenants: 0,
+  intervenants: 0,
   etablissements: 0,
+  pharmacies: 0,
   appels: 0
 })
 

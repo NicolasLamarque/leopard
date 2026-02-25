@@ -3,11 +3,14 @@ package schema
 var TableEval = `
 CREATE TABLE IF NOT EXISTS evaluations_sociales (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    no_leopard TEXT NOT NULL,
+    no_eval_Leopard TEXT NOT NULL,
     client_id INTEGER NOT NULL,
     created_by INTEGER NOT NULL,
     contexte_evaluation TEXT,
     motif_reference TEXT,
     objet_evaluation TEXT,
+    type_evaluation TEXT,
     capacites_cognitives TEXT,
     etat_sante_physique TEXT,
     dimensions_psycho_sociales TEXT,
@@ -18,6 +21,7 @@ CREATE TABLE IF NOT EXISTS evaluations_sociales (
     recommandations TEXT,
 	signature_nom TEXT,
     verrouille INTEGER DEFAULT 0,
+    IsDraft INTEGER DEFAULT 1,
     date_signature DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

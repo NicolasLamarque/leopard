@@ -13,3 +13,5 @@ export function GetEvaluationsByClient(arg1:number):Promise<Array<models.Evaluat
 export function LockEvaluation(arg1:number,arg2:string):Promise<void>;
 
 export function SignerEvaluation(arg1:number,arg2:string):Promise<void>;
+
+export function UpdateEvaluationBrouillon(arg1:number,arg2:models.CreateEvaluationRequest):Promise<void>;

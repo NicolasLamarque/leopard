@@ -98,7 +98,9 @@
           </div>
           <div v-for="(file, idx) in recentFiles" 
                :key="idx"
+               @click="$emit('open-file', file.path)"
                class="ml-2 flex items-center gap-2 p-1 rounded hover:bg-white/50 dark:hover:bg-white/5 transition-all cursor-pointer group text-xs">
+               
             <component :is="getFileIcon(file.name)" 
                        :size="12" 
                        class="text-gray-400 group-hover:text-blue-500 flex-shrink-0 transition-colors" />
@@ -258,7 +260,7 @@ const props = defineProps({
     type: Object, required: true }, 
 });
 
-const emit = defineEmits(['create-subfolder', 'create-nested', 'refresh']);
+const emit = defineEmits(['create-subfolder', 'create-nested', 'refresh','open-file']);
 
 const isExpanded = ref(false);
 const showEvaluationCreator = ref(false);

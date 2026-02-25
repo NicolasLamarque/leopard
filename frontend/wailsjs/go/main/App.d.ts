@@ -3,8 +3,13 @@
 import {models} from '../models';
 import {main} from '../models';
 import {database} from '../models';
+import {context} from '../models';
 
 export function ArchiveNotaire(arg1:number):Promise<void>;
+
+export function ArchiverOrganisation(arg1:number):Promise<void>;
+
+export function ArchiverService(arg1:number):Promise<void>;
 
 export function ChangePassword(arg1:models.ChangePasswordRequest):Promise<void>;
 
@@ -20,6 +25,12 @@ export function CreateClientFolderStructure(arg1:Record<string, any>):Promise<ma
 
 export function CreateContact(arg1:models.CreateContactRequest):Promise<number>;
 
+export function CreateContrat(arg1:models.CreateContratRequest):Promise<number>;
+
+export function CreateDepense(arg1:models.CreateDepenseRequest):Promise<number>;
+
+export function CreateFacture(arg1:models.CreateFactureRequest):Promise<number>;
+
 export function CreateFirstUser(arg1:main.CreateFirstUserRequest):Promise<void>;
 
 export function CreateMedecin(arg1:models.CreateMedecinRequest):Promise<number>;
@@ -28,7 +39,15 @@ export function CreateNotaire(arg1:models.CreateNotaireRequest):Promise<number>;
 
 export function CreateNote(arg1:models.CreateNoteRequest):Promise<number>;
 
+export function CreateOrganisation(arg1:models.CreateOrganisationRequest):Promise<number>;
+
+export function CreatePayeur(arg1:models.CreatePayeurRequest):Promise<number>;
+
 export function CreatePlan(arg1:models.CreatePlanRequest):Promise<number>;
+
+export function CreateRevenu(arg1:models.CreateRevenuRequest):Promise<number>;
+
+export function CreateService(arg1:models.CreateServiceRequest):Promise<number>;
 
 export function CreateSubfolder(arg1:string,arg2:string):Promise<main.ClientFolderResult>;
 
@@ -40,6 +59,8 @@ export function DeleteClient(arg1:number):Promise<void>;
 
 export function DeleteContact(arg1:number):Promise<void>;
 
+export function DeleteDepense(arg1:number):Promise<void>;
+
 export function DeleteExcelFile(arg1:string):Promise<void>;
 
 export function DeleteIntervenant(arg1:number):Promise<void>;
@@ -50,9 +71,21 @@ export function DeleteNotaire(arg1:number):Promise<void>;
 
 export function DeleteNote(arg1:number):Promise<void>;
 
+export function DeleteOrganisation(arg1:number):Promise<void>;
+
+export function DeletePharmacie(arg1:number):Promise<void>;
+
 export function DeleteResidence(arg1:number):Promise<void>;
 
-export function ExportNotesToPDF(arg1:string,arg2:Array<number>):Promise<string>;
+export function DeleteRevenu(arg1:number):Promise<void>;
+
+export function DeleteService(arg1:number):Promise<void>;
+
+export function DetectLeopardKey():Promise<boolean|string>;
+
+export function EnregistrerPaiement(arg1:models.CreatePaiementRequest):Promise<void>;
+
+export function ExportNotesToPDF(arg1:string,arg2:Array<number>,arg3:string):Promise<string>;
 
 export function ExportToClientFolder(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
 
@@ -62,9 +95,25 @@ export function GetAllCHSLD():Promise<Array<models.CHSLD>>;
 
 export function GetAllContactsByClientID(arg1:number):Promise<Array<models.Contact>>;
 
+export function GetAllContrats(arg1:number,arg2:string):Promise<Array<models.Contrat>>;
+
+export function GetAllDepenses(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<Array<models.Depense>>;
+
+export function GetAllFactures(arg1:string,arg2:string,arg3:string):Promise<Array<models.Facture>>;
+
 export function GetAllIntervenants():Promise<Array<models.Intervenant>>;
 
 export function GetAllNotaires():Promise<Array<models.Notaire>>;
+
+export function GetAllOrganisations(arg1:string,arg2:boolean):Promise<Array<models.Organisation>>;
+
+export function GetAllPays():Promise<Array<models.Pays>>;
+
+export function GetAllPharmacies():Promise<Array<models.Pharmacie>>;
+
+export function GetAllRevenus(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<models.Revenu>>;
+
+export function GetAllServices(arg1:string,arg2:boolean):Promise<Array<models.Service>>;
 
 export function GetAppelByID(arg1:number):Promise<models.Appel>;
 
@@ -92,13 +141,21 @@ export function GetClients():Promise<Array<models.Client>>;
 
 export function GetClientsByNotaire(arg1:number):Promise<Array<models.Client>>;
 
+export function GetClientsForPharmacie(arg1:number):Promise<Array<models.ClientPharmacieInfo>>;
+
 export function GetContacts():Promise<Array<models.Contact>>;
 
+export function GetContratByID(arg1:number):Promise<models.Contrat>;
+
 export function GetCurrentUserProfile():Promise<models.User>;
+
+export function GetDashboardData():Promise<models.DashboardData>;
 
 export function GetDetailedFolderStructure(arg1:string):Promise<Record<string, any>>;
 
 export function GetExcelFileInfo(arg1:string):Promise<Record<string, any>>;
+
+export function GetFactureByID(arg1:number):Promise<models.Facture>;
 
 export function GetIntervenantByID(arg1:number):Promise<models.Intervenant>;
 
@@ -114,7 +171,33 @@ export function GetNotaireByID(arg1:number):Promise<models.Notaire>;
 
 export function GetNoteByID(arg1:number):Promise<models.Note>;
 
+export function GetOrganisationByID(arg1:number):Promise<models.Organisation>;
+
+export function GetOrganisationsListItems():Promise<Array<models.OrganisationListItem>>;
+
+export function GetParametresFinance():Promise<models.ParametresFinance>;
+
+export function GetPayeursByClient(arg1:number):Promise<Array<models.PayeurResolu>>;
+
+export function GetPaysByAlpha2(arg1:string):Promise<models.Pays>;
+
+export function GetPaysByAlpha3(arg1:string):Promise<models.Pays>;
+
+export function GetPaysByID(arg1:number):Promise<models.Pays>;
+
+export function GetPaysCount():Promise<number>;
+
+export function GetPaysForSelect():Promise<Array<models.PaysListItemForSelect>>;
+
+export function GetPharmacieByID(arg1:number):Promise<models.Pharmacie>;
+
+export function GetPharmacieForClient(arg1:number):Promise<models.Pharmacie>;
+
 export function GetPlansByClient(arg1:number):Promise<Array<models.PlanInterventionDetail>>;
+
+export function GetRapportFiscalAnnuel(arg1:number):Promise<models.RapportFiscalAnnuel>;
+
+export function GetRentabiliteParClient(arg1:number):Promise<Array<models.RentabiliteParClient>>;
 
 export function GetResidenceByID(arg1:number):Promise<models.Residence>;
 
@@ -122,9 +205,15 @@ export function GetResidenceForDetails(arg1:string,arg2:boolean):Promise<models.
 
 export function GetResidences():Promise<Array<models.Residence>>;
 
+export function GetRevenusByClient(arg1:number):Promise<Array<models.Revenu>>;
+
+export function GetServiceByID(arg1:number):Promise<models.Service>;
+
 export function GetSettings():Promise<models.UserSettings>;
 
 export function GetStatsAppels():Promise<models.StatsAppels>;
+
+export function GetStatsMensuelles(arg1:number,arg2:number):Promise<models.StatsMensuelles>;
 
 export function GetUserCount():Promise<number>;
 
@@ -135,6 +224,10 @@ export function ImportMedecins(arg1:string):Promise<string>;
 export function ImportMedecinsWithUpdate(arg1:string):Promise<database.ImportStats>;
 
 export function ImportNotaires(arg1:string):Promise<string>;
+
+export function ImportNotairesWithUpdate(arg1:string):Promise<string>;
+
+export function ImportPharmacies(arg1:string):Promise<string>;
 
 export function InsertResidence(arg1:models.Residence):Promise<void>;
 
@@ -152,6 +245,8 @@ export function Logout():Promise<void>;
 
 export function OpenClientFolder(arg1:string):Promise<main.ClientFolderResult>;
 
+export function OpenFile(arg1:string):Promise<main.Result>;
+
 export function OpenFolder(arg1:string):Promise<main.ClientFolderResult>;
 
 export function OpenMainClientsFolder():Promise<main.ClientFolderResult>;
@@ -160,13 +255,21 @@ export function RenameClientFolder(arg1:string,arg2:string):Promise<main.ClientF
 
 export function RepairClientFolderStructure(arg1:string):Promise<Record<string, any>>;
 
+export function ResoudrePayeur(arg1:number):Promise<models.PayeurResolu>;
+
 export function SaveExcelFile(arg1:string,arg2:main.ExcelFileType):Promise<string>;
 
 export function SaveIntervenant(arg1:models.Intervenant):Promise<void>;
 
+export function SaveParametresFinance(arg1:models.ParametresFinance):Promise<void>;
+
+export function SavePharmacie(arg1:models.Pharmacie):Promise<void>;
+
 export function SearchCHSLD(arg1:string,arg2:string,arg3:string):Promise<Array<models.CHSLD>>;
 
 export function SearchMedecins(arg1:string):Promise<Array<models.Medecin>>;
+
+export function SearchPays(arg1:string):Promise<Array<models.Pays>>;
 
 export function SearchResidences(arg1:string,arg2:string,arg3:string):Promise<Array<models.Residence>>;
 
@@ -182,6 +285,10 @@ export function SelectExcelFileForRPA():Promise<string>;
 
 export function SetCurrentUser(arg1:number):Promise<void>;
 
+export function SignerContrat(arg1:number,arg2:string):Promise<void>;
+
+export function StartUsbListener(arg1:context.Context):Promise<void>;
+
 export function SyncRPA():Promise<Record<string, any>>;
 
 export function UpdateAppel(arg1:number,arg2:models.CreateAppelRequest):Promise<void>;
@@ -192,11 +299,19 @@ export function UpdateClient(arg1:models.UpdateClientRequest):Promise<void>;
 
 export function UpdateContact(arg1:models.UpdateContactRequest):Promise<void>;
 
+export function UpdateContrat(arg1:models.UpdateContratRequest):Promise<void>;
+
+export function UpdateDepense(arg1:models.UpdateDepenseRequest):Promise<void>;
+
+export function UpdateFactureStatut(arg1:number,arg2:string):Promise<void>;
+
 export function UpdateMedecin(arg1:models.UpdateMedecinRequest):Promise<void>;
 
 export function UpdateNotaire(arg1:models.Notaire):Promise<void>;
 
 export function UpdateNoteDraft(arg1:number,arg2:models.UpdateNoteRequest):Promise<void>;
+
+export function UpdateOrganisation(arg1:models.UpdateOrganisationRequest):Promise<void>;
 
 export function UpdatePlan(arg1:number,arg2:models.CreatePlanRequest):Promise<void>;
 
@@ -204,6 +319,12 @@ export function UpdateProfile(arg1:models.UpdateProfileRequest):Promise<void>;
 
 export function UpdateResidence(arg1:models.Residence):Promise<void>;
 
+export function UpdateRevenu(arg1:models.UpdateRevenuRequest):Promise<void>;
+
+export function UpdateService(arg1:models.UpdateServiceRequest):Promise<void>;
+
 export function UpdateSettings(arg1:models.UpdateSettingsRequest):Promise<void>;
 
 export function ValidateExcelFile(arg1:string):Promise<void>;
+
+export function VerifierFacturesEnRetard():Promise<void>;

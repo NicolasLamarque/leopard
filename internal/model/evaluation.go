@@ -6,9 +6,12 @@ import (
 
 // EvaluationSociale est le reflet exact de ta table SQL
 type EvaluationSociale struct {
-	ID        int `db:"id" json:"id"`
-	ClientID  int `db:"client_id" json:"client_id"`
-	CreatedBy int `db:"created_by" json:"created_by"`
+	ID            int    `db:"id" json:"id"`
+	ClientID      int    `db:"client_id" json:"client_id"`
+	NoEvalLeopard string `db:"no_eval_leopard" json:"no_eval_leopard"`
+
+	TypeEvaluation *string `db:"type_evaluation" json:"type_evaluation"`
+	CreatedBy      int     `db:"created_by" json:"created_by"`
 
 	// Contenu clinique (Champs chiffrés en DB)
 	ContexteEvaluation       *string `db:"contexte_evaluation" json:"contexte_evaluation"`
@@ -26,6 +29,7 @@ type EvaluationSociale struct {
 	// Workflow
 	SignatureNom  *string    `db:"signature_nom" json:"signature_nom"`
 	Verrouille    int        `db:"verrouille" json:"verrouille"`
+	IsDraft       int        `db:"isDraft" json:"isDraft"`
 	DateSignature *time.Time `db:"date_signature" json:"date_signature"`
 	CreatedAt     time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt     time.Time  `db:"updated_at" json:"updated_at"`
@@ -48,6 +52,9 @@ type EvaluationSocialeDetail struct {
 // CreateEvaluationRequest est utilisé pour le binding FormKit -> Wails -> Go
 type CreateEvaluationRequest struct {
 	ClientID                 int     `json:"client_id"`
+	NoLeopard                string  `db:"no_leopard" json:"no_leopard"`
+	NoEvalLeopard            string  `db:"no_eval_leopard" json:"no_eval_leopard"`
+	TypeEvaluation           *string `db:"type_evaluation" json:"type_evaluation"`
 	ContexteEvaluation       *string `json:"contexte_evaluation"`
 	MotifReference           *string `json:"motif_reference"`
 	ObjetEvaluation          *string `json:"objet_evaluation"`
@@ -59,4 +66,6 @@ type CreateEvaluationRequest struct {
 	AnalyseClinique          *string `json:"analyse_clinique"`
 	OpinionProfessionnelle   *string `json:"opinion_professionnelle"`
 	Recommandations          *string `json:"recommandations"`
+	Verrouille int `db:"verrouille" json:"verrouille"`
+	IsDraft                  int     `db:"isDraft" json:"isDraft"`
 }

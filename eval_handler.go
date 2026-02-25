@@ -27,8 +27,6 @@ func (h *EvalHandler) startup(ctx context.Context) {
 
 // CreateEvaluation crée une nouvelle évaluation sociale
 func (h *EvalHandler) CreateEvaluation(req models.CreateEvaluationRequest) (int64, error) {
-	// Récupérer l'ID de l'utilisateur connecté depuis le contexte ou une session
-	// Ici je mets 1 par défaut, à adapter selon ta gestion de session
 	userID := 1
 
 	if req.ClientID == 0 {
@@ -43,7 +41,15 @@ func (h *EvalHandler) CreateEvaluation(req models.CreateEvaluationRequest) (int6
 	return id, nil
 }
 
-// GetEvaluationsByClient récupère la liste via la VUE (donc avec infos clients)
+// UpdateEvaluationBrouillon met à jour un brouillon existant (jamais un verrouillé)
+func (h *EvalHandler) UpdateEvaluationBrouillon(id int, req models.CreateEvaluationRequest) error {
+	if id == 0 {
+		return fmt.Errorf("ID évaluation manquant")
+	}
+	return h.db.UpdateEvaluationBrouillon(id, req, h.cryptoSvc)
+}
+
+// GetEvaluationsByClient récupère la liste via la VUE (avec infos clients)
 func (h *EvalHandler) GetEvaluationsByClient(clientID int) ([]models.EvaluationSocialeDetail, error) {
 	return h.db.GetAllEvaluationsByClientID(clientID, h.cryptoSvc)
 }
@@ -60,15 +66,9 @@ func (h *EvalHandler) GetEvaluationByID(id int) (*models.EvaluationSocialeDetail
 // SignerEvaluation verrouille le document pour l'OTSTCFQ
 func (h *EvalHandler) SignerEvaluation(id int, nomSignature string) error {
 	if nomSignature == "" {
-		return fmt.Errorf("Le nom du signataire est obligatoire")
+		return fmt.Errorf("le nom du signataire est obligatoire")
 	}
-
-	err := h.db.VerrouillerEvaluation(id, nomSignature)
-	if err != nil {
-		return fmt.Errorf("Erreur lors de la signature: %w", err)
-	}
-
-	return nil
+	return h.db.VerrouillerEvaluation(id, nomSignature)
 }
 
 // LockEvaluation verrouille une évaluation sociale
@@ -76,7 +76,7 @@ func (h *EvalHandler) LockEvaluation(evalID int, signatureNom string) error {
 	return h.db.VerrouillerEvaluation(evalID, signatureNom)
 }
 
-// DeleteEvaluation supprime une évaluation sociale
+// DeleteEvaluation supprime une évaluation (brouillon seulement)
 func (h *EvalHandler) DeleteEvaluation(id int) error {
 	return h.db.DeleteEvaluation(id)
 }

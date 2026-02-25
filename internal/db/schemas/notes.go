@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS notes (
     client_NoRAMQ TEXT, 
     client_Nom TEXT,
     client_Prenom TEXT,
+    client_date_naissance DATETIME,
     client_Telephone TEXT, 
     client_Cellulaire TEXT, 
     client_NoLeopard TEXT, 

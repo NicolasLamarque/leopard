@@ -36,6 +36,7 @@ type Client struct {
 	NoDossierLeopard        *string `db:"no_dossier_leopard" json:"no_dossier_leopard,omitempty"`
 	MedecinFamilleNoLicence *string `db:"medecin_famille_No_Licence" json:"medecin_famille_No_Licence,omitempty"`
 	NotaireID               *int    `db:"notaire_id" json:"notaire_id,omitempty"`
+	PharmacieID             *int    `db:"pharmacie_id" json:"pharmacie_id,omitempty"`
 	PivotID                 *int    `db:"pivot_id" json:"pivot_id,omitempty"`
 	RPAID                   *int    `db:"rpa_id" json:"rpa_id,omitempty"`
 	CHSLDID                 *int    `db:"chsld_id" json:"chsld_id,omitempty"`
@@ -89,6 +90,7 @@ type CreateClientRequest struct {
 	NoDossierLeopard        *string `json:"no_dossier_leopard,omitempty"`
 	MedecinFamilleNoLicence *string `json:"medecin_famille_No_Licence,omitempty"`
 	NotaireID               *int    `json:"notaire_id,omitempty"`
+	PharmacieID             *int    `json:"pharmacie_id,omitempty"`
 	PivotID                 *int    `json:"pivot_id,omitempty"`
 	RPAID                   *int    `json:"rpa_id,omitempty"`
 	CHSLDID                 *int    `json:"chsld_id,omitempty"`
@@ -141,6 +143,7 @@ type UpdateClientRequest struct {
 	NoDossierLeopard        *string `db:"no_dossier_leopard" json:"no_dossier_leopard,omitempty"`
 	MedecinFamilleNoLicence *string `db:"medecin_famille_No_Licence" json:"medecin_famille_No_Licence,omitempty"`
 	NotaireID               *int    `db:"notaire_id" json:"notaire_id,omitempty"`
+	PharmacieID             *int    `db:"pharmacie_id" json:"pharmacie_id,omitempty"`
 	PivotID                 *int    `db:"pivot_id" json:"pivot_id,omitempty"`
 	RPAID                   *int    `db:"rpa_id" json:"rpa_id,omitempty"`
 	CHSLDID                 *int    `db:"chsld_id" json:"chsld_id,omitempty"`

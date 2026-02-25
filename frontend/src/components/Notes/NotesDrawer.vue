@@ -91,6 +91,8 @@
           @delete-all-drafts="deleteAllDrafts"
           @finalize-draft="finalizeDraft"
         />
+
+       
       </div>
     </div>
   </Transition>
@@ -104,6 +106,7 @@ import NotesSidebar from './NotesSidebar.vue'
 import NotesEditor from './NotesEditor.vue'
 import NotesViewer from './NotesViewer.vue'
 import NotesFooter from './NotesFooter.vue'
+import { useNotesPDF } from '../../composables/useNotePDF.js'
 // Centralisation de tous les imports Wails du module App
 import { 
   ExportNotesToPDF,
@@ -122,11 +125,13 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
+// 2. INITIALISE LE COMPOSABLE ICI (Pas dans la fonction !)
+const { generateSingleNotePDF, generateNotesWithSummaryPDF, loadLogoAsBase64 } = useNotesPDF()
 // États principaux
 const notes = ref([])
 const selectedNote = ref(null)
 const selectedNotes = ref([])
+
 const isCreating = ref(false)
 const isSaving = ref(false)
 const isExporting = ref(false)
@@ -537,9 +542,6 @@ const toggleSelectAll = () => {
 // 2. La fonction d'exportation simplifiée au maximum
 // Export PDF
 // Dans <script setup> de NotesDrawer.vue
-
-
-
 const exportToPDF = async () => {
   if (selectedNotes.value.length === 0) {
     alert("Veuillez sélectionner au moins une note à exporter.")
@@ -548,63 +550,41 @@ const exportToPDF = async () => {
 
   isExporting.value = true
   try {
-    // On envoie le numéro de dossier léopard et la liste des IDs sélectionnés
-    const filePath = await ExportPDFBackend(
+    const logo = await loadLogoAsBase64()
+    
+    // On crée la liste des notes à exporter SEULEMENT ICI
+    // Et on utilise GetNoteByID pour avoir le contenu complet (le texte)
+    console.log("📥 Récupération des contenus complets pour l'export...");
+    const notesCompletes = await Promise.all(
+      selectedNotes.value.map(id => GetNoteByID(id))
+    )
+
+    let doc
+    if (notesCompletes.length === 1) {
+      doc = await generateSingleNotePDF(notesCompletes[0], logo)
+    } else {
+      const leopardNo = props.client?.no_dossier_leopard || 'INCONNU'
+      doc = await generateNotesWithSummaryPDF(notesCompletes, leopardNo, logo)
+    }
+
+    const pdfBase64 = doc.output('datauristring')
+    
+    // Envoi au backend Go
+    const filePath = await ExportNotesToPDF(
       props.client.no_dossier_leopard, 
-      selectedNotes.value
+      selectedNotes.value, 
+      pdfBase64
     )
     
-    // Si tu veux faire "pro", on n'affiche pas juste une alerte, 
-    // mais on pourrait ouvrir le dossier ou confirmer le succès.
-    console.log("PDF généré avec succès :", filePath)
-    alert(`Document exporté avec succès dans le dossier du client.`)
+    alert(`Document exporté avec succès !`)
     
   } catch (err) {
     console.error("Erreur d'exportation:", err)
-    alert("Erreur lors de la génération du PDF. Vérifiez les logs.")
+    alert("Erreur lors de la génération du PDF.")
   } finally {
     isExporting.value = false
   }
 }
-
-
-
-
-// Export d'une seule note (depuis NotesViewer)
-const exportSingleNote = async (noteId) => {
-  try {
-    isExporting.value = true;
-    
-    const note = await GetNoteByID(noteId);
-    
-    const request = {
-      leopardNumber: props.client.no_dossier_leopard,
-      notes: [note],
-      clientInfo: {
-        nom: props.client.nom || '',
-        prenom: props.client.prenom || '',
-        date_naissance: props.client.date_naissance || '',
-        no_ramq: props.client.no_ramq || '',
-        adresse: props.client.adresse || '',
-        code_postal: props.client.code_postal || '',
-        telephone: props.client.telephone || ''
-      }
-    };
-
-    const result = await ExportNotesToPDF(request);
-
-    if (result.Success) {
-      alert(`✅ PDF généré!\n${result.Path}`);
-    } else {
-      alert(`❌ Erreur: ${result.Error}`);
-    }
-  } catch (err) {
-    console.error('❌ Erreur export note unique:', err);
-    alert(`Erreur: ${err.message || err}`);
-  } finally {
-    isExporting.value = false;
-  }
-};
 
 // --- UTILITAIRES ---
 

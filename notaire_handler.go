@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	models "leopard/internal/model"
+	"leopard/internal/services/importer"
 )
 
 // ========== NOTAIRES ==========
@@ -58,6 +59,11 @@ func (a *App) UpdateNotaire(notaire models.Notaire) error {
 	return a.db.UpdateNotaire(notaire, a.cryptoSvc)
 }
 
+func (a *App) ImportNotairesWithUpdate(filePath string) (string, error) {
+	// On redirige simplement vers la fonction de base
+	return a.ImportNotaires(filePath)
+}
+
 // DeleteNotaire supprime définitivement un notaire
 func (a *App) DeleteNotaire(id int) error {
 	if a.currentUser == nil {
@@ -97,16 +103,34 @@ func (a *App) GetClientsByNotaire(notaireID int) ([]models.Client, error) {
 	return a.db.GetClientsByNotaire(notaireID, a.cryptoSvc)
 }
 
-// ImportNotaires déclenche l'importation Excel pour les notaires
+// ImportNotaires déclenche l'importation via le nouveau moteur Pipeline
 func (a *App) ImportNotaires(filePath string) (string, error) {
-	// On récupère l'ID de l'utilisateur actuel (à adapter selon ta gestion de session)
-	createdBy := 1
-
-	// On appelle la fonction que tu as écrite dans internal/db/notaire_import.go
-	count, err := a.db.ImportNotairesFromExcel(filePath, createdBy, a.cryptoSvc)
-	if err != nil {
-		return "", err
+	if a.currentUser == nil {
+		return "", errors.New("non authentifié")
 	}
 
-	return fmt.Sprintf("%d notaires ont été importés avec succès", count), nil
+	// 1. On utilise le "Notaire complet" (ton nouveau dossier importer)
+	// On passe le filePath reçu du frontend
+	p := importer.NewPipeline(filePath)
+
+	// 2. Lecture dynamique (Règle le bug Sheet1 car il prend sheets[0])
+	rows, err := p.ReadExcel()
+	if err != nil {
+		return "", fmt.Errorf("erreur de lecture Excel : %w", err)
+	}
+
+	// 3. Transformation des données selon ton image (mappage des colonnes)
+	notaires, err := p.ProcessNotaires(rows)
+	if err != nil {
+		return "", fmt.Errorf("erreur de traitement des données : %w", err)
+	}
+
+	// 4. Injection en base de données
+	// On envoie la slice de NotaireRow à ton repository SQLite
+	count, err := a.db.SaveNotaireList(notaires, a.currentUserID, a.cryptoSvc)
+	if err != nil {
+		return "", fmt.Errorf("erreur lors de la sauvegarde en base : %w", err)
+	}
+
+	return fmt.Sprintf("✅ %d notaires importés avec succès", count), nil
 }

@@ -7,7 +7,13 @@
   --color-primary: #2563eb;
 
   --color-secondary: #10b981;
-
+/* Ajout de la pile de polices pour les drapeaux */
+  --font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
 }
 
 
+/* On crée une utilité réutilisable pour tes composants */
+@utility flag-render {
+  font-family: var(--font-emoji);
+  line-height: 1;
+}

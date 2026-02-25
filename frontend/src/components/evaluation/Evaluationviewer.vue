@@ -1,329 +1,392 @@
 <template>
   <div class="flex-1 flex flex-col bg-white dark:bg-gray-950 overflow-hidden">
-    
-    <!-- MODE CRÉATION/ÉDITION -->
-    <div v-if="isCreating" class="flex-1 overflow-y-auto p-8">
-      <div class="max-w-4xl mx-auto space-y-8">
 
-        <!-- Section Contexte -->
-        <div v-show="activeSection === 'contexte'" class="space-y-6 animate-fadeIn">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 pb-4 border-b dark:border-gray-800">
-            <FileText class="text-slate-600" />
-            Contexte et Référence
-          </h3>
+    <!-- ===== MODE CRÉATION/ÉDITION ===== -->
+    <div v-if="isCreating" class="flex-1 overflow-y-auto">
+      <div class="max-w-3xl mx-auto p-8 space-y-6">
 
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Contexte de l'évaluation * 
-                <span v-if="errors.contexte_evaluation" class="text-red-500 text-xs ml-2">
-                  ({{ errors.contexte_evaluation }})
-                </span>
-              </label>
-              <textarea
-                :value="formData.contexte_evaluation"
-                @input="updateField('contexte_evaluation', $event.target.value)"
-                rows="4"
-                :class="getInputClass(errors.contexte_evaluation)"
-                placeholder="Décrire les circonstances ayant mené à cette évaluation..."
-              ></textarea>
-            </div>
-
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Motif de référence *
-                <span v-if="errors.motif_reference" class="text-red-500 text-xs ml-2">
-                  ({{ errors.motif_reference }})
-                </span>
-              </label>
-              <textarea
-                :value="formData.motif_reference"
-                @input="updateField('motif_reference', $event.target.value)"
-                rows="3"
-                :class="getInputClass(errors.motif_reference)"
-                placeholder="Raison principale de la demande d'évaluation..."
-              ></textarea>
-            </div>
-
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Objet de l'évaluation
-              </label>
-              <textarea
-                :value="formData.objet_evaluation"
-                @input="updateField('objet_evaluation', $event.target.value)"
-                rows="3"
-                :class="getInputClass()"
-                placeholder="Qu'est-ce qui doit être évalué spécifiquement..."
-              ></textarea>
-            </div>
-          </div>
+        <!-- Type banner -->
+        <div :class="['flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold', typeBannerClass]">
+          <component :is="typeIcon" :size="18" />
+          <span>{{ typeLabel }}</span>
+          <span class="ml-auto font-mono text-xs opacity-70">{{ formData.nom_leopard }}</span>
         </div>
 
-        <!-- Section Cognitif -->
-        <div v-show="activeSection === 'cognitif'" class="space-y-6 animate-fadeIn">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 pb-4 border-b dark:border-gray-800">
-            <Brain class="text-slate-600" />
-            Capacités Cognitives
-          </h3>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Observation générale des capacités cognitives
-            </label>
+        <!-- ── SECTIONS COMMUNES ── -->
+
+        <!-- CONTEXTE -->
+        <div v-show="activeSection === 'contexte'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="FileText" label="Contexte et Référence" />
+
+          <FormField
+            label="Contexte de l'évaluation"
+            :required="true"
+            :error="errors.contexte_evaluation"
+            help="Circonstances ayant mené à la demande d'évaluation"
+          >
+            <textarea
+              :value="formData.contexte_evaluation"
+              @input="update('contexte_evaluation', $event.target.value)"
+              :class="fieldClass(errors.contexte_evaluation)"
+              rows="5"
+              placeholder="Décrire les circonstances: qui référait, pourquoi, dans quel contexte juridique..."
+            />
+          </FormField>
+
+          <FormField
+            label="Motif de référence"
+            :required="true"
+            :error="errors.motif_reference"
+            help="Raison principale de la demande"
+          >
+            <textarea
+              :value="formData.motif_reference"
+              @input="update('motif_reference', $event.target.value)"
+              :class="fieldClass(errors.motif_reference)"
+              rows="3"
+              placeholder="Motif principal de la référence..."
+            />
+          </FormField>
+
+          <FormField label="Objet de l'évaluation" help="Ce qui doit spécifiquement être évalué ou déterminé">
+            <textarea
+              :value="formData.objet_evaluation"
+              @input="update('objet_evaluation', $event.target.value)"
+              :class="fieldClass()"
+              rows="3"
+              placeholder="Préciser l'objet précis de l'évaluation..."
+            />
+          </FormField>
+        </div>
+
+        <!-- COGNITIF (tutelle / mandat) -->
+        <div v-show="activeSection === 'cognitif'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Brain" label="Capacités Cognitives" />
+          <FormField label="Observation des capacités cognitives" help="Orientation, mémoire, attention, jugement, langage, praxies">
             <textarea
               :value="formData.capacites_cognitives"
-              @input="updateField('capacites_cognitives', $event.target.value)"
-              rows="6"
-              :class="getInputClass()"
-              placeholder="Orientation, mémoire, attention, jugement, langage..."
-            ></textarea>
-          </div>
+              @input="update('capacites_cognitives', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Décrire les observations: orientation temporo-spatiale, mémoire à court et long terme, capacité de jugement et de compréhension, langage, reconnaissance..."
+            />
+          </FormField>
         </div>
 
-        <!-- Section Santé -->
-        <div v-show="activeSection === 'sante'" class="space-y-6 animate-fadeIn">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 pb-4 border-b dark:border-gray-800">
-            <Heart class="text-slate-600" />
-            État de Santé Physique
-          </h3>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Diagnostics médicaux, limitations fonctionnelles, autonomie
-            </label>
+        <!-- INAPTITUDE (mandat) -->
+        <div v-show="activeSection === 'inaptitude'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Brain" label="Constat d'inaptitude" />
+          <div class="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl text-sm text-purple-700 dark:text-purple-300">
+            <strong>Note :</strong> Pour l'homologation de mandat, l'inaptitude doit être constatée par deux professionnels (dont un médecin). Documenter votre constat clinique ici.
+          </div>
+          <FormField label="Inaptitude constatée — observations cliniques" help="Votre constat clinique d'inaptitude (partielle ou totale)">
+            <textarea
+              :value="formData.inaptitude_constatee"
+              @input="update('inaptitude_constatee', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Décrire le niveau d'inaptitude constatée, sa nature (totale/partielle), son évolution attendue..."
+            />
+          </FormField>
+        </div>
+
+        <!-- SANTÉ -->
+        <div v-show="activeSection === 'sante'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Heart" label="État de Santé Physique" />
+          <FormField label="Diagnostics médicaux, limitations fonctionnelles, autonomie" help="État physique global, maladies chroniques, mobilité, AVQ/AVD">
             <textarea
               :value="formData.etat_sante_physique"
-              @input="updateField('etat_sante_physique', $event.target.value)"
-              rows="6"
-              :class="getInputClass()"
-              placeholder="État physique global, maladies chroniques, mobilité..."
-            ></textarea>
-          </div>
+              @input="update('etat_sante_physique', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Diagnostics connus, médication, limitations dans les activités de la vie quotidienne et domestique, mobilité, autonomie résiduelle..."
+            />
+          </FormField>
         </div>
 
-        <!-- Section Psycho-social -->
-        <div v-show="activeSection === 'psycho'" class="space-y-6 animate-fadeIn">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 pb-4 border-b dark:border-gray-800">
-            <Activity class="text-slate-600" />
-            Dimensions Psycho-sociales
-          </h3>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Humeur, émotions, comportements, adaptation
-            </label>
+        <!-- PSYCHO-SOCIAL -->
+        <div v-show="activeSection === 'psycho'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Activity" label="Dimensions Psycho-sociales" />
+          <FormField label="Humeur, émotions, comportements, adaptation" help="État émotionnel, traits de personnalité, mécanismes d'adaptation">
             <textarea
               :value="formData.dimensions_psycho_sociales"
-              @input="updateField('dimensions_psycho_sociales', $event.target.value)"
-              rows="6"
-              :class="getInputClass()"
-              placeholder="État émotionnel, relations interpersonnelles..."
-            ></textarea>
-          </div>
+              @input="update('dimensions_psycho_sociales', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Humeur générale, anxiété, dépression, comportements, anosognosie, conscience des limitations, capacité d'adaptation..."
+            />
+          </FormField>
         </div>
 
-        <!-- Section Rôles -->
-        <div v-show="activeSection === 'roles'" class="space-y-6 animate-fadeIn">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 pb-4 border-b dark:border-gray-800">
-            <Briefcase class="text-slate-600" />
-            Rôles Sociaux
-          </h3>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Activités quotidiennes, loisirs, implications sociales
-            </label>
+        <!-- RÔLES SOCIAUX -->
+        <div v-show="activeSection === 'roles'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Briefcase" label="Rôles Sociaux" />
+          <FormField label="Activités quotidiennes, loisirs, implications sociales" help="Maintien des rôles familiaux, professionnels, communautaires">
             <textarea
               :value="formData.roles_sociaux"
-              @input="updateField('roles_sociaux', $event.target.value)"
-              rows="6"
-              :class="getInputClass()"
-              placeholder="Implication communautaire, activités, rôles familiaux..."
-            ></textarea>
-          </div>
+              @input="update('roles_sociaux', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Implication familiale, occupations quotidiennes, loisirs, bénévolat, participation sociale, gestion administrative et financière..."
+            />
+          </FormField>
         </div>
 
-        <!-- Section Réseau -->
-        <div v-show="activeSection === 'reseau'" class="space-y-6 animate-fadeIn">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 pb-4 border-b dark:border-gray-800">
-            <Users class="text-slate-600" />
-            Réseau Social et Soutien
-          </h3>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Famille, proches, soutien disponible
-            </label>
+        <!-- MANDATAIRE (mandat) -->
+        <div v-show="activeSection === 'mandataire'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="UserCheck" label="Évaluation du Mandataire" />
+          <div class="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl text-sm text-purple-700 dark:text-purple-300">
+            <strong>Important :</strong> L'évaluation de la capacité du mandataire à assumer les responsabilités est un élément essentiel du rapport pour homologation.
+          </div>
+          <FormField label="Identification et évaluation du mandataire" help="Relation avec le mandant, capacité à assumer le mandat, acceptation">
+            <textarea
+              :value="formData.evaluation_mandataire"
+              @input="update('evaluation_mandataire', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Identité du mandataire désigné, relation avec le mandant, évaluation de sa capacité à assumer les responsabilités, acceptation du rôle, ressources disponibles..."
+            />
+          </FormField>
+        </div>
+
+        <!-- RÉSEAU SOUTIEN -->
+        <div v-show="activeSection === 'reseau'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Users" label="Réseau Social et Soutien" />
+          <FormField label="Famille, proches, soutien disponible" help="Qualité et disponibilité du réseau de soutien naturel et professionnel">
             <textarea
               :value="formData.reseau_social_soutien"
-              @input="updateField('reseau_social_soutien', $event.target.value)"
-              rows="6"
-              :class="getInputClass()"
-              placeholder="Personnes significatives, qualité des relations..."
-            ></textarea>
-          </div>
+              @input="update('reseau_social_soutien', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Personnes significatives, qualité des relations, implication du réseau, services professionnels déjà en place, besoins identifiés..."
+            />
+          </FormField>
         </div>
 
-        <!-- Section Analyse -->
-        <div v-show="activeSection === 'analyse'" class="space-y-6 animate-fadeIn">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 pb-4 border-b dark:border-gray-800">
-            <Layers class="text-slate-600" />
-            Analyse Clinique
-          </h3>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Synthèse et analyse professionnelle
-            </label>
+        <!-- ÉVOLUTION (suivi psychosocial) -->
+        <div v-show="activeSection === 'evolution'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="TrendingUp" label="Évolution de la Situation" />
+          <FormField label="Évolution depuis la dernière note" help="Changements observés, progrès, nouvelles problématiques">
+            <textarea
+              :value="formData.evolution_situation"
+              @input="update('evolution_situation', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Décrire l'évolution de la situation depuis le dernier contact: progrès, régressions, nouvelles problématiques, événements significatifs..."
+            />
+          </FormField>
+        </div>
+
+        <!-- INTERVENTION (suivi) -->
+        <div v-show="activeSection === 'intervention'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Briefcase" label="Interventions Réalisées" />
+          <FormField label="Nature des interventions et objectifs travaillés" help="Ce qui a été fait, avec qui, pour quoi">
+            <textarea
+              :value="formData.objectifs_intervention"
+              @input="update('objectifs_intervention', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Décrire les interventions réalisées, les objectifs travaillés, les approches utilisées, les ressources mobilisées..."
+            />
+          </FormField>
+        </div>
+
+        <!-- SITUATION GLOBALE (conseil tutelle) -->
+        <div v-show="activeSection === 'situation'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Activity" label="Situation Globale" />
+          <FormField label="Présentation de la situation globale" help="Portrait complet de la personne et de sa situation">
+            <textarea
+              :value="formData.situation_globale"
+              @input="update('situation_globale', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Présentation complète de la situation: contexte familial, histoire, difficultés actuelles, ressources..."
+            />
+          </FormField>
+        </div>
+
+        <!-- ANALYSE CLINIQUE -->
+        <div v-show="activeSection === 'analyse'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Layers" label="Analyse Clinique" />
+          <FormField label="Synthèse et analyse professionnelle" help="Intégration des observations, facteurs de protection et de risque">
             <textarea
               :value="formData.analyse_clinique"
-              @input="updateField('analyse_clinique', $event.target.value)"
-              rows="8"
-              :class="getInputClass()"
-              placeholder="Intégration des observations, facteurs de risque..."
-            ></textarea>
-          </div>
+              @input="update('analyse_clinique', $event.target.value)"
+              :class="fieldClass()"
+              rows="9"
+              placeholder="Analyse intégrée des dimensions évaluées, facteurs de protection et de risque, dynamiques familiales et sociales, diagnostic fonctionnel..."
+            />
+          </FormField>
         </div>
 
-        <!-- Section Opinion -->
-        <div v-show="activeSection === 'opinion'" class="space-y-6 animate-fadeIn">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 pb-4 border-b dark:border-gray-800">
-            <CheckCircle class="text-slate-600" />
-            Opinion Professionnelle
-          </h3>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Jugement professionnel et conclusions
-            </label>
+        <!-- OPINION PROFESSIONNELLE -->
+        <div v-show="activeSection === 'opinion'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="CheckCircle" label="Opinion Professionnelle" />
+          <div class="p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-600 dark:text-slate-400">
+            <strong>Note OTSTCFQ :</strong> L'opinion professionnelle doit être clairement formulée, fondée sur les observations et l'analyse, et distinguée des faits rapportés.
+          </div>
+          <FormField label="Opinion professionnelle du T.S." help="Votre opinion clinique fondée sur l'évaluation">
             <textarea
               :value="formData.opinion_professionnelle"
-              @input="updateField('opinion_professionnelle', $event.target.value)"
-              rows="8"
-              :class="getInputClass()"
-              placeholder="Opinion clinique basée sur l'évaluation..."
-            ></textarea>
-          </div>
+              @input="update('opinion_professionnelle', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="En ma qualité de travailleur social, mon opinion professionnelle est que... (formuler clairement votre opinion sur la situation, l'inaptitude, le besoin de protection)..."
+            />
+          </FormField>
         </div>
 
-        <!-- Section Recommandations -->
-        <div v-show="activeSection === 'recommandations'" class="space-y-6 animate-fadeIn">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 pb-4 border-b dark:border-gray-800">
-            <Target class="text-slate-600" />
-            Recommandations
-          </h3>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Interventions et suivis recommandés
-            </label>
+        <!-- RECOMMANDATIONS -->
+        <div v-show="activeSection === 'recommandations'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Target" label="Recommandations" />
+          <FormField label="Recommandations et plan d'intervention" help="Actions recommandées, ressources à mobiliser, suivi préconisé">
             <textarea
               :value="formData.recommandations"
-              @input="updateField('recommandations', $event.target.value)"
-              rows="8"
-              :class="getInputClass()"
-              placeholder="Plan d'intervention, services recommandés..."
-            ></textarea>
+              @input="update('recommandations', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Sur la base de mon évaluation, je recommande: (régime de protection approprié, mesures à mettre en place, ressources recommandées, suivi préconisé)..."
+            />
+          </FormField>
+        </div>
+
+        <!-- PLAN D'ACTION (suivi) -->
+        <div v-show="activeSection === 'plan'" class="space-y-5 animate-fadeIn">
+          <SectionTitle icon="Target" label="Plan d'Action" />
+          <FormField label="Objectifs et plan d'intervention" help="Prochaines étapes, objectifs mesurables, échéancier">
+            <textarea
+              :value="formData.plan_action"
+              @input="update('plan_action', $event.target.value)"
+              :class="fieldClass()"
+              rows="7"
+              placeholder="Prochains objectifs d'intervention, stratégies planifiées, ressources à mobiliser, échéancier, prochain rendez-vous..."
+            />
+          </FormField>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== MODE VISUALISATION (évaluation finalisée) ===== -->
+    <div v-else-if="selectedEvaluation" class="flex-1 overflow-y-auto">
+      <div class="max-w-3xl mx-auto p-8 space-y-6">
+
+        <!-- En-tête doc -->
+        <div class="rounded-2xl overflow-hidden border dark:border-gray-700 shadow-sm">
+          <div class="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-5">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2 mb-2">
+                  <span :class="['text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide', typeClass(selectedEvaluation.type_evaluation)]">
+                    {{ typeLabel2(selectedEvaluation.type_evaluation) }}
+                  </span>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-1">
+                  {{ selectedEvaluation.objet_evaluation || selectedEvaluation.motif_reference || 'Évaluation du fonctionnement social' }}
+                </h3>
+                <p v-if="selectedEvaluation.nom_leopard" class="text-teal-400 font-mono text-xs">
+                  {{ selectedEvaluation.nom_leopard }}
+                </p>
+              </div>
+              <div class="shrink-0 text-right">
+                <p class="text-slate-400 text-xs">Créée le</p>
+                <p class="text-white text-sm font-semibold">{{ formatDate(selectedEvaluation.created_at) }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signature -->
+          <div v-if="selectedEvaluation.verrouille && selectedEvaluation.signature_nom"
+               class="bg-emerald-900/20 dark:bg-emerald-900/30 px-6 py-4 border-t border-emerald-700/30">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-emerald-400">
+                <ShieldCheck :size="16" />
+                <span class="font-bold text-sm">{{ selectedEvaluation.signature_nom }}</span>
+              </div>
+              <span class="text-emerald-600 text-xs">Scellée le {{ formatDateTime(selectedEvaluation.date_signature) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sections du document -->
+        <div
+          v-for="section in docSections"
+          :key="section.key"
+        >
+          <div
+            v-if="selectedEvaluation[section.key]?.trim()"
+            class="bg-gray-50 dark:bg-gray-900/40 rounded-xl border dark:border-gray-800 overflow-hidden"
+          >
+            <div class="flex items-center gap-2 px-5 py-3 border-b dark:border-gray-800 bg-white dark:bg-gray-900">
+              <component :is="section.icon" :size="14" class="text-teal-500 shrink-0" />
+              <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ section.label }}</h4>
+            </div>
+            <p class="px-5 py-4 text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed text-sm">
+              {{ selectedEvaluation[section.key] }}
+            </p>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- MODE VISUALISATION (évaluation finalisée) -->
-    <div v-else-if="selectedEvaluation" class="flex-1 overflow-y-auto p-8">
-      <div class="max-w-4xl mx-auto space-y-6">
-        
-        <!-- En-tête évaluation -->
-        <div class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border dark:border-gray-700">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {{ selectedEvaluation.objet_evaluation || 'Évaluation du fonctionnement social' }}
-          </h3>
-          <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-4">
-            <span>Créée le {{ formatDate(selectedEvaluation.created_at) }}</span>
-            <span>•</span>
-            <span>Par {{ selectedEvaluation.auteur_nom }}</span>
-          </div>
-
-          <!-- Signature si verrouillée -->
-          <div v-if="selectedEvaluation.verrouille && selectedEvaluation.signature_nom" class="pt-4 border-t dark:border-gray-700">
-            <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-              <ShieldCheck :size="18" />
-              <span class="font-bold text-sm">{{ selectedEvaluation.signature_nom }}</span>
-            </div>
-            <div class="text-xs text-gray-500 mt-1">
-              Signée le {{ formatDateTime(selectedEvaluation.date_signature) }}
-            </div>
-          </div>
-        </div>
-
-        <div v-for="section in displaySections" :key="section.key">
-  <div 
-    v-if="selectedEvaluation[section.key]?.trim()" 
-    class="bg-slate-50 dark:bg-gray-900/30 rounded-xl p-6 border dark:border-gray-800 mb-6"
-  >
-    <h4 class="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase mb-3 pb-2 border-b dark:border-gray-700">
-      {{ section.label }}
-    </h4>
-    <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
-      {{ selectedEvaluation[section.key] }}
-    </p>
-  </div>
-</div>
-
-      </div>
-    </div>
-
-    <!-- Message si rien sélectionné -->
+    <!-- Placeholder vide -->
     <div v-else class="flex-1 flex items-center justify-center text-gray-400">
       <div class="text-center">
-        <FileText :size="64" class="mx-auto mb-4 opacity-20" />
-        <p class="text-lg">Sélectionnez une évaluation ou créez-en une nouvelle</p>
+        <Scale :size="56" class="mx-auto mb-4 opacity-15" />
+        <p class="text-base font-medium">Sélectionnez une évaluation ou créez-en une nouvelle</p>
+        <p class="text-xs mt-1 opacity-60">Tutelle · Mandat · Suivi psychosocial</p>
       </div>
     </div>
 
-    <!-- FOOTER AVEC BOUTONS (seulement en mode création) -->
-    <div v-if="isCreating" class="px-8 py-4 bg-slate-50 dark:bg-gray-900 border-t dark:border-gray-800 flex items-center justify-between">
-      <div class="flex gap-8 items-center text-[11px]">
-        <div class="flex flex-col">
-          <span class="font-bold text-gray-400 uppercase tracking-tighter leading-none mb-1">Progression</span>
-          <div class="flex items-center gap-2">
-            <div class="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                class="h-full bg-gradient-to-r from-teal-500 to-teal-600 transition-all duration-500"
-                :style="{ width: `${totalProgress}%` }"
-              ></div>
+    <!-- ===== FOOTER BOUTONS (mode création) ===== -->
+    <div v-if="isCreating" class="shrink-0 px-8 py-4 bg-slate-50 dark:bg-gray-900/80 border-t dark:border-gray-800 flex items-center justify-between gap-4">
+
+      <!-- Progress -->
+      <div class="flex items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-28 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-gradient-to-r from-teal-500 to-teal-400 transition-all duration-500"
+                :style="{ width: totalProgress + '%' }"
+              />
             </div>
-            <span class="font-bold text-teal-600">{{ totalProgress }}%</span>
+            <span class="text-xs font-bold text-teal-600">{{ totalProgress }}%</span>
           </div>
-        </div>
-        <div class="flex items-center gap-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 rounded-full">
-          <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-          <span class="font-bold uppercase tracking-tighter text-[9px]">Brouillon non scellé</span>
+          <div class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+            <span class="text-[10px] font-bold text-orange-500 uppercase tracking-wide">Brouillon non scellé</span>
+          </div>
         </div>
       </div>
 
-      <div class="flex gap-3">
-        <button 
-          @click="$emit('cancel')" 
-          class="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+      <!-- Boutons -->
+      <div class="flex items-center gap-3">
+        <button
+          @click="$emit('cancel')"
+          class="text-sm font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors px-3 py-2"
         >
           Annuler
         </button>
-        
-        <!-- Bouton Brouillon -->
-        <button 
-          @click="$emit('save-draft')" 
-          :disabled="isSaving || totalProgress < 20"
-          class="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center gap-2"
+
+        <button
+          @click="$emit('save-draft')"
+          :disabled="isSaving || totalProgress < 15"
+          class="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition-all active:scale-95"
         >
-          <Save :size="18" /> 
-          <span v-if="!isSaving">Sauvegarder brouillon</span>
-          <span v-else>Sauvegarde...</span>
+          <Save :size="16" />
+          <span>{{ isSaving ? 'Sauvegarde...' : 'Brouillon' }}</span>
         </button>
 
-        <!-- Bouton Définitif -->
-        <button 
-          @click="$emit('finalize')" 
-          :disabled="isSaving || isFinalizing || totalProgress < 50"
-          class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-2.5 rounded-xl font-bold shadow-xl transition-all active:scale-95 flex items-center gap-2"
+        <button
+          @click="$emit('finalize')"
+          :disabled="isSaving || isFinalizing || totalProgress < 40"
+          class="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg transition-all active:scale-95"
         >
-          <ShieldCheck :size="18" /> 
-          <span v-if="!isFinalizing">Sauvegarder définitivement</span>
-          <span v-else>Finalisation...</span>
+          <Loader2 v-if="isFinalizing" :size="16" class="animate-spin" />
+          <ShieldCheck v-else :size="16" />
+          <span>{{ isFinalizing ? 'Finalisation...' : 'Sceller et signer' }}</span>
         </button>
       </div>
     </div>
@@ -332,74 +395,105 @@
 </template>
 
 <script setup>
-import { FileText, Brain, Heart, Activity, Briefcase, Users, Layers, CheckCircle, Target, ShieldCheck, Save } from 'lucide-vue-next'
 import { computed } from 'vue'
+import { FileText, Brain, Heart, Activity, Briefcase, Users, Layers, CheckCircle, Target, ShieldCheck, Save, Scale, Loader2, UserCheck, TrendingUp } from 'lucide-vue-next'
+
 const props = defineProps({
-  isCreating: Boolean,
+  isCreating:         Boolean,
   selectedEvaluation: Object,
-  formData: Object,
-  errors: Object,
-  activeSection: String,
-  sections: Array,
-  totalProgress: Number,
-  isSaving: Boolean,
-  isFinalizing: Boolean
+  formData:           Object,
+  errors:             Object,
+  activeSection:      String,
+  sections:           Array,
+  totalProgress:      Number,
+  isSaving:           Boolean,
+  isFinalizing:       Boolean
 })
 
 const emit = defineEmits(['update:form-data', 'save-draft', 'finalize', 'cancel'])
 
-const updateField = (field, value) => {
+const update = (field, value) => {
   emit('update:form-data', { ...props.formData, [field]: value })
 }
 
-const getInputClass = (error) => {
-  const base = 'w-full px-4 py-3 rounded-xl border-2 dark:bg-gray-900 dark:text-white transition-all focus:outline-none focus:ring-2'
-  return error 
-    ? `${base} border-red-300 focus:border-red-500 focus:ring-red-200`
-    : `${base} border-gray-200 dark:border-gray-700 focus:border-teal-500 focus:ring-teal-200`
+const fieldClass = (error) => {
+  const base = 'w-full px-4 py-3 rounded-xl border-2 dark:bg-gray-900 dark:text-white transition-all focus:outline-none focus:ring-2 text-sm leading-relaxed resize-none'
+  return error
+    ? `${base} border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30`
+    : `${base} border-gray-200 dark:border-gray-700 focus:border-teal-500 focus:ring-teal-100 dark:focus:ring-teal-900/30`
 }
 
-const formatDate = (d) => {
-  if (!d) return '-'
-  return new Date(d).toLocaleDateString('fr-CA')
+// Type meta pour le viewer
+const typeMeta = {
+  tutelle:            { label: 'Régime de tutelle',       color: 'bg-blue-600',   banner: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300', icon: Scale },
+  mandat:             { label: 'Homologation de mandat',   color: 'bg-purple-600', banner: 'bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-300', icon: FileText },
+  conseil_tutelle:    { label: 'Conseil de tutelle',       color: 'bg-amber-600',  banner: 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300', icon: UserCheck },
+  suivi_psychosocial: { label: 'Suivi psychosocial',       color: 'bg-teal-600',   banner: 'bg-teal-50 border-teal-200 text-teal-700 dark:bg-teal-900/20 dark:border-teal-800 dark:text-teal-300', icon: Activity }
 }
 
-const formatDateTime = (d) => {
-  if (!d) return '-'
-  return new Date(d).toLocaleString('fr-CA', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+const typeBannerClass = computed(() => {
+  const m = typeMeta[props.formData?.type_evaluation]
+  return m ? `${m.banner} border` : 'bg-slate-50 border-slate-200 text-slate-600'
+})
+
+const typeLabel = computed(() => typeMeta[props.formData?.type_evaluation]?.label || 'Évaluation')
+const typeIcon  = computed(() => typeMeta[props.formData?.type_evaluation]?.icon || Scale)
+
+const typeLabel2 = (t) => typeMeta[t]?.label || 'Évaluation'
+const typeClass  = (t) => {
+  const m = {
+    tutelle:            'bg-blue-500/20 text-blue-300',
+    mandat:             'bg-purple-500/20 text-purple-300',
+    conseil_tutelle:    'bg-amber-500/20 text-amber-300',
+    suivi_psychosocial: 'bg-teal-500/20 text-teal-300'
+  }
+  return m[t] || 'bg-gray-500/20 text-gray-300'
 }
 
-
-const displaySections = [
-  { label: "1. Contexte", key: "contexte_evaluation" },
-  { label: "2. Motif de référence", key: "motif_reference" },
-  { label: "3. Objet", key: "objet_evaluation" },
-  { label: "4. Capacités cognitives", key: "capacites_cognitives" },
-  { label: "5. Santé physique", key: "etat_sante_physique" },
-  { label: "6. Dimensions psycho-sociales", key: "dimensions_psycho_sociales" },
-  { label: "7. Rôles sociaux", key: "roles_sociaux" },
-  { label: "8. Réseau social", key: "reseau_social_soutien" },
-  { label: "9. Analyse clinique", key: "analyse_clinique" },
-  { label: "10. Opinion professionnelle", key: "opinion_professionnelle" },
-  { label: "11. Recommandations", key: "recommandations" }
+// Toutes les sections possibles pour le viewer read-only
+const iconMap = { FileText, Brain, Heart, Activity, Briefcase, Users, Layers, CheckCircle, Target, Scale, UserCheck, TrendingUp }
+const docSections = [
+  { label: 'Contexte de l\'évaluation',      key: 'contexte_evaluation',       icon: FileText },
+  { label: 'Motif de référence',             key: 'motif_reference',           icon: FileText },
+  { label: 'Objet de l\'évaluation',          key: 'objet_evaluation',          icon: FileText },
+  { label: 'Capacités cognitives',           key: 'capacites_cognitives',      icon: Brain },
+  { label: 'Inaptitude constatée',           key: 'inaptitude_constatee',      icon: Brain },
+  { label: 'État de santé physique',         key: 'etat_sante_physique',       icon: Heart },
+  { label: 'Dimensions psycho-sociales',     key: 'dimensions_psycho_sociales',icon: Activity },
+  { label: 'Rôles sociaux',                  key: 'roles_sociaux',             icon: Briefcase },
+  { label: 'Évaluation du mandataire',       key: 'evaluation_mandataire',     icon: UserCheck },
+  { label: 'Réseau social et soutien',       key: 'reseau_social_soutien',     icon: Users },
+  { label: 'Évolution de la situation',      key: 'evolution_situation',       icon: TrendingUp },
+  { label: 'Interventions réalisées',        key: 'objectifs_intervention',    icon: Briefcase },
+  { label: 'Situation globale',              key: 'situation_globale',         icon: Activity },
+  { label: 'Analyse clinique',               key: 'analyse_clinique',          icon: Layers },
+  { label: 'Opinion professionnelle',        key: 'opinion_professionnelle',   icon: CheckCircle },
+  { label: 'Recommandations',                key: 'recommandations',           icon: Target },
+  { label: 'Plan d\'action',                  key: 'plan_action',               icon: Target }
 ]
 
+const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'
+const formatDateTime = (d) => d ? new Date(d).toLocaleString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'
+</script>
 
+<!-- SectionTitle (inline component via defineComponent not needed — just use locally) -->
+<script>
+// Sub-composant inline SectionTitle + FormField définis comme composants globaux dans main.js
+// ou on les met ici comme petit helper via defineComponent
 </script>
 
 <style scoped>
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+.animate-fadeIn { animation: fadeIn 0.25s ease-out; }
 
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
+.animate-spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite;
 }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
 </style>
