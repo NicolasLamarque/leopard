@@ -13,4 +13,5 @@ app.use(createPinia())
 app.use(router as any) // 2. Utilise le router dans ton application
 app.use(plugin, defaultConfig)
 
+
 app.mount('#app')
