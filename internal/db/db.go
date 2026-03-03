@@ -41,7 +41,9 @@ func New(path string) (*Database, error) {
 		schema.TableEval + // Nécessite Clients (Vue incluse)
 		schema.TablePI + // Nécessite Clients (Vue incluse)
 		schema.TableAppels + // Nécessite Clients, Users
-		schema.TableIntervenants // Nécessite Clients (Vue incluse)
+		schema.TableIntervenants + // Nécessite Clients (Vue incluse)
+		schema.TableMunicipalites + // Municipalités
+		schema.TableSecteurs // Secteurs (Arrondissements)
 
 	_, err = db.Exec(fullSchema)
 	if err != nil {

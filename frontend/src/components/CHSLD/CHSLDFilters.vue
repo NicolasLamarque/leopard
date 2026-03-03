@@ -57,23 +57,24 @@
           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
         >
           <option value="">Toutes les régions</option>
-          <option value="01">01 - Bas-Saint-Laurent</option>
-          <option value="02">02 - Saguenay–Lac-Saint-Jean</option>
-          <option value="03">03 - Capitale-Nationale</option>
-          <option value="04">04 - Mauricie</option>
-          <option value="05">05 - Estrie</option>
-          <option value="06">06 - Montréal</option>
-          <option value="07">07 - Outaouais</option>
-          <option value="08">08 - Abitibi-Témiscamingue</option>
-          <option value="09">09 - Côte-Nord</option>
-          <option value="10">10 - Nord-du-Québec</option>
-          <option value="11">11 - Gaspésie–Îles-de-la-Madeleine</option>
-          <option value="12">12 - Chaudière-Appalaches</option>
-          <option value="13">13 - Laval</option>
-          <option value="14">14 - Lanaudière</option>
-          <option value="15">15 - Laurentides</option>
-          <option value="16">16 - Montérégie</option>
-          <option value="17">17 - Centre-du-Québec</option>
+<option value="Bas-Saint-Laurent">01 - Bas-Saint-Laurent</option>
+<option value="Saguenay–Lac-Saint-Jean">02 - Saguenay–Lac-Saint-Jean</option>
+<option value="Capitale-Nationale">03 - Capitale-Nationale</option>
+<option value="Mauricie et Centre-du-Québec">04 - Mauricie et Centre-du-Québec</option>
+<option value="Estrie">05 - Estrie</option>
+<option value="Montréal">06 - Montréal</option>
+<option value="Outaouais">07 - Outaouais</option>
+<option value="Abitibi-Témiscamingue">08 - Abitibi-Témiscamingue</option>
+<option value="Côte-Nord">09 - Côte-Nord</option>
+<option value="Nord-du-Québec">10 - Nord-du-Québec</option>
+<option value="Gaspésie–Îles-de-la-Madeleine">11 - Gaspésie–Îles-de-la-Madeleine</option>
+<option value="Chaudière-Appalaches">12 - Chaudière-Appalaches</option>
+<option value="Laval">13 - Laval</option>
+<option value="Lanaudière">14 - Lanaudière</option>
+<option value="Laurentides">15 - Laurentides</option>
+<option value="Montérégie">16 - Montérégie</option>
+<option value="Nunavik">17 - Nunavik</option>
+<option value="Terres-Cries-de-la-Baie-James">18 - Terres-Cries-de-la-Baie-James</option>
         </select>
       </div>
 

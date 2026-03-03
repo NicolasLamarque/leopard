@@ -83,15 +83,17 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const paysListe = ref([])
-const strictMode = ref(false)
+const strictMode = ref(true)
 
 onMounted(async () => {
   try {
     const data = await GetAllPays()
+    console.log("DATA BRUTE:", data)        // ← ajoute ça
+    console.log("TYPE:", typeof data)       // ← et ça
     paysListe.value = data || []
     console.log("Pays chargés:", paysListe.value.length)
   } catch (err) {
-    console.error('Erreur:', err)
+    console.error('Erreur GetAllPays:', err)  // ← et change ça
   }
 })
 

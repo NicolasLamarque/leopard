@@ -87,6 +87,24 @@ export namespace main {
 	        this.error = source["error"];
 	    }
 	}
+	export class SyncResult {
+	    inserted: number;
+	    skipped: number;
+	    errors: number;
+	    message: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SyncResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.inserted = source["inserted"];
+	        this.skipped = source["skipped"];
+	        this.errors = source["errors"];
+	        this.message = source["message"];
+	    }
+	}
 
 }
 
@@ -243,6 +261,22 @@ export namespace models {
 		    return a;
 		}
 	}
+	export class Arrondissement {
+	    arrcod: string;
+	    arrnom: string;
+	    arrcode: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Arrondissement(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.arrcod = source["arrcod"];
+	        this.arrnom = source["arrnom"];
+	        this.arrcode = source["arrcode"];
+	    }
+	}
 	export class CHSLD {
 	    id: number;
 	    Region: string;
@@ -319,7 +353,7 @@ export namespace models {
 	    niveau_scolaire?: string;
 	    langue_preferee?: string;
 	    origine_ethnique?: string;
-	    premiere_nation?: string;
+	    premiere_nation: number;
 	    identite_genre?: string;
 	    orientation_sexuelle?: string;
 	    religion?: string;
@@ -331,6 +365,8 @@ export namespace models {
 	    appartement?: string;
 	    code_postal?: string;
 	    ville?: string;
+	    mcode?: string;
+	    arrcod?: string;
 	    pays?: string;
 	    province?: string;
 	    numero_assurance_maladie?: string;
@@ -345,18 +381,28 @@ export namespace models {
 	    rpa_id?: number;
 	    chsld_id?: number;
 	    ri_id?: number;
-	    procuration_notariee?: string;
 	    procuration_bancaire?: string;
+	    procuration_notariee?: string;
+	    tutelle_active: number;
+	    tutelle_type?: string;
+	    tutelle_bien: number;
+	    tutelle_personne: number;
+	    tutelle_date_debut?: string;
+	    tutelle_date_renouvellement?: string;
+	    tuteur_nom?: string;
+	    tuteur_prenom?: string;
+	    tuteur_telephone?: string;
+	    tuteur_cellulaire?: string;
+	    tuteur_email?: string;
+	    tuteur_adresse?: string;
+	    tuteur_code_postal?: string;
+	    tuteur_ville?: string;
 	    note_fixe?: string;
 	    actif: number;
 	    dcd: number;
 	    date_deces?: string;
 	    created_by?: number;
 	    created_at: string;
-	    nom_pere?: string;
-	    nom_mere?: string;
-	    telephone_pere?: string;
-	    telephone_mere?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Client(source);
@@ -389,6 +435,8 @@ export namespace models {
 	        this.appartement = source["appartement"];
 	        this.code_postal = source["code_postal"];
 	        this.ville = source["ville"];
+	        this.mcode = source["mcode"];
+	        this.arrcod = source["arrcod"];
 	        this.pays = source["pays"];
 	        this.province = source["province"];
 	        this.numero_assurance_maladie = source["numero_assurance_maladie"];
@@ -403,18 +451,28 @@ export namespace models {
 	        this.rpa_id = source["rpa_id"];
 	        this.chsld_id = source["chsld_id"];
 	        this.ri_id = source["ri_id"];
-	        this.procuration_notariee = source["procuration_notariee"];
 	        this.procuration_bancaire = source["procuration_bancaire"];
+	        this.procuration_notariee = source["procuration_notariee"];
+	        this.tutelle_active = source["tutelle_active"];
+	        this.tutelle_type = source["tutelle_type"];
+	        this.tutelle_bien = source["tutelle_bien"];
+	        this.tutelle_personne = source["tutelle_personne"];
+	        this.tutelle_date_debut = source["tutelle_date_debut"];
+	        this.tutelle_date_renouvellement = source["tutelle_date_renouvellement"];
+	        this.tuteur_nom = source["tuteur_nom"];
+	        this.tuteur_prenom = source["tuteur_prenom"];
+	        this.tuteur_telephone = source["tuteur_telephone"];
+	        this.tuteur_cellulaire = source["tuteur_cellulaire"];
+	        this.tuteur_email = source["tuteur_email"];
+	        this.tuteur_adresse = source["tuteur_adresse"];
+	        this.tuteur_code_postal = source["tuteur_code_postal"];
+	        this.tuteur_ville = source["tuteur_ville"];
 	        this.note_fixe = source["note_fixe"];
 	        this.actif = source["actif"];
 	        this.dcd = source["dcd"];
 	        this.date_deces = source["date_deces"];
 	        this.created_by = source["created_by"];
 	        this.created_at = source["created_at"];
-	        this.nom_pere = source["nom_pere"];
-	        this.nom_mere = source["nom_mere"];
-	        this.telephone_pere = source["telephone_pere"];
-	        this.telephone_mere = source["telephone_mere"];
 	    }
 	}
 	export class ClientPharmacieInfo {
@@ -658,7 +716,7 @@ export namespace models {
 	    niveau_scolaire?: string;
 	    langue_preferee?: string;
 	    origine_ethnique?: string;
-	    premiere_nation?: string;
+	    premiere_nation: number;
 	    identite_genre?: string;
 	    orientation_sexuelle?: string;
 	    religion?: string;
@@ -670,6 +728,8 @@ export namespace models {
 	    appartement?: string;
 	    code_postal?: string;
 	    ville?: string;
+	    mcode?: string;
+	    arrcod?: string;
 	    pays?: string;
 	    province?: string;
 	    numero_assurance_maladie?: string;
@@ -684,16 +744,26 @@ export namespace models {
 	    rpa_id?: number;
 	    chsld_id?: number;
 	    ri_id?: number;
-	    procuration_notariee: string;
-	    procuration_bancaire: string;
+	    procuration_bancaire?: string;
+	    procuration_notariee?: string;
+	    tutelle_active: number;
+	    tutelle_type?: string;
+	    tutelle_bien: number;
+	    tutelle_personne: number;
+	    tutelle_date_debut?: string;
+	    tutelle_date_renouvellement?: string;
+	    tuteur_nom?: string;
+	    tuteur_prenom?: string;
+	    tuteur_telephone?: string;
+	    tuteur_cellulaire?: string;
+	    tuteur_email?: string;
+	    tuteur_adresse?: string;
+	    tuteur_code_postal?: string;
+	    tuteur_ville?: string;
 	    note_fixe?: string;
 	    actif: number;
 	    dcd: number;
 	    date_deces?: string;
-	    nom_pere?: string;
-	    nom_mere?: string;
-	    telephone_pere?: string;
-	    telephone_mere?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new CreateClientRequest(source);
@@ -725,6 +795,8 @@ export namespace models {
 	        this.appartement = source["appartement"];
 	        this.code_postal = source["code_postal"];
 	        this.ville = source["ville"];
+	        this.mcode = source["mcode"];
+	        this.arrcod = source["arrcod"];
 	        this.pays = source["pays"];
 	        this.province = source["province"];
 	        this.numero_assurance_maladie = source["numero_assurance_maladie"];
@@ -739,16 +811,26 @@ export namespace models {
 	        this.rpa_id = source["rpa_id"];
 	        this.chsld_id = source["chsld_id"];
 	        this.ri_id = source["ri_id"];
-	        this.procuration_notariee = source["procuration_notariee"];
 	        this.procuration_bancaire = source["procuration_bancaire"];
+	        this.procuration_notariee = source["procuration_notariee"];
+	        this.tutelle_active = source["tutelle_active"];
+	        this.tutelle_type = source["tutelle_type"];
+	        this.tutelle_bien = source["tutelle_bien"];
+	        this.tutelle_personne = source["tutelle_personne"];
+	        this.tutelle_date_debut = source["tutelle_date_debut"];
+	        this.tutelle_date_renouvellement = source["tutelle_date_renouvellement"];
+	        this.tuteur_nom = source["tuteur_nom"];
+	        this.tuteur_prenom = source["tuteur_prenom"];
+	        this.tuteur_telephone = source["tuteur_telephone"];
+	        this.tuteur_cellulaire = source["tuteur_cellulaire"];
+	        this.tuteur_email = source["tuteur_email"];
+	        this.tuteur_adresse = source["tuteur_adresse"];
+	        this.tuteur_code_postal = source["tuteur_code_postal"];
+	        this.tuteur_ville = source["tuteur_ville"];
 	        this.note_fixe = source["note_fixe"];
 	        this.actif = source["actif"];
 	        this.dcd = source["dcd"];
 	        this.date_deces = source["date_deces"];
-	        this.nom_pere = source["nom_pere"];
-	        this.nom_mere = source["nom_mere"];
-	        this.telephone_pere = source["telephone_pere"];
-	        this.telephone_mere = source["telephone_mere"];
 	    }
 	}
 	export class CreateContactRequest {
@@ -2038,6 +2120,62 @@ export namespace models {
 		    return a;
 		}
 	}
+	export class Municipality {
+	    mcode: string;
+	    munnom: string;
+	    madr1: string;
+	    mcodpos: string;
+	    mtel: string;
+	    mfax: string;
+	    mcourriel: string;
+	    mweb: string;
+	    regadm: string;
+	    mrc: string;
+	    maire: string;
+	    dirgen: string;
+	    msuperf: number;
+	    mpopul: number;
+	    polic: string;
+	    incen: string;
+	    loisir: string;
+	    trvpub: string;
+	    mesurg: string;
+	    urban: string;
+	    communic: string;
+	    permis: string;
+	    batim: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Municipality(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.mcode = source["mcode"];
+	        this.munnom = source["munnom"];
+	        this.madr1 = source["madr1"];
+	        this.mcodpos = source["mcodpos"];
+	        this.mtel = source["mtel"];
+	        this.mfax = source["mfax"];
+	        this.mcourriel = source["mcourriel"];
+	        this.mweb = source["mweb"];
+	        this.regadm = source["regadm"];
+	        this.mrc = source["mrc"];
+	        this.maire = source["maire"];
+	        this.dirgen = source["dirgen"];
+	        this.msuperf = source["msuperf"];
+	        this.mpopul = source["mpopul"];
+	        this.polic = source["polic"];
+	        this.incen = source["incen"];
+	        this.loisir = source["loisir"];
+	        this.trvpub = source["trvpub"];
+	        this.mesurg = source["mesurg"];
+	        this.urban = source["urban"];
+	        this.communic = source["communic"];
+	        this.permis = source["permis"];
+	        this.batim = source["batim"];
+	    }
+	}
 	export class Notaire {
 	    id: number;
 	    civilite: string;
@@ -3012,7 +3150,7 @@ export namespace models {
 	    niveau_scolaire?: string;
 	    langue_preferee?: string;
 	    origine_ethnique?: string;
-	    premiere_nation?: string;
+	    premiere_nation: number;
 	    identite_genre?: string;
 	    orientation_sexuelle?: string;
 	    religion?: string;
@@ -3024,6 +3162,8 @@ export namespace models {
 	    appartement?: string;
 	    code_postal?: string;
 	    ville?: string;
+	    mcode?: string;
+	    arrcod?: string;
 	    pays?: string;
 	    province?: string;
 	    numero_assurance_maladie?: string;
@@ -3038,8 +3178,22 @@ export namespace models {
 	    rpa_id?: number;
 	    chsld_id?: number;
 	    ri_id?: number;
-	    procuration_bancaire: string;
-	    procuration_notariee: string;
+	    procuration_bancaire?: string;
+	    procuration_notariee?: string;
+	    tutelle_active: number;
+	    tutelle_type?: string;
+	    tutelle_bien: number;
+	    tutelle_personne: number;
+	    tutelle_date_debut?: string;
+	    tutelle_date_renouvellement?: string;
+	    tuteur_nom?: string;
+	    tuteur_prenom?: string;
+	    tuteur_telephone?: string;
+	    tuteur_cellulaire?: string;
+	    tuteur_email?: string;
+	    tuteur_adresse?: string;
+	    tuteur_code_postal?: string;
+	    tuteur_ville?: string;
 	    note_fixe?: string;
 	    actif: number;
 	    dcd: number;
@@ -3076,6 +3230,8 @@ export namespace models {
 	        this.appartement = source["appartement"];
 	        this.code_postal = source["code_postal"];
 	        this.ville = source["ville"];
+	        this.mcode = source["mcode"];
+	        this.arrcod = source["arrcod"];
 	        this.pays = source["pays"];
 	        this.province = source["province"];
 	        this.numero_assurance_maladie = source["numero_assurance_maladie"];
@@ -3092,6 +3248,20 @@ export namespace models {
 	        this.ri_id = source["ri_id"];
 	        this.procuration_bancaire = source["procuration_bancaire"];
 	        this.procuration_notariee = source["procuration_notariee"];
+	        this.tutelle_active = source["tutelle_active"];
+	        this.tutelle_type = source["tutelle_type"];
+	        this.tutelle_bien = source["tutelle_bien"];
+	        this.tutelle_personne = source["tutelle_personne"];
+	        this.tutelle_date_debut = source["tutelle_date_debut"];
+	        this.tutelle_date_renouvellement = source["tutelle_date_renouvellement"];
+	        this.tuteur_nom = source["tuteur_nom"];
+	        this.tuteur_prenom = source["tuteur_prenom"];
+	        this.tuteur_telephone = source["tuteur_telephone"];
+	        this.tuteur_cellulaire = source["tuteur_cellulaire"];
+	        this.tuteur_email = source["tuteur_email"];
+	        this.tuteur_adresse = source["tuteur_adresse"];
+	        this.tuteur_code_postal = source["tuteur_code_postal"];
+	        this.tuteur_ville = source["tuteur_ville"];
 	        this.note_fixe = source["note_fixe"];
 	        this.actif = source["actif"];
 	        this.dcd = source["dcd"];

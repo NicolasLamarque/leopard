@@ -30,6 +30,9 @@
   <div v-if="activeTab === 'rpa'">
     <RPAManager />
   </div>
+  <div v-if="activeTab === 'chsld'">
+  <CHSLDSync />
+</div>
   <!-- 🆕 Import Médecins -->
         <div v-if="activeTab === 'medecins'">
           <MedecinImporter />
@@ -38,6 +41,11 @@
         <!-- 🆕 Import Notaires -->
         <div v-if="activeTab === 'notaires'">
           <NotairesImporter />
+        </div>
+
+        <!-- 🆕 Import Géo -->
+        <div v-if="activeTab === 'geo'">
+          <MunImporter />
         </div>
 
 
@@ -238,7 +246,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { User, Palette, Lock, Bell, Moon, Sun, Building2, Heart, Shield, Globe } from 'lucide-vue-next'
+import { User, Palette, Lock, Bell, Moon, Sun, Building2, Heart, Shield, Globe, MapPin } from 'lucide-vue-next'
 import { useDarkMode } from '../composables/useDarkMode'
 import { 
   GetSettings, 
@@ -251,6 +259,8 @@ import {
 import RPAManager from '../components/RPA/RPAManager.vue'
 import MedecinImporter from '../components/Medecins/MedecinImporter.vue' //
 import NotairesImporter from '../components/Notaires/NotairesImporter.vue' //
+import CHSLDSync from '../components/CHSLD/CHSLDSync.vue'
+import MunImporter from '../components/settings/Munimporter.vue' // 
 
 
 
@@ -270,9 +280,11 @@ const tabs = [
   { id: 'profile', label: 'Profil', icon: User },
   { id: 'security', label: 'Sécurité', icon: Lock },
   { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'rpa', label: 'Gestion RPA', icon: Building2 }, // ← NOUVEAU
+  { id: 'rpa', label: 'Gestion RPA', icon: Building2 },
+  { id: 'chsld', label: 'Sync CHSLD', icon: Globe }, 
   { id: 'medecins', label: 'Importation de medecins', icon: Heart },
   { id: 'notaires', label: 'Importation de notaires', icon: Shield },
+  { id: 'geo', label: 'Données géographiques', icon: MapPin },
 ]
 
 const settings = ref({

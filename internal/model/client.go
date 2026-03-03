@@ -15,7 +15,7 @@ type Client struct {
 	NiveauScolaire          *string `db:"niveau_scolaire" json:"niveau_scolaire,omitempty"`
 	LanguePreferee          *string `db:"langue_preferee" json:"langue_preferee,omitempty"`
 	OrigineEthnique         *string `db:"origine_ethnique" json:"origine_ethnique,omitempty"`
-	PremiereNation          *string `db:"premiere_nation" json:"premiere_nation"`
+	PremiereNation          int     `db:"premiere_nation" json:"premiere_nation"`
 	IdentiteGenre           *string `db:"identite_genre" json:"identite_genre,omitempty"`
 	OrientationSexuelle     *string `db:"orientation_sexuelle" json:"orientation_sexuelle,omitempty"`
 	Religion                *string `db:"religion" json:"religion,omitempty"`
@@ -27,6 +27,8 @@ type Client struct {
 	Appartement             *string `db:"appartement" json:"appartement,omitempty"`
 	CodePostal              *string `db:"code_postal" json:"code_postal,omitempty"`
 	Ville                   *string `db:"ville" json:"ville,omitempty"`
+	Mcode                   *string `db:"mcode" json:"mcode,omitempty"`
+	Arrcod                  *string `db:"arrcod" json:"arrcod,omitempty"`
 	Pays                    *string `db:"pays" json:"pays,omitempty"`
 	Province                *string `db:"province" json:"province,omitempty"`
 	NumeroAssuranceMaladie  *string `db:"numero_assurance_maladie" json:"numero_assurance_maladie,omitempty"`
@@ -41,18 +43,30 @@ type Client struct {
 	RPAID                   *int    `db:"rpa_id" json:"rpa_id,omitempty"`
 	CHSLDID                 *int    `db:"chsld_id" json:"chsld_id,omitempty"`
 	RIID                    *int    `db:"ri_id" json:"ri_id,omitempty"`
-	ProcurationNotariee     *string `db:"procuration_notariee" json:"procuration_notariee"`
-	ProcurationBancaire     *string `db:"procuration_bancaire" json:"procuration_bancaire"`
-	NoteFixe                *string `db:"note_fixe" json:"note_fixe,omitempty"`
-	Actif                   int     `db:"Actif" json:"actif"`
-	DCD                     int     `db:"dcd" json:"dcd"`
-	DateDeces               *string `db:"date_deces" json:"date_deces,omitempty"`
-	CreatedBy               *int    `db:"created_by" json:"created_by,omitempty"`
-	CreatedAt               string  `db:"created_at" json:"created_at"`
-	NomPere                 *string `db:"nom_pere" json:"nom_pere,omitempty"`
-	NomMere                 *string `db:"nom_mere" json:"nom_mere,omitempty"`
-	TelephonePere           *string `db:"telephone_pere" json:"telephone_pere,omitempty"`
-	TelephoneMere           *string `db:"telephone_mere" json:"telephone_mere,omitempty"`
+	ProcurationBancaire     *string `db:"procuration_bancaire" json:"procuration_bancaire,omitempty"`
+	ProcurationNotariee     *string `db:"procuration_notariee" json:"procuration_notariee,omitempty"`
+	// ── Tutelle ─────────────────────────────────────────────────────────────────
+	TutelleActive             int     `db:"tutelle_active" json:"tutelle_active"`
+	TutelleType               *string `db:"tutelle_type" json:"tutelle_type,omitempty"`
+	TutelleBien               int     `db:"tutelle_bien" json:"tutelle_bien"`
+	TutellePersonne           int     `db:"tutelle_personne" json:"tutelle_personne"`
+	TutelleDateDebut          *string `db:"tutelle_date_debut" json:"tutelle_date_debut,omitempty"`
+	TutelleDateRenouvellement *string `db:"tutelle_date_renouvellement" json:"tutelle_date_renouvellement,omitempty"`
+	TuteurNom                 *string `db:"tuteur_nom" json:"tuteur_nom,omitempty"`
+	TuteurPrenom              *string `db:"tuteur_prenom" json:"tuteur_prenom,omitempty"`
+	TuteurTelephone           *string `db:"tuteur_telephone" json:"tuteur_telephone,omitempty"`
+	TuteurCellulaire          *string `db:"tuteur_cellulaire" json:"tuteur_cellulaire,omitempty"`
+	TuteurEmail               *string `db:"tuteur_email" json:"tuteur_email,omitempty"`
+	TuteurAdresse             *string `db:"tuteur_adresse" json:"tuteur_adresse,omitempty"`
+	TuteurCodePostal          *string `db:"tuteur_code_postal" json:"tuteur_code_postal,omitempty"`
+	TuteurVille               *string `db:"tuteur_ville" json:"tuteur_ville,omitempty"`
+	// ── Métadonnées ──────────────────────────────────────────────────────────────
+	NoteFixe  *string `db:"note_fixe" json:"note_fixe,omitempty"`
+	Actif     int     `db:"Actif" json:"actif"`
+	DCD       int     `db:"dcd" json:"dcd"`
+	DateDeces *string `db:"date_deces" json:"date_deces,omitempty"`
+	CreatedBy *int    `db:"created_by" json:"created_by,omitempty"`
+	CreatedAt string  `db:"created_at" json:"created_at"`
 }
 
 // CreateClientRequest pour l'insertion (sans ID et CreatedAt)
@@ -69,7 +83,7 @@ type CreateClientRequest struct {
 	NiveauScolaire          *string `json:"niveau_scolaire,omitempty"`
 	LanguePreferee          *string `json:"langue_preferee,omitempty"`
 	OrigineEthnique         *string `json:"origine_ethnique,omitempty"`
-	PremiereNation          *string `json:"premiere_nation"`
+	PremiereNation          int     `json:"premiere_nation"`
 	IdentiteGenre           *string `json:"identite_genre,omitempty"`
 	OrientationSexuelle     *string `json:"orientation_sexuelle,omitempty"`
 	Religion                *string `json:"religion,omitempty"`
@@ -81,6 +95,8 @@ type CreateClientRequest struct {
 	Appartement             *string `json:"appartement,omitempty"`
 	CodePostal              *string `json:"code_postal,omitempty"`
 	Ville                   *string `json:"ville,omitempty"`
+	Mcode                   *string `json:"mcode,omitempty"`
+	Arrcod                  *string `json:"arrcod,omitempty"`
 	Pays                    *string `json:"pays,omitempty"`
 	Province                *string `json:"province,omitempty"`
 	NumeroAssuranceMaladie  *string `json:"numero_assurance_maladie,omitempty"`
@@ -95,16 +111,28 @@ type CreateClientRequest struct {
 	RPAID                   *int    `json:"rpa_id,omitempty"`
 	CHSLDID                 *int    `json:"chsld_id,omitempty"`
 	RIID                    *int    `json:"ri_id,omitempty"`
-	ProcurationNotariee     string  `db:"procuration_notariee" json:"procuration_notariee"`
-	ProcurationBancaire     string  `db:"procuration_bancaire" json:"procuration_bancaire"`
-	NoteFixe                *string `json:"note_fixe,omitempty"`
-	Actif                   int     `json:"actif"`
-	DCD                     int     `json:"dcd"`
-	DateDeces               *string `json:"date_deces,omitempty"`
-	NomPere                 *string `json:"nom_pere,omitempty"`
-	NomMere                 *string `json:"nom_mere,omitempty"`
-	TelephonePere           *string `json:"telephone_pere,omitempty"`
-	TelephoneMere           *string `json:"telephone_mere,omitempty"`
+	ProcurationBancaire     *string `json:"procuration_bancaire,omitempty"`
+	ProcurationNotariee     *string `json:"procuration_notariee,omitempty"`
+	// ── Tutelle ──────────────────────────────────────────────────────────────────
+	TutelleActive             int     `json:"tutelle_active"`
+	TutelleType               *string `json:"tutelle_type,omitempty"`
+	TutelleBien               int     `json:"tutelle_bien"`
+	TutellePersonne           int     `json:"tutelle_personne"`
+	TutelleDateDebut          *string `json:"tutelle_date_debut,omitempty"`
+	TutelleDateRenouvellement *string `json:"tutelle_date_renouvellement,omitempty"`
+	TuteurNom                 *string `json:"tuteur_nom,omitempty"`
+	TuteurPrenom              *string `json:"tuteur_prenom,omitempty"`
+	TuteurTelephone           *string `json:"tuteur_telephone,omitempty"`
+	TuteurCellulaire          *string `json:"tuteur_cellulaire,omitempty"`
+	TuteurEmail               *string `json:"tuteur_email,omitempty"`
+	TuteurAdresse             *string `json:"tuteur_adresse,omitempty"`
+	TuteurCodePostal          *string `json:"tuteur_code_postal,omitempty"`
+	TuteurVille               *string `json:"tuteur_ville,omitempty"`
+	// ── Métadonnées ──────────────────────────────────────────────────────────────
+	NoteFixe  *string `json:"note_fixe,omitempty"`
+	Actif     int     `json:"actif"`
+	DCD       int     `json:"dcd"`
+	DateDeces *string `json:"date_deces,omitempty"`
 }
 
 // UpdateClientRequest pour la mise à jour (avec ID)
@@ -122,7 +150,7 @@ type UpdateClientRequest struct {
 	NiveauScolaire          *string `db:"niveau_scolaire" json:"niveau_scolaire,omitempty"`
 	LanguePreferee          *string `db:"langue_preferee" json:"langue_preferee,omitempty"`
 	OrigineEthnique         *string `db:"origine_ethnique" json:"origine_ethnique,omitempty"`
-	PremiereNation          *string `db:"premiere_nation" json:"premiere_nation"`
+	PremiereNation          int     `json:"premiere_nation"`
 	IdentiteGenre           *string `db:"identite_genre" json:"identite_genre,omitempty"`
 	OrientationSexuelle     *string `db:"orientation_sexuelle" json:"orientation_sexuelle,omitempty"`
 	Religion                *string `db:"religion" json:"religion,omitempty"`
@@ -134,6 +162,8 @@ type UpdateClientRequest struct {
 	Appartement             *string `db:"appartement" json:"appartement,omitempty"`
 	CodePostal              *string `db:"code_postal" json:"code_postal,omitempty"`
 	Ville                   *string `db:"ville" json:"ville,omitempty"`
+	Mcode                   *string `db:"mcode" json:"mcode,omitempty"`
+	Arrcod                  *string `db:"arrcod" json:"arrcod,omitempty"`
 	Pays                    *string `db:"pays" json:"pays,omitempty"`
 	Province                *string `db:"province" json:"province,omitempty"`
 	NumeroAssuranceMaladie  *string `db:"numero_assurance_maladie" json:"numero_assurance_maladie,omitempty"`
@@ -148,10 +178,26 @@ type UpdateClientRequest struct {
 	RPAID                   *int    `db:"rpa_id" json:"rpa_id,omitempty"`
 	CHSLDID                 *int    `db:"chsld_id" json:"chsld_id,omitempty"`
 	RIID                    *int    `db:"ri_id" json:"ri_id,omitempty"`
-	ProcurationBancaire     string  `db:"procuration_bancaire" json:"procuration_bancaire"`
-	ProcurationNotariee     string  `db:"procuration_notariee" json:"procuration_notariee"`
-	NoteFixe                *string `db:"note_fixe" json:"note_fixe,omitempty"`
-	Actif                   int     `db:"Actif" json:"actif"`
-	DCD                     int     `db:"dcd" json:"dcd"`
-	DateDeces               *string `db:"date_deces" json:"date_deces,omitempty"`
+	ProcurationBancaire     *string `db:"procuration_bancaire" json:"procuration_bancaire,omitempty"`
+	ProcurationNotariee     *string `db:"procuration_notariee" json:"procuration_notariee,omitempty"`
+	// ── Tutelle ──────────────────────────────────────────────────────────────────
+	TutelleActive             int     `db:"tutelle_active" json:"tutelle_active"`
+	TutelleType               *string `db:"tutelle_type" json:"tutelle_type,omitempty"`
+	TutelleBien               int     `db:"tutelle_bien" json:"tutelle_bien"`
+	TutellePersonne           int     `db:"tutelle_personne" json:"tutelle_personne"`
+	TutelleDateDebut          *string `db:"tutelle_date_debut" json:"tutelle_date_debut,omitempty"`
+	TutelleDateRenouvellement *string `db:"tutelle_date_renouvellement" json:"tutelle_date_renouvellement,omitempty"`
+	TuteurNom                 *string `db:"tuteur_nom" json:"tuteur_nom,omitempty"`
+	TuteurPrenom              *string `db:"tuteur_prenom" json:"tuteur_prenom,omitempty"`
+	TuteurTelephone           *string `db:"tuteur_telephone" json:"tuteur_telephone,omitempty"`
+	TuteurCellulaire          *string `db:"tuteur_cellulaire" json:"tuteur_cellulaire,omitempty"`
+	TuteurEmail               *string `db:"tuteur_email" json:"tuteur_email,omitempty"`
+	TuteurAdresse             *string `db:"tuteur_adresse" json:"tuteur_adresse,omitempty"`
+	TuteurCodePostal          *string `db:"tuteur_code_postal" json:"tuteur_code_postal,omitempty"`
+	TuteurVille               *string `db:"tuteur_ville" json:"tuteur_ville,omitempty"`
+	// ── Métadonnées ──────────────────────────────────────────────────────────────
+	NoteFixe  *string `db:"note_fixe" json:"note_fixe,omitempty"`
+	Actif     int     `db:"Actif" json:"actif"`
+	DCD       int     `db:"dcd" json:"dcd"`
+	DateDeces *string `db:"date_deces" json:"date_deces,omitempty"`
 }

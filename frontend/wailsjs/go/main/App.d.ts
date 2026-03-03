@@ -117,6 +117,8 @@ export function GetAllServices(arg1:string,arg2:boolean):Promise<Array<models.Se
 
 export function GetAppelByID(arg1:number):Promise<models.Appel>;
 
+export function GetArrondissements(arg1:string):Promise<Array<models.Arrondissement>>;
+
 export function GetBasePath():Promise<string>;
 
 export function GetCHSLDByID(arg1:number):Promise<models.CHSLD>;
@@ -124,6 +126,8 @@ export function GetCHSLDByID(arg1:number):Promise<models.CHSLD>;
 export function GetCHSLDByRegion(arg1:string):Promise<Array<models.CHSLD>>;
 
 export function GetCHSLDByStatut(arg1:string):Promise<Array<models.CHSLD>>;
+
+export function GetCHSLDCount():Promise<number>;
 
 export function GetCHSLDStats():Promise<Record<string, any>>;
 
@@ -166,6 +170,12 @@ export function GetMedecinClients(arg1:string):Promise<Array<models.Client>>;
 export function GetMedecinClientsCount(arg1:string):Promise<number>;
 
 export function GetMedecins():Promise<Array<models.Medecin>>;
+
+export function GetMunicipalities():Promise<Array<models.Municipality>>;
+
+export function GetMunicipalityByID(arg1:string):Promise<models.Municipality>;
+
+export function GetMunicipalityByName(arg1:string):Promise<models.Municipality>;
 
 export function GetNotaireByID(arg1:number):Promise<models.Notaire>;
 
@@ -217,11 +227,15 @@ export function GetStatsMensuelles(arg1:number,arg2:number):Promise<models.Stats
 
 export function GetUserCount():Promise<number>;
 
+export function ImportArrondissementsCSV(arg1:string):Promise<number>;
+
 export function ImportIntervenants(arg1:string):Promise<string>;
 
 export function ImportMedecins(arg1:string):Promise<string>;
 
 export function ImportMedecinsWithUpdate(arg1:string):Promise<database.ImportStats>;
+
+export function ImportMunicipalitesCSV(arg1:string):Promise<number>;
 
 export function ImportNotaires(arg1:string):Promise<string>;
 
@@ -288,6 +302,8 @@ export function SetCurrentUser(arg1:number):Promise<void>;
 export function SignerContrat(arg1:number,arg2:string):Promise<void>;
 
 export function StartUsbListener(arg1:context.Context):Promise<void>;
+
+export function SyncCHSLDFromMSSS():Promise<main.SyncResult>;
 
 export function SyncRPA():Promise<Record<string, any>>;
 

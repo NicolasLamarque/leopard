@@ -226,6 +226,10 @@ export function GetAppelByID(arg1) {
   return window['go']['main']['App']['GetAppelByID'](arg1);
 }
 
+export function GetArrondissements(arg1) {
+  return window['go']['main']['App']['GetArrondissements'](arg1);
+}
+
 export function GetBasePath() {
   return window['go']['main']['App']['GetBasePath']();
 }
@@ -240,6 +244,10 @@ export function GetCHSLDByRegion(arg1) {
 
 export function GetCHSLDByStatut(arg1) {
   return window['go']['main']['App']['GetCHSLDByStatut'](arg1);
+}
+
+export function GetCHSLDCount() {
+  return window['go']['main']['App']['GetCHSLDCount']();
 }
 
 export function GetCHSLDStats() {
@@ -324,6 +332,18 @@ export function GetMedecinClientsCount(arg1) {
 
 export function GetMedecins() {
   return window['go']['main']['App']['GetMedecins']();
+}
+
+export function GetMunicipalities() {
+  return window['go']['main']['App']['GetMunicipalities']();
+}
+
+export function GetMunicipalityByID(arg1) {
+  return window['go']['main']['App']['GetMunicipalityByID'](arg1);
+}
+
+export function GetMunicipalityByName(arg1) {
+  return window['go']['main']['App']['GetMunicipalityByName'](arg1);
 }
 
 export function GetNotaireByID(arg1) {
@@ -426,6 +446,10 @@ export function GetUserCount() {
   return window['go']['main']['App']['GetUserCount']();
 }
 
+export function ImportArrondissementsCSV(arg1) {
+  return window['go']['main']['App']['ImportArrondissementsCSV'](arg1);
+}
+
 export function ImportIntervenants(arg1) {
   return window['go']['main']['App']['ImportIntervenants'](arg1);
 }
@@ -436,6 +460,10 @@ export function ImportMedecins(arg1) {
 
 export function ImportMedecinsWithUpdate(arg1) {
   return window['go']['main']['App']['ImportMedecinsWithUpdate'](arg1);
+}
+
+export function ImportMunicipalitesCSV(arg1) {
+  return window['go']['main']['App']['ImportMunicipalitesCSV'](arg1);
 }
 
 export function ImportNotaires(arg1) {
@@ -568,6 +596,10 @@ export function SignerContrat(arg1, arg2) {
 
 export function StartUsbListener(arg1) {
   return window['go']['main']['App']['StartUsbListener'](arg1);
+}
+
+export function SyncCHSLDFromMSSS() {
+  return window['go']['main']['App']['SyncCHSLDFromMSSS']();
 }
 
 export function SyncRPA() {

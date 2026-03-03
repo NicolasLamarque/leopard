@@ -249,32 +249,18 @@
             </p>
 
             <div class="flex items-center gap-2 mt-1">
-              <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-2">
-  <span>{{ client.ville }}, {{ client.province }}</span>
-  
-  <span v-if="client.pays" class="inline-flex w-5 h-3.5 overflow-hidden rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm">
-    <img 
-      :src="getFlagUrl(client.pays)" 
-      class="w-full h-full object-cover"
-      @error="(e) => e.target.style.display = 'none'"
-    />
-  </span>
-  
-  <span>{{ client.pays }} - {{ client.code_postal }}</span>
-</p>
-
-              <div v-if="client.pays_alpha2" class="flex-shrink-0">
-                <div
-                  class="w-5 h-3.5 overflow-hidden rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm"
-                >
-                  <img
-                    :src="getFlagUrl(client.pays_alpha2)"
-                    class="w-full h-full object-cover"
-                    @error="(e) => (e.target.style.display = 'none')"
-                  />
-                </div>
-              </div>
-            </div>
+  <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-2">
+    <span>{{ client.ville }}, {{ client.province }}</span>
+    <span v-if="paysAlpha2" class="inline-flex w-5 h-3.5 overflow-hidden rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm">
+      <img
+        :src="getFlagUrl(paysAlpha2)"
+        class="w-full h-full object-cover"
+        @error="(e) => (e.target.style.display = 'none')"
+      />
+    </span>
+    <span>{{ client.pays }} - {{ client.code_postal }}</span>
+  </p>
+</div>
           </div>
 
           <!-- Établissement -->
@@ -420,9 +406,9 @@ import {
   AlertTriangle,
 } from "lucide-vue-next";
 
-
 const props = defineProps({
   client: { type: Object, required: true },
+  paysAlpha2: { type: String, default: "" },
 });
 
 const emit = defineEmits(["view-medecin"]);
