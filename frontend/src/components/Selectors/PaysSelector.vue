@@ -130,5 +130,7 @@ const getFlagUrl = (alpha2) => {
   const code = alpha2.toLowerCase().trim()
   // Utilisation de l'API native de Vite pour les assets dynamiques
   return new URL(`../../assets/flags/${code}.svg`, import.meta.url).href
+  
+     
 }
 </script>

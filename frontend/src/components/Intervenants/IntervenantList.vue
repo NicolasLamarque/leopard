@@ -57,7 +57,7 @@
           </div>
           <span :class="[
             'shrink-0 text-[9px] px-2.5 py-1 rounded-lg font-black uppercase tracking-wide',
-            getTypeColor(item.type)
+            badgeClasses(item.couleur)
           ]">
             {{ item.type }}
           </span>
@@ -79,12 +79,22 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { Search } from 'lucide-vue-next'
+import { useRefListes } from '@/composables/useRefListes'
+
+const { getCategorie, badgeClasses } = useRefListes()  
+
+const filterOptions = ref(['Tous'])
 
 defineProps(['items', 'selectedId', 'search', 'filter'])
 defineEmits(['update:search', 'update:filter', 'select'])
 
-const filterOptions = ['Tous', 'Médecin', 'Pharmacie', 'Travailleur Social', 'Infirmier(ère)']
+onMounted(async () => {
+  const types = await getCategorie('type_intervenant')
+  console.log('TYPES:', JSON.stringify(types))
+  filterOptions.value = ['Tous', ...types.map(t => t.Libelle)]
+})
 
 const getTypeColor = (type) => {
   const colors = {

@@ -354,6 +354,8 @@ export namespace models {
 	    langue_preferee?: string;
 	    origine_ethnique?: string;
 	    premiere_nation: number;
+	    premiere_nation_id?: number;
+	    premiere_nation_communaute?: string;
 	    identite_genre?: string;
 	    orientation_sexuelle?: string;
 	    religion?: string;
@@ -424,6 +426,8 @@ export namespace models {
 	        this.langue_preferee = source["langue_preferee"];
 	        this.origine_ethnique = source["origine_ethnique"];
 	        this.premiere_nation = source["premiere_nation"];
+	        this.premiere_nation_id = source["premiere_nation_id"];
+	        this.premiere_nation_communaute = source["premiere_nation_communaute"];
 	        this.identite_genre = source["identite_genre"];
 	        this.orientation_sexuelle = source["orientation_sexuelle"];
 	        this.religion = source["religion"];
@@ -717,6 +721,8 @@ export namespace models {
 	    langue_preferee?: string;
 	    origine_ethnique?: string;
 	    premiere_nation: number;
+	    premiere_nation_id?: number;
+	    premiere_nation_communaute?: string;
 	    identite_genre?: string;
 	    orientation_sexuelle?: string;
 	    religion?: string;
@@ -784,6 +790,8 @@ export namespace models {
 	        this.langue_preferee = source["langue_preferee"];
 	        this.origine_ethnique = source["origine_ethnique"];
 	        this.premiere_nation = source["premiere_nation"];
+	        this.premiere_nation_id = source["premiere_nation_id"];
+	        this.premiere_nation_communaute = source["premiere_nation_communaute"];
 	        this.identite_genre = source["identite_genre"];
 	        this.orientation_sexuelle = source["orientation_sexuelle"];
 	        this.religion = source["religion"];
@@ -1425,6 +1433,26 @@ export namespace models {
 	        this.interventions = source["interventions"];
 	        this.resultats = source["resultats"];
 	        this.ententes = source["ententes"];
+	    }
+	}
+	export class CreateRefListeRequest {
+	    categorie: string;
+	    libelle: string;
+	    couleur: string;
+	    icone: string;
+	    ordre: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateRefListeRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.categorie = source["categorie"];
+	        this.libelle = source["libelle"];
+	        this.couleur = source["couleur"];
+	        this.icone = source["icone"];
+	        this.ordre = source["ordre"];
 	    }
 	}
 	export class CreateRevenuRequest {
@@ -2862,6 +2890,32 @@ export namespace models {
 		    return a;
 		}
 	}
+	export class RefListe {
+	    ID: number;
+	    Categorie: string;
+	    Libelle: string;
+	    Couleur: string;
+	    Icone: string;
+	    IsSysteme: boolean;
+	    Ordre: number;
+	    Actif: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new RefListe(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ID = source["ID"];
+	        this.Categorie = source["Categorie"];
+	        this.Libelle = source["Libelle"];
+	        this.Couleur = source["Couleur"];
+	        this.Icone = source["Icone"];
+	        this.IsSysteme = source["IsSysteme"];
+	        this.Ordre = source["Ordre"];
+	        this.Actif = source["Actif"];
+	    }
+	}
 	export class RentabiliteParClient {
 	    client_id: number;
 	    client_nom: string;
@@ -3151,6 +3205,8 @@ export namespace models {
 	    langue_preferee?: string;
 	    origine_ethnique?: string;
 	    premiere_nation: number;
+	    premiere_nation_id?: number;
+	    premiere_nation_communaute?: string;
 	    identite_genre?: string;
 	    orientation_sexuelle?: string;
 	    religion?: string;
@@ -3219,6 +3275,8 @@ export namespace models {
 	        this.langue_preferee = source["langue_preferee"];
 	        this.origine_ethnique = source["origine_ethnique"];
 	        this.premiere_nation = source["premiere_nation"];
+	        this.premiere_nation_id = source["premiere_nation_id"];
+	        this.premiere_nation_communaute = source["premiere_nation_communaute"];
 	        this.identite_genre = source["identite_genre"];
 	        this.orientation_sexuelle = source["orientation_sexuelle"];
 	        this.religion = source["religion"];

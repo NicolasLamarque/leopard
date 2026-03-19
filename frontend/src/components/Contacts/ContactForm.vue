@@ -72,55 +72,50 @@
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Type de relation <span class="text-red-500">*</span>
-                </label>
-                <select 
-                  v-model="form.relation_type"
-                  required
-                  class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-teal-700 focus:ring-4 focus:ring-teal-500/20 transition-all outline-none"
-                >
-                  <option value="">Sélectionner...</option>
-                  <option value="Famille">Famille</option>
-                  <option value="Ami">Ami</option>
-                  <option value="Professionnel">Professionnel</option>
-                  <option value="Voisin">Voisin</option>
-                  <option value="Autre">Autre</option>
-                </select>
-              </div>
+<div>
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+    Type de relation <span class="text-red-500">*</span>
+  </label>
+  <select 
+    v-model="form.relation_type"
+    required
+    class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-teal-700 focus:ring-4 focus:ring-teal-500/20 transition-all outline-none"
+  >
+    <option value="">Sélectionner...</option>
+    <option v-for="type in typesContact" :key="type" :value="type">
+      {{ type }}
+    </option>
+  </select>
+</div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Lien familial
                 </label>
                 <select 
-                  v-model="form.lien_familial"
-                  class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-teal-700 focus:ring-4 focus:ring-teal-500/20 transition-all outline-none"
-                >
-                  <option value="">Aucun</option>
-                  <option value="Conjoint(e)">Conjoint(e)</option>
-                  <option value="Fils">Fils</option>
-                  <option value="Fille">Fille</option>
-                  <option value="Père">Père</option>
-                  <option value="Mère">Mère</option>
-                  <option value="Frère">Frère</option>
-                  <option value="Sœur">Sœur</option>
-                  <option value="Petit-fils">Petit-fils</option>
-                  <option value="Petite-fille">Petite-fille</option>
-                  <option value="Autre">Autre</option>
-                </select>
+  v-model="form.lien_familial"
+  class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-teal-700 focus:ring-4 focus:ring-teal-500/20 transition-all outline-none"
+>
+  <option value="">Aucun</option>
+  <option v-for="lien in liensFamiliaux" :key="lien" :value="lien">
+    {{ lien }}
+  </option>
+</select>
               </div>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Type de contact
                 </label>
-                <input 
-                  v-model="form.type_de_contact"
-                  class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-teal-700 focus:ring-4 focus:ring-teal-500/20 transition-all outline-none"
-                  placeholder="Ex: Personne de confiance"
-                />
+                <select 
+  v-model="form.type_de_contact"
+  class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-teal-700 focus:ring-4 focus:ring-teal-500/20 transition-all outline-none"
+>
+  <option value="">Sélectionner...</option>
+  <option v-for="type in typesContact" :key="type" :value="type">
+    {{ type }}
+  </option>
+</select>
               </div>
 
               <div>
@@ -393,12 +388,26 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { 
   X, UserPlus, User, Heart, Shield, Phone, MapPin, Briefcase,
   Save, Loader2, AlertCircle
 } from 'lucide-vue-next'
 import { CreateContact, UpdateContact } from '../../../wailsjs/go/main/App'
+import { useRefListes } from '@/composables/useRefListes' 
+
+
+const { getCategorie } = useRefListes()
+const typesContact = ref([])
+const liensFamiliaux = ref([])
+
+onMounted(async () => {
+  const tc = await getCategorie('type_contact')
+  typesContact.value = tc.map(t => t.Libelle)
+  
+  const lf = await getCategorie('lien_familial')
+  liensFamiliaux.value = lf.map(t => t.Libelle)
+})
 
 const props = defineProps({
   clientId: { type: Number, required: true },

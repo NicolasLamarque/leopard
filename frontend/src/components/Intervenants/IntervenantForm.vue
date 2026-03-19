@@ -44,13 +44,14 @@
           />
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormKit
-              type="select"
-              name="type_intervenant"
-              label="Type d'intervenant"
-              :options="['Médecin', 'Travailleur Social', 'Notaire', 'Infirmier(ère)', 'Pharmacien', 'Autre']"
-              validation="required"
-            />
+            <!-- Remplace la liste codée en dur -->
+<FormKit
+  type="select"
+  name="type_intervenant"
+  label="Type d'intervenant"
+  :options="typesIntervenant"
+  validation="required"
+/>
             <FormKit
               type="text"
               name="organisation"
@@ -149,12 +150,22 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import { useRefListes } from '@/composables/useRefListes'
+
 import { ShieldCheck, Lock, User, Save, FileText, X } from 'lucide-vue-next'
 
 const props = defineProps({
   intervenantId: [String, Number]
 })
 
+const { optionsFormKit } = useRefListes()
+const typesIntervenant = ref([])
+
+onMounted(async () => {
+  typesIntervenant.value = await optionsFormKit('type_intervenant')
+  console.log('OPTIONS:', JSON.stringify(typesIntervenant.value))
+})
 const emit = defineEmits(['saved', 'cancel'])
 
 const submitForm = (formData) => {

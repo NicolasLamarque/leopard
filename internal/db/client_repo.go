@@ -33,50 +33,54 @@ func (db *Database) GetClientByID(id int, cryptoSvc *crypto.CryptoService) (*mod
 }
 
 func (db *Database) CreateClient(req models.CreateClientRequest, createdBy int, cryptoSvc *crypto.CryptoService) (int64, error) {
+	// 1. Logique métier : Génération du numéro Leopard
 	leopardNumber, err := db.GenerateLeopardNumber(req.Nom, req.Prenom)
 	if err != nil {
 		return 0, fmt.Errorf("erreur génération numéro Leopard: %w", err)
 	}
 	req.NoDossierLeopard = &leopardNumber
 
+	// 2. Chiffrement : On prépare 'enc' qui contient tout (Clair + Crypté)
 	enc, err := encryptCreateClientRequest(req, cryptoSvc)
 	if err != nil {
 		return 0, fmt.Errorf("erreur chiffrement des données: %w", err)
 	}
 
+	// 3. La Query SQL (Exactement selon ton schéma)
 	query := `
-		INSERT INTO clients (
-			nom, prenom, date_naissance, sexe, lieu_naissance, statut_marital,
-			occupation, employeur, profession, niveau_scolaire, langue_preferee,
-			origine_ethnique, premiere_nation, identite_genre, orientation_sexuelle,
-			religion, premiere_langue, telephone, cellulaire, email,
-			adresse, appartement, code_postal, ville, mcode, arrcod, pays, province,
-			numero_assurance_maladie, numero_securite_sociale, no_hcm, no_chaur,
-			no_dossier_leopard, medecin_famille_No_Licence,
-			notaire_id, pharmacie_id, pivot_id, rpa_id, chsld_id, ri_id,
-			procuration_bancaire, procuration_notariee,
-			tutelle_active, tutelle_type, tutelle_bien, tutelle_personne,
-			tutelle_date_debut, tutelle_date_renouvellement,
-			tuteur_nom, tuteur_prenom, tuteur_telephone, tuteur_cellulaire,
-			tuteur_email, tuteur_adresse, tuteur_code_postal, tuteur_ville,
-			note_fixe, Actif, dcd, date_deces, created_by
-		) VALUES (
-			:nom, :prenom, :date_naissance, :sexe, :lieu_naissance, :statut_marital,
-			:occupation, :employeur, :profession, :niveau_scolaire, :langue_preferee,
-			:origine_ethnique, :premiere_nation, :identite_genre, :orientation_sexuelle,
-			:religion, :premiere_langue, :telephone, :cellulaire, :email,
-			:adresse, :appartement, :code_postal, :ville, :mcode, :arrcod, :pays, :province,
-			:numero_assurance_maladie, :numero_securite_sociale, :no_hcm, :no_chaur,
-			:no_dossier_leopard, :medecin_famille_No_Licence,
-			:notaire_id, :pharmacie_id, :pivot_id, :rpa_id, :chsld_id, :ri_id,
-			:procuration_bancaire, :procuration_notariee,
-			:tutelle_active, :tutelle_type, :tutelle_bien, :tutelle_personne,
-			:tutelle_date_debut, :tutelle_date_renouvellement,
-			:tuteur_nom, :tuteur_prenom, :tuteur_telephone, :tuteur_cellulaire,
-			:tuteur_email, :tuteur_adresse, :tuteur_code_postal, :tuteur_ville,
-			:note_fixe, :Actif, :dcd, :date_deces, :created_by
-		)`
+        INSERT INTO clients (
+            nom, prenom, date_naissance, sexe, lieu_naissance, statut_marital,
+            occupation, employeur, profession, niveau_scolaire, langue_preferee,
+            origine_ethnique, premiere_nation_id, premiere_nation_communaute, premiere_nation, 
+            identite_genre, orientation_sexuelle, religion, premiere_langue, 
+            telephone, cellulaire, email, adresse, appartement, code_postal, ville, 
+            mcode, arrcod, pays, province, numero_assurance_maladie, 
+            numero_securite_sociale, no_hcm, no_chaur, no_dossier_leopard, 
+            medecin_famille_No_Licence, notaire_id, pharmacie_id, pivot_id, 
+            rpa_id, chsld_id, ri_id, procuration_bancaire, procuration_notariee,
+            tutelle_active, tutelle_type, tutelle_bien, tutelle_personne,
+            tutelle_date_debut, tutelle_date_renouvellement,
+            tuteur_nom, tuteur_prenom, tuteur_telephone, tuteur_cellulaire,
+            tuteur_email, tuteur_adresse, tuteur_code_postal, tuteur_ville,
+            note_fixe, Actif, dcd, date_deces, created_by
+        ) VALUES (
+            :nom, :prenom, :date_naissance, :sexe, :lieu_naissance, :statut_marital,
+            :occupation, :employeur, :profession, :niveau_scolaire, :langue_preferee,
+            :origine_ethnique, :premiere_nation_id, :premiere_nation_communaute, :premiere_nation, 
+            :identite_genre, :orientation_sexuelle, :religion, :premiere_langue, 
+            :telephone, :cellulaire, :email, :adresse, :appartement, :code_postal, :ville, 
+            :mcode, :arrcod, :pays, :province, :numero_assurance_maladie, 
+            :numero_securite_sociale, :no_hcm, :no_chaur, :no_dossier_leopard, 
+            :medecin_famille_No_Licence, :notaire_id, :pharmacie_id, :pivot_id, 
+            :rpa_id, :chsld_id, :ri_id, :procuration_bancaire, :procuration_notariee,
+            :tutelle_active, :tutelle_type, :tutelle_bien, :tutelle_personne,
+            :tutelle_date_debut, :tutelle_date_renouvellement,
+            :tuteur_nom, :tuteur_prenom, :tuteur_telephone, :tuteur_cellulaire,
+            :tuteur_email, :tuteur_adresse, :tuteur_code_postal, :tuteur_ville,
+            :note_fixe, :Actif, :dcd, :date_deces, :created_by
+        )`
 
+	// 4. Le Mapping (On utilise 'enc' pour tout ce qui vient de la struct)
 	data := map[string]interface{}{
 		"nom":                         enc.Nom,
 		"prenom":                      enc.Prenom,
@@ -90,6 +94,8 @@ func (db *Database) CreateClient(req models.CreateClientRequest, createdBy int, 
 		"niveau_scolaire":             enc.NiveauScolaire,
 		"langue_preferee":             enc.LanguePreferee,
 		"origine_ethnique":            enc.OrigineEthnique,
+		"premiere_nation_id":          enc.PremiereNationID,
+		"premiere_nation_communaute":  enc.PremiereNationCommunaute,
 		"premiere_nation":             enc.PremiereNation,
 		"identite_genre":              enc.IdentiteGenre,
 		"orientation_sexuelle":        enc.OrientationSexuelle,
@@ -102,15 +108,15 @@ func (db *Database) CreateClient(req models.CreateClientRequest, createdBy int, 
 		"appartement":                 enc.Appartement,
 		"code_postal":                 enc.CodePostal,
 		"ville":                       enc.Ville,
-		"mcode":                       enc.Mcode,  // non chiffré
-		"arrcod":                      enc.Arrcod, // non chiffré
+		"mcode":                       enc.Mcode,
+		"arrcod":                      enc.Arrcod,
 		"pays":                        enc.Pays,
 		"province":                    enc.Province,
 		"numero_assurance_maladie":    enc.NumeroAssuranceMaladie,
 		"numero_securite_sociale":     enc.NumeroSecuriteSociale,
 		"no_hcm":                      enc.NoHCM,
 		"no_chaur":                    enc.NoCHAUR,
-		"no_dossier_leopard":          leopardNumber, // non chiffré
+		"no_dossier_leopard":          enc.NoDossierLeopard,
 		"medecin_famille_No_Licence":  enc.MedecinFamilleNoLicence,
 		"notaire_id":                  enc.NotaireID,
 		"pharmacie_id":                enc.PharmacieID,
@@ -120,10 +126,10 @@ func (db *Database) CreateClient(req models.CreateClientRequest, createdBy int, 
 		"ri_id":                       enc.RIID,
 		"procuration_bancaire":        enc.ProcurationBancaire,
 		"procuration_notariee":        enc.ProcurationNotariee,
-		"tutelle_active":              enc.TutelleActive,   // non chiffré
-		"tutelle_type":                enc.TutelleType,     // non chiffré
-		"tutelle_bien":                enc.TutelleBien,     // non chiffré
-		"tutelle_personne":            enc.TutellePersonne, // non chiffré
+		"tutelle_active":              enc.TutelleActive,
+		"tutelle_type":                enc.TutelleType,
+		"tutelle_bien":                enc.TutelleBien,
+		"tutelle_personne":            enc.TutellePersonne,
 		"tutelle_date_debut":          enc.TutelleDateDebut,
 		"tutelle_date_renouvellement": enc.TutelleDateRenouvellement,
 		"tuteur_nom":                  enc.TuteurNom,
@@ -138,7 +144,7 @@ func (db *Database) CreateClient(req models.CreateClientRequest, createdBy int, 
 		"Actif":                       enc.Actif,
 		"dcd":                         enc.DCD,
 		"date_deces":                  enc.DateDeces,
-		"created_by":                  createdBy,
+		"created_by":                  createdBy, // Variable externe
 	}
 
 	resultat, err := db.NamedExec(query, data)
@@ -161,7 +167,7 @@ func (db *Database) UpdateClient(req models.UpdateClientRequest, cryptoSvc *cryp
 			lieu_naissance = :lieu_naissance, statut_marital = :statut_marital,
 			occupation = :occupation, employeur = :employeur, profession = :profession,
 			niveau_scolaire = :niveau_scolaire, langue_preferee = :langue_preferee,
-			origine_ethnique = :origine_ethnique, premiere_nation = :premiere_nation,
+			origine_ethnique = :origine_ethnique, premiere_nation_id = :premiere_nation_id, premiere_nation_communaute = :premiere_nation_communaute, premiere_nation = :premiere_nation, 
 			identite_genre = :identite_genre, orientation_sexuelle = :orientation_sexuelle,
 			religion = :religion, premiere_langue = :premiere_langue,
 			telephone = :telephone, cellulaire = :cellulaire, email = :email,
@@ -194,6 +200,7 @@ func (db *Database) UpdateClient(req models.UpdateClientRequest, cryptoSvc *cryp
 	if err != nil {
 		return fmt.Errorf("erreur mise à jour client %d: %w", enc.ID, err)
 	}
+
 	return nil
 }
 
@@ -211,10 +218,13 @@ func (db *Database) DeleteClient(id int) error {
 
 func decryptClient(c *models.Client, s *crypto.CryptoService) error {
 	var err error
-	c.DateNaissance, err = s.DecryptStringPtr(c.DateNaissance)
+	c.Nom, _ = s.Decrypt(c.Nom)
+	c.Prenom, _ = s.Decrypt(c.Prenom)
+
 	if err != nil {
 		return err
 	}
+	c.DateNaissance, err = s.DecryptStringPtr(c.DateNaissance)
 	c.Sexe, _ = s.DecryptStringPtr(c.Sexe)
 	c.LieuNaissance, _ = s.DecryptStringPtr(c.LieuNaissance)
 	c.StatutMarital, _ = s.DecryptStringPtr(c.StatutMarital)
@@ -228,6 +238,7 @@ func decryptClient(c *models.Client, s *crypto.CryptoService) error {
 	c.OrientationSexuelle, _ = s.DecryptStringPtr(c.OrientationSexuelle)
 	c.Religion, _ = s.DecryptStringPtr(c.Religion)
 	c.PremiereLangue, _ = s.DecryptStringPtr(c.PremiereLangue)
+	c.PremiereNationCommunaute, _ = s.DecryptStringPtr(c.PremiereNationCommunaute)
 	c.Telephone, _ = s.DecryptStringPtr(c.Telephone)
 	c.Cellulaire, _ = s.DecryptStringPtr(c.Cellulaire)
 	c.Email, _ = s.DecryptStringPtr(c.Email)
@@ -262,7 +273,12 @@ func decryptClient(c *models.Client, s *crypto.CryptoService) error {
 }
 
 func encryptCreateClientRequest(req models.CreateClientRequest, s *crypto.CryptoService) (models.CreateClientRequest, error) {
-	enc := req
+	enc := req // On fait une copie de base (les IDs et les INT passent ici)
+
+	enc.Nom, _ = s.Encrypt(req.Nom)
+	enc.Prenom, _ = s.Encrypt(req.Prenom)
+
+	// --- CHAMPS OPTIONNELS (TEXT -> EncryptStringPtr) ---
 	enc.DateNaissance, _ = s.EncryptStringPtr(req.DateNaissance)
 	enc.Sexe, _ = s.EncryptStringPtr(req.Sexe)
 	enc.LieuNaissance, _ = s.EncryptStringPtr(req.LieuNaissance)
@@ -277,6 +293,7 @@ func encryptCreateClientRequest(req models.CreateClientRequest, s *crypto.Crypto
 	enc.OrientationSexuelle, _ = s.EncryptStringPtr(req.OrientationSexuelle)
 	enc.Religion, _ = s.EncryptStringPtr(req.Religion)
 	enc.PremiereLangue, _ = s.EncryptStringPtr(req.PremiereLangue)
+	enc.PremiereNationCommunaute, _ = s.EncryptStringPtr(req.PremiereNationCommunaute)
 	enc.Telephone, _ = s.EncryptStringPtr(req.Telephone)
 	enc.Cellulaire, _ = s.EncryptStringPtr(req.Cellulaire)
 	enc.Email, _ = s.EncryptStringPtr(req.Email)
@@ -284,7 +301,6 @@ func encryptCreateClientRequest(req models.CreateClientRequest, s *crypto.Crypto
 	enc.Appartement, _ = s.EncryptStringPtr(req.Appartement)
 	enc.CodePostal, _ = s.EncryptStringPtr(req.CodePostal)
 	enc.Ville, _ = s.EncryptStringPtr(req.Ville)
-	// mcode et arrcod → non chiffrés
 	enc.Pays, _ = s.EncryptStringPtr(req.Pays)
 	enc.Province, _ = s.EncryptStringPtr(req.Province)
 	enc.NumeroAssuranceMaladie, _ = s.EncryptStringPtr(req.NumeroAssuranceMaladie)
@@ -294,7 +310,6 @@ func encryptCreateClientRequest(req models.CreateClientRequest, s *crypto.Crypto
 	enc.MedecinFamilleNoLicence, _ = s.EncryptStringPtr(req.MedecinFamilleNoLicence)
 	enc.ProcurationBancaire, _ = s.EncryptStringPtr(req.ProcurationBancaire)
 	enc.ProcurationNotariee, _ = s.EncryptStringPtr(req.ProcurationNotariee)
-	// tutelle statuts → non chiffrés
 	enc.TutelleDateDebut, _ = s.EncryptStringPtr(req.TutelleDateDebut)
 	enc.TutelleDateRenouvellement, _ = s.EncryptStringPtr(req.TutelleDateRenouvellement)
 	enc.TuteurNom, _ = s.EncryptStringPtr(req.TuteurNom)
@@ -307,11 +322,23 @@ func encryptCreateClientRequest(req models.CreateClientRequest, s *crypto.Crypto
 	enc.TuteurVille, _ = s.EncryptStringPtr(req.TuteurVille)
 	enc.NoteFixe, _ = s.EncryptStringPtr(req.NoteFixe)
 	enc.DateDeces, _ = s.EncryptStringPtr(req.DateDeces)
+
+	// --- CE QUI RESTE EN CLAIR (Automatique par enc := req) ---
+	// enc.PremiereNationID (int)
+	// enc.PremiereNation (int)
+	// enc.Mcode (string - mais on ne veut pas le crypter pour les liens géo)
+	// enc.Arrcod (string)
+	// enc.NotaireID, PharmacieID, PivotID, etc. (int)
+	// enc.TutelleActive, TutelleBien, TutellePersonne (int)
+	// enc.Actif, DCD (int)
+
 	return enc, nil
 }
 
 func encryptUpdateClientRequest(req models.UpdateClientRequest, s *crypto.CryptoService) (models.UpdateClientRequest, error) {
 	enc := req
+	enc.Nom, _ = s.Encrypt(req.Nom)
+	enc.Prenom, _ = s.Encrypt(req.Prenom)
 	enc.DateNaissance, _ = s.EncryptStringPtr(req.DateNaissance)
 	enc.Sexe, _ = s.EncryptStringPtr(req.Sexe)
 	enc.LieuNaissance, _ = s.EncryptStringPtr(req.LieuNaissance)
@@ -326,6 +353,7 @@ func encryptUpdateClientRequest(req models.UpdateClientRequest, s *crypto.Crypto
 	enc.OrientationSexuelle, _ = s.EncryptStringPtr(req.OrientationSexuelle)
 	enc.Religion, _ = s.EncryptStringPtr(req.Religion)
 	enc.PremiereLangue, _ = s.EncryptStringPtr(req.PremiereLangue)
+	enc.PremiereNationCommunaute, _ = s.EncryptStringPtr(req.PremiereNationCommunaute)
 	enc.Telephone, _ = s.EncryptStringPtr(req.Telephone)
 	enc.Cellulaire, _ = s.EncryptStringPtr(req.Cellulaire)
 	enc.Email, _ = s.EncryptStringPtr(req.Email)

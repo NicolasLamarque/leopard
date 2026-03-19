@@ -25,7 +25,7 @@ import (
 type App struct {
 	ctx            context.Context
 	db             *database.Database
-	authSvc        *services.AuthService // <--- IL MANQUE ÇA
+	authSvc        *services.AuthService
 	currentUser    *models.User
 	cryptoSvc      *crypto.CryptoService
 	LogRepo        *repo.LogRepo
@@ -489,6 +489,11 @@ func (a *App) DeleteMedecin(id int) error {
 
 func (a *App) SearchMedecins(query string) ([]models.Medecin, error) {
 	return a.db.SearchMedecins(query)
+}
+
+// GetMedecinByLicence récupère un médecin par son numéro de licence
+func (a *App) GetMedecinByLicence(licence string) (*models.Medecin, error) {
+	return a.db.GetMedecinByLicence(licence)
 }
 
 // À ajouter dans app.go dans la section MÉDECINS

@@ -12,15 +12,5 @@ var System = `
 		AjoutListeMun TEXT
 	);
 
-	CREATE TABLE IF NOT EXISTS "T_pays" (
-		"ID_Pays" INTEGER,
-		"PAYS" TEXT,
-		"Alpha2" TEXT,
-		"Alpha3" TEXT,
-		"numerique" INTEGER
-	);
-
-	
-
 	
 `

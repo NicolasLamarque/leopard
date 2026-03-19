@@ -82,6 +82,10 @@ export function CreatePlan(arg1) {
   return window['go']['main']['App']['CreatePlan'](arg1);
 }
 
+export function CreateRefListe(arg1) {
+  return window['go']['main']['App']['CreateRefListe'](arg1);
+}
+
 export function CreateRevenu(arg1) {
   return window['go']['main']['App']['CreateRevenu'](arg1);
 }
@@ -140,6 +144,10 @@ export function DeleteOrganisation(arg1) {
 
 export function DeletePharmacie(arg1) {
   return window['go']['main']['App']['DeletePharmacie'](arg1);
+}
+
+export function DeleteRefListe(arg1) {
+  return window['go']['main']['App']['DeleteRefListe'](arg1);
 }
 
 export function DeleteResidence(arg1) {
@@ -212,6 +220,10 @@ export function GetAllPays() {
 
 export function GetAllPharmacies() {
   return window['go']['main']['App']['GetAllPharmacies']();
+}
+
+export function GetAllRefCategories() {
+  return window['go']['main']['App']['GetAllRefCategories']();
 }
 
 export function GetAllRevenus(arg1, arg2, arg3, arg4) {
@@ -322,6 +334,10 @@ export function GetMedecinByID(arg1) {
   return window['go']['main']['App']['GetMedecinByID'](arg1);
 }
 
+export function GetMedecinByLicence(arg1) {
+  return window['go']['main']['App']['GetMedecinByLicence'](arg1);
+}
+
 export function GetMedecinClients(arg1) {
   return window['go']['main']['App']['GetMedecinClients'](arg1);
 }
@@ -404,6 +420,14 @@ export function GetPlansByClient(arg1) {
 
 export function GetRapportFiscalAnnuel(arg1) {
   return window['go']['main']['App']['GetRapportFiscalAnnuel'](arg1);
+}
+
+export function GetRefListeByCategorie(arg1) {
+  return window['go']['main']['App']['GetRefListeByCategorie'](arg1);
+}
+
+export function GetRefListeByID(arg1) {
+  return window['go']['main']['App']['GetRefListeByID'](arg1);
 }
 
 export function GetRentabiliteParClient(arg1) {
@@ -520,6 +544,10 @@ export function OpenFolder(arg1) {
 
 export function OpenMainClientsFolder() {
   return window['go']['main']['App']['OpenMainClientsFolder']();
+}
+
+export function OuvrirDialogCSVRefListes() {
+  return window['go']['main']['App']['OuvrirDialogCSVRefListes']();
 }
 
 export function RenameClientFolder(arg1, arg2) {
@@ -656,6 +684,14 @@ export function UpdatePlan(arg1, arg2) {
 
 export function UpdateProfile(arg1) {
   return window['go']['main']['App']['UpdateProfile'](arg1);
+}
+
+export function UpdateRefListe(arg1, arg2) {
+  return window['go']['main']['App']['UpdateRefListe'](arg1, arg2);
+}
+
+export function UpdateRefListeOrdre(arg1, arg2) {
+  return window['go']['main']['App']['UpdateRefListeOrdre'](arg1, arg2);
 }
 
 export function UpdateResidence(arg1) {

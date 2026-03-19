@@ -37,7 +37,7 @@ type Intervenant struct {
 
 	// Informations Professionnelles
 	NumeroPermis       string `db:"numero_permis" json:"numero_permis"`             // Crypté
-	OrdreProfessionnel string `db:"ordre_professionnel" json:"ordre_professionnel"` // NON crypté
+	OrdreProfessionnel string `db:"Ordre_professionnel" json:"ordre_professionnel"` // NON crypté
 	DateNaissance      string `db:"date_naissance" json:"date_naissance"`           // Crypté (format: YYYY-MM-DD)
 
 	// Notes

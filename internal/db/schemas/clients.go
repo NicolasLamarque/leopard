@@ -15,7 +15,9 @@ var TableClients = `
         niveau_scolaire TEXT,
         langue_preferee TEXT,
         origine_ethnique TEXT,
-        premiere_nation INTEGER DEFAULT 0,
+        premiere_nation_id INTEGER,           -- L'ID de la table ref_nations
+        premiere_nation_communaute TEXT,         -- Le string construit (ex: "Cris | Mistissini")
+        premiere_nation TEXT,       -- 0: Non, 1: Inscrit, 2: En cours (ou selon votre logique Table Ref)
         identite_genre TEXT,
         orientation_sexuelle TEXT,
         religion TEXT,

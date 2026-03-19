@@ -14,7 +14,7 @@ import EtablissementPage from "../views/etablissements/EtablissementPage.vue";
 import RevenusPage from "../views/RevenusPage.vue";
 import ServicePage from "../views/ServicePage.vue";
 import { R } from "vue-router/dist/router-CWoNjPRp.mjs";
-
+import { useAuthStore } from '@/stores/auth'
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
@@ -24,6 +24,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/app",
     component: Dashboard,
+    props: true,
     children: [
       // 🏠 Page d'accueil par défaut
       {
@@ -125,4 +126,14 @@ const router = createRouter({
   routes,
 });
 
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  
+  if (to.name !== 'login' && !authStore.user) {
+    next({ name: 'login' })  // ← pas connecté = retour login
+  } else {
+    next()  // ← connecté = laisse passer
+  }
+})
 export default router;

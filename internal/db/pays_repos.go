@@ -18,7 +18,7 @@ type ImportPaysResult struct {
 // GetAllPays récupère tous les pays triés par nom
 func (db *Database) GetAllPays() ([]models.Pays, error) {
 	var pays []models.Pays
-	query := `SELECT * FROM pays ORDER BY pays`
+	query := `SELECT id, pays, alpha2, alpha3, numerique FROM pays ORDER BY pays`
 
 	err := db.Select(&pays, query)
 	if err != nil {

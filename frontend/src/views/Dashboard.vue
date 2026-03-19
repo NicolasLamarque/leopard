@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <AppHeader 
-      :user="user" 
+      :user="authStore.user" 
       @logout="handleLogout"
       @search="handleSearch"
       @notifications="handleNotifications"
@@ -39,10 +39,9 @@ import { useRouter } from 'vue-router'
 import AppHeader from '../components/Header.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { GetSettings } from '../../wailsjs/go/main/App'
+import { useAuthStore } from '@/stores/auth'       // ← AJOUTE
 
-const props = defineProps({
-  user: { type: Object, required: true }
-})
+const authStore = useAuthStore()   
 
 const router = useRouter()
 const { setTheme } = useDarkMode()
@@ -58,14 +57,17 @@ onMounted(async () => {
   }
 })
 
-// Gestion de la déconnexion
-const handleLogout = () => {
-  console.log('🚪 Déconnexion...')
-  sessionStorage.clear()
-  localStorage.removeItem('authToken')
-  router.push('/')
+const handleLogout = async () => {
+  try {
+    authStore.clearUser()
+    sessionStorage.clear()
+    localStorage.clear()
+    await router.push({ name: 'login' })
+    window.location.reload() // ← remet tout à zéro proprement
+  } catch (err) {
+    console.error('❌ Erreur déconnexion:', err)
+  }
 }
-
 // Gestion de la recherche
 const handleSearch = (query) => {
   console.log('🔍 Recherche:', query)

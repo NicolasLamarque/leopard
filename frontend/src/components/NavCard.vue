@@ -54,7 +54,7 @@ const iconComponent = computed(() => {
 const colorStyles = computed(() => {
   const configs = {
     blue: {
-      gradient: 'from-blue-500 to-blue-600',
+      gradient: 'from-blue-500/30 to-blue-600/30',
       bg: 'bg-blue-100 dark:bg-blue-900/30',
       text: 'text-blue-600 dark:text-blue-400',
       badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'

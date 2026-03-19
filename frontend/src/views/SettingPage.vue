@@ -48,7 +48,10 @@
           <MunImporter />
         </div>
 
-
+<!-- Gestion des listes de référence -->
+<div v-if="activeTab === 'listes'">
+  <RefListesSettings :key="activeTab" />
+</div>
         
         <!-- Onglet Apparence -->
         <div v-if="activeTab === 'appearance'" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
@@ -246,7 +249,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { User, Palette, Lock, Bell, Moon, Sun, Building2, Heart, Shield, Globe, MapPin } from 'lucide-vue-next'
+import { User, Palette, Lock, Bell, Moon, Sun, Building2, Heart, Shield, Globe, MapPin, List } from 'lucide-vue-next'
 import { useDarkMode } from '../composables/useDarkMode'
 import { 
   GetSettings, 
@@ -261,6 +264,7 @@ import MedecinImporter from '../components/Medecins/MedecinImporter.vue' //
 import NotairesImporter from '../components/Notaires/NotairesImporter.vue' //
 import CHSLDSync from '../components/CHSLD/CHSLDSync.vue'
 import MunImporter from '../components/settings/Munimporter.vue' // 
+import RefListesSettings from '../components/settings/Reflistsetting.vue' //
 
 
 
@@ -285,6 +289,7 @@ const tabs = [
   { id: 'medecins', label: 'Importation de medecins', icon: Heart },
   { id: 'notaires', label: 'Importation de notaires', icon: Shield },
   { id: 'geo', label: 'Données géographiques', icon: MapPin },
+  { id: 'listes', label: 'Listes de référence', icon: List },
 ]
 
 const settings = ref({

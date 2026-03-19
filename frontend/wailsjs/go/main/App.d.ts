@@ -45,6 +45,8 @@ export function CreatePayeur(arg1:models.CreatePayeurRequest):Promise<number>;
 
 export function CreatePlan(arg1:models.CreatePlanRequest):Promise<number>;
 
+export function CreateRefListe(arg1:models.CreateRefListeRequest):Promise<number>;
+
 export function CreateRevenu(arg1:models.CreateRevenuRequest):Promise<number>;
 
 export function CreateService(arg1:models.CreateServiceRequest):Promise<number>;
@@ -74,6 +76,8 @@ export function DeleteNote(arg1:number):Promise<void>;
 export function DeleteOrganisation(arg1:number):Promise<void>;
 
 export function DeletePharmacie(arg1:number):Promise<void>;
+
+export function DeleteRefListe(arg1:number):Promise<void>;
 
 export function DeleteResidence(arg1:number):Promise<void>;
 
@@ -110,6 +114,8 @@ export function GetAllOrganisations(arg1:string,arg2:boolean):Promise<Array<mode
 export function GetAllPays():Promise<Array<models.Pays>>;
 
 export function GetAllPharmacies():Promise<Array<models.Pharmacie>>;
+
+export function GetAllRefCategories():Promise<Array<string>>;
 
 export function GetAllRevenus(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<models.Revenu>>;
 
@@ -165,6 +171,8 @@ export function GetIntervenantByID(arg1:number):Promise<models.Intervenant>;
 
 export function GetMedecinByID(arg1:number):Promise<models.Medecin>;
 
+export function GetMedecinByLicence(arg1:string):Promise<models.Medecin>;
+
 export function GetMedecinClients(arg1:string):Promise<Array<models.Client>>;
 
 export function GetMedecinClientsCount(arg1:string):Promise<number>;
@@ -206,6 +214,10 @@ export function GetPharmacieForClient(arg1:number):Promise<models.Pharmacie>;
 export function GetPlansByClient(arg1:number):Promise<Array<models.PlanInterventionDetail>>;
 
 export function GetRapportFiscalAnnuel(arg1:number):Promise<models.RapportFiscalAnnuel>;
+
+export function GetRefListeByCategorie(arg1:string):Promise<Array<models.RefListe>>;
+
+export function GetRefListeByID(arg1:number):Promise<models.RefListe>;
 
 export function GetRentabiliteParClient(arg1:number):Promise<Array<models.RentabiliteParClient>>;
 
@@ -264,6 +276,8 @@ export function OpenFile(arg1:string):Promise<main.Result>;
 export function OpenFolder(arg1:string):Promise<main.ClientFolderResult>;
 
 export function OpenMainClientsFolder():Promise<main.ClientFolderResult>;
+
+export function OuvrirDialogCSVRefListes():Promise<string>;
 
 export function RenameClientFolder(arg1:string,arg2:string):Promise<main.ClientFolderResult>;
 
@@ -332,6 +346,10 @@ export function UpdateOrganisation(arg1:models.UpdateOrganisationRequest):Promis
 export function UpdatePlan(arg1:number,arg2:models.CreatePlanRequest):Promise<void>;
 
 export function UpdateProfile(arg1:models.UpdateProfileRequest):Promise<void>;
+
+export function UpdateRefListe(arg1:number,arg2:models.CreateRefListeRequest):Promise<void>;
+
+export function UpdateRefListeOrdre(arg1:number,arg2:number):Promise<void>;
 
 export function UpdateResidence(arg1:models.Residence):Promise<void>;
 

@@ -67,12 +67,14 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { Login } from '../../wailsjs/go/main/App';
+import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router';
 
 export default {
   emits: ['success'],
   setup(props, { emit }) {
     const router = useRouter();
+    const authStore = useAuthStore();
     const username = ref('');
     const password = ref('');
     const confirmPassword = ref('');
@@ -101,15 +103,19 @@ export default {
     };
 
     const login = async () => {
-      loading.value = true;
-      error.value = '';
-      try {
-        const user = await Login(username.value, password.value);
-        emit('success', user);
-        router.push({ name: 'home' });
-      } catch (e) { error.value = 'Identifiants invalides'; }
-      finally { loading.value = false; }
-    };
+  loading.value = true;
+  error.value = '';
+  try {
+    const user = await Login(username.value, password.value);
+    authStore.setUser(user) 
+    emit('success', user);
+    router.push({ name: 'home' });
+  } catch (e) { 
+    console.log('ERREUR LOGIN:', e)
+    error.value = 'Identifiants invalides'; 
+  }
+  finally { loading.value = false; }
+};
 
     const createFirstUser = async () => {
       error.value = '';
