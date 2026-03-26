@@ -44,7 +44,8 @@ func New(path string) (*Database, error) {
 		schema.TableIntervenants + // Nécessite Clients (Vue incluse)
 		schema.TableMunicipalites + // Municipalités
 		schema.TableSecteurs + // Secteurs (Arrondissements)
-		schema.TableRefListes // La table universelle des listes de référence (dropdowns)
+		schema.TableRefListes + // La table universelle des listes de référence (dropdowns)
+		schema.TableCim11
 
 	_, err = db.Exec(fullSchema)
 	if err != nil {

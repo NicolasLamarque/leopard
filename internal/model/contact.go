@@ -17,6 +17,9 @@ type Contact struct {
 	RelationClient      *string `db:"Relation_Client" json:"relation_client,omitempty"`
 	LienFamilial        *string `db:"lien_familial" json:"lien_familial,omitempty"`
 	ForceLien           int     `db:"force_lien" json:"force_lien"`
+	ForceMaltraitance   int     `db:"force_niv_maltraitance" json:"force_niv_maltraitance"`
+	ForceSoutien        int     `db:"force_niv_soutien" json:"force_niv_soutien"`
+	ForceEpuisement     int     `db:"force_niv_epuisement" json:"force_niv_epuisement"`
 	ContactUrgence      int     `db:"contact_urgence" json:"contact_urgence"`
 	AidantNaturel       int     `db:"aidant_naturel" json:"aidant_naturel"`
 	TypeDeContact       *string `db:"type_de_contact" json:"type_de_contact,omitempty"`
@@ -44,6 +47,9 @@ type CreateContactRequest struct {
 	RelationClient      *string `json:"relation_client,omitempty"`
 	LienFamilial        *string `json:"lien_familial,omitempty"`
 	ForceLien           int     `json:"force_lien"`
+	ForceMaltraitance   int     `json:"force_niv_maltraitance"`
+	ForceSoutien        int     `json:"force_niv_soutien"`
+	ForceEpuisement     int     `json:"force_niv_epuisement"`
 	ContactUrgence      int     `json:"contact_urgence"`
 	AidantNaturel       int     `json:"aidant_naturel"`
 	TypeDeContact       *string `json:"type_de_contact,omitempty"`
@@ -71,6 +77,9 @@ type UpdateContactRequest struct {
 	RelationClient      *string `json:"relation_client,omitempty"`
 	LienFamilial        *string `json:"lien_familial,omitempty"`
 	ForceLien           int     `json:"force_lien"`
+	ForceMaltraitance   int     `json:"force_niv_maltraitance"`
+	ForceSoutien        int     `json:"force_niv_soutien"`
+	ForceEpuisement     int     `json:"force_niv_epuisement"`
 	ContactUrgence      int     `json:"contact_urgence"`
 	AidantNaturel       int     `json:"aidant_naturel"`
 	TypeDeContact       *string `json:"type_de_contact,omitempty"`

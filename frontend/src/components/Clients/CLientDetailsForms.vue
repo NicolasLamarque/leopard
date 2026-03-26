@@ -66,6 +66,7 @@
       v-if="formData.id"
       :client="formData"
       @view-medecin="viewMedecinDetails"
+      @open-contact="ouvrirContactDepuisCard"
     />
 
     <!-- ══ FORMULAIRE PRINCIPAL ══ -->
@@ -752,6 +753,12 @@ const checkFolderExists = async () => {
     folderExists.value = await window.go.main.App.ClientFolderExists(leopardNumber.value);
   } catch {}
 };
+const contactDepuisCard = ref(null)
+
+const ouvrirContactDepuisCard = (contact) => {
+  contactDepuisCard.value = contact
+  showContacts.value = true  // ouvre la sidebar
+}
 
 const loadFolderInfo = async () => {
   try {

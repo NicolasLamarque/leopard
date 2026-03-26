@@ -19,6 +19,8 @@ export function CreateAppel(arg1:models.CreateAppelRequest):Promise<void>;
 
 export function CreateCHSLD(arg1:models.CHSLD):Promise<void>;
 
+export function CreateCim11Code(arg1:models.Cim11Code):Promise<number>;
+
 export function CreateClient(arg1:models.CreateClientRequest):Promise<number>;
 
 export function CreateClientFolderStructure(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
@@ -56,6 +58,8 @@ export function CreateSubfolder(arg1:string,arg2:string):Promise<main.ClientFold
 export function DeleteAppel(arg1:number):Promise<void>;
 
 export function DeleteCHSLD(arg1:number):Promise<void>;
+
+export function DeleteCim11Code(arg1:number):Promise<void>;
 
 export function DeleteClient(arg1:number):Promise<void>;
 
@@ -136,6 +140,18 @@ export function GetCHSLDByStatut(arg1:string):Promise<Array<models.CHSLD>>;
 export function GetCHSLDCount():Promise<number>;
 
 export function GetCHSLDStats():Promise<Record<string, any>>;
+
+export function GetCim11ByCode(arg1:string):Promise<models.Cim11Code>;
+
+export function GetCim11Chapitres():Promise<Array<models.Cim11Code>>;
+
+export function GetCim11DetailOMS(arg1:string):Promise<Record<string, any>>;
+
+export function GetCim11Enfants(arg1:string):Promise<Array<models.Cim11Code>>;
+
+export function GetCim11Page(arg1:string,arg2:string,arg3:string,arg4:number,arg5:number):Promise<main.Cim11PageResult>;
+
+export function GetCim11SyncMeta():Promise<models.Cim11SyncMeta>;
 
 export function GetClientByID(arg1:number):Promise<models.Client>;
 
@@ -241,6 +257,8 @@ export function GetUserCount():Promise<number>;
 
 export function ImportArrondissementsCSV(arg1:string):Promise<number>;
 
+export function ImportCim11():Promise<models.Cim11ImportResult>;
+
 export function ImportIntervenants(arg1:string):Promise<string>;
 
 export function ImportMedecins(arg1:string):Promise<string>;
@@ -295,6 +313,8 @@ export function SavePharmacie(arg1:models.Pharmacie):Promise<void>;
 
 export function SearchCHSLD(arg1:string,arg2:string,arg3:string):Promise<Array<models.CHSLD>>;
 
+export function SearchCim11(arg1:string,arg2:string,arg3:number):Promise<Array<models.Cim11Code>>;
+
 export function SearchMedecins(arg1:string):Promise<Array<models.Medecin>>;
 
 export function SearchPays(arg1:string):Promise<Array<models.Pays>>;
@@ -324,6 +344,8 @@ export function SyncRPA():Promise<Record<string, any>>;
 export function UpdateAppel(arg1:number,arg2:models.CreateAppelRequest):Promise<void>;
 
 export function UpdateCHSLD(arg1:models.CHSLD):Promise<void>;
+
+export function UpdateCim11Code(arg1:models.Cim11Code):Promise<void>;
 
 export function UpdateClient(arg1:models.UpdateClientRequest):Promise<void>;
 

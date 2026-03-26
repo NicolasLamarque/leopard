@@ -7,7 +7,6 @@
       class="bg-gradient-to-r from-slate-700 to-slate-600 dark:from-slate-800 dark:to-slate-700 px-6 py-4"
     >
       <div class="flex items-center justify-between">
-        <!-- Identité -->
         <div class="flex items-center gap-4">
           <div class="relative">
             <div
@@ -15,7 +14,6 @@
             >
               {{ getInitials() }}
             </div>
-            <!-- Badge anniversaire -->
             <div v-if="isBirthdayToday" class="absolute -top-1 -right-1">
               <div
                 class="w-7 h-7 bg-teal-500 rounded-full flex items-center justify-center shadow-lg"
@@ -24,7 +22,6 @@
               </div>
             </div>
           </div>
-
           <div>
             <h2 class="text-xl font-bold text-white">
               {{ client.prenom }} {{ client.nom }}
@@ -43,8 +40,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Actions rapides -->
         <div class="flex items-center gap-2">
           <button
             v-if="isBirthdayToday"
@@ -78,58 +73,240 @@
       </div>
     </div>
 
-    <!-- Contenu principal - Une seule carte fluide -->
-    <div class="p-6">
-      <!-- Contact d'urgence prioritaire -->
-      <div
-        v-if="urgenceContact"
-        class="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 rounded"
-      >
-        <div class="flex items-start justify-between">
-          <div class="flex items-start gap-3 flex-1">
-            <AlertCircle
-              :size="18"
-              class="text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0"
-            />
-            <div class="flex-1">
-              <p
-                class="text-xs font-bold text-red-900 dark:text-red-100 uppercase tracking-wide mb-1"
+    <!-- Contenu principal -->
+    <div class="p-6 space-y-6">
+      <!-- ══ PERSONNES CLÉS ══ -->
+      <div v-if="personnesCles.length > 0">
+        <!-- Titre + toggle vue -->
+        <div class="flex items-center justify-between mb-3">
+          <h3
+            class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2"
+          >
+            <Users :size="13" />
+            Personnes clés
+          </h3>
+          <div class="flex gap-1">
+            <button
+              v-for="v in vues"
+              :key="v.id"
+              @click="vueActive = v.id"
+              :title="v.label"
+              :class="[
+                'p-1.5 rounded-md transition-colors',
+                vueActive === v.id
+                  ? 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white'
+                  : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+              ]"
+            >
+              <component :is="v.icon" :size="13" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Vue liste -->
+        <div v-if="vueActive === 'liste'" class="space-y-2">
+          <div
+            v-for="p in personnesCles"
+            :key="p.contact.id"
+            class="cursor-pointer hover:brightness-110 transition-all"
+            @click.stop="contactOuvert = p.contact"
+            :style="`border-left: 3px solid ${p.couleur}; border-color: var(--tw-border-opacity)`"
+          >
+            <div
+              class="px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+              :style="`border-left: 3px solid ${p.couleur};`"
+            >
+              <!-- Rôle -->
+              <div
+                class="text-xs font-semibold uppercase tracking-wide mb-1.5 flex items-center gap-1.5"
+                :style="`color: ${p.couleur};`"
               >
-                Contact en cas d'urgence
-              </p>
-              <p class="font-semibold text-red-900 dark:text-red-100">
-                {{ urgenceContact.prenom }} {{ urgenceContact.nom }}
-              </p>
-              <p
-                v-if="urgenceContact.lien_familial"
-                class="text-sm text-red-700 dark:text-red-300"
+                {{ p.label }}
+                <span
+                  v-if="p.contact.lien_familial"
+                  class="font-normal normal-case text-slate-400"
+                >
+                  · {{ p.contact.lien_familial }}
+                </span>
+              </div>
+
+              <!-- Nom -->
+              <div
+                :class="[
+                  'text-sm font-semibold text-slate-900 dark:text-white',
+                  p.interdit ? 'line-through opacity-50' : '',
+                ]"
               >
-                {{ urgenceContact.lien_familial }}
-              </p>
+                {{ p.contact.prenom }} {{ p.contact.nom }}
+              </div>
+
+              <!-- Sous-titre contextuel -->
+              <div
+                v-if="p.sous"
+                class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"
+              >
+                {{ p.sous }}
+              </div>
+
+              <!-- Téléphones cliquables (bloqués si interdit) -->
+              <div v-if="!p.interdit" class="flex flex-wrap gap-3 mt-2">
+                <a
+                  v-if="p.contact.telephone"
+                  :href="`tel:${p.contact.telephone}`"
+                  class="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                >
+                  <Phone :size="11" /> {{ formatPhone(p.contact.telephone) }}
+                </a>
+                <a
+                  v-if="p.contact.cellulaire"
+                  :href="`tel:${p.contact.cellulaire}`"
+                  class="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                >
+                  <Smartphone :size="11" />
+                  {{ formatPhone(p.contact.cellulaire) }}
+                </a>
+              </div>
+              <div v-else class="flex gap-3 mt-2 opacity-40">
+                <span
+                  v-if="p.contact.telephone"
+                  class="text-xs text-slate-500 line-through flex items-center gap-1"
+                >
+                  <Phone :size="11" /> {{ formatPhone(p.contact.telephone) }}
+                </span>
+              </div>
+
+              <!-- Barre force du lien -->
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-xs text-slate-400 whitespace-nowrap"
+                  >Lien</span
+                >
+                <div
+                  class="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+                >
+                  <div
+                    class="h-full rounded-full transition-all"
+                    :style="`width:${((p.contact.force_lien + 10) / 20) * 100}%; background:${couleurForceLien(p.contact.force_lien)};`"
+                  ></div>
+                </div>
+                <span class="text-xs text-slate-400"
+                  >{{ p.contact.force_lien }}/10</span
+                >
+              </div>
+
+              <!-- Alerte maltraitance -->
+              <div
+                v-if="p.contact.signalement_maltraitance === 1"
+                class="mt-2 flex items-center gap-1.5 text-xs font-medium px-2 py-1.5 rounded-lg"
+                style="background: #fcebeb; color: #a32d2d"
+              >
+                <AlertTriangle :size="11" /> Signalement maltraitance actif
+              </div>
+
+              <!-- Note refus -->
+              <div
+                v-if="p.interdit && p.contact.note_refus"
+                class="mt-2 text-xs px-2 py-1.5 rounded-lg"
+                style="background: #faeeda; color: #633806"
+              >
+                {{ p.contact.note_refus }}
+              </div>
             </div>
           </div>
-          <div class="flex flex-col gap-1 ml-4">
-            <a
-              v-if="urgenceContact.telephone"
-              :href="`tel:${urgenceContact.telephone}`"
-              class="text-sm text-red-700 dark:text-red-300 hover:underline flex items-center gap-1 whitespace-nowrap"
+        </div>
+
+        <!-- Vue grille -->
+        <div
+          v-else
+          :class="[
+            'grid gap-2',
+            vueActive === 'grid3'
+              ? 'grid-cols-3'
+              : vueActive === 'grid2'
+                ? 'grid-cols-2'
+                : 'grid-cols-1',
+          ]"
+        >
+          <div
+            v-for="p in personnesCles"
+            :key="p.contact.id"
+            class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 flex flex-col gap-2 cursor-pointer hover:brightness-110 transition-all"
+            :style="`border-top: 3px solid ${p.couleur};`"
+            @click.stop="contactOuvert = p.contact"
+          >
+            <div
+              class="text-xs font-semibold uppercase tracking-wide"
+              :style="`color:${p.couleur};`"
             >
-              <Phone :size="12" />
-              {{ formatPhone(urgenceContact.telephone) }}
-            </a>
+              {{ p.label }}
+            </div>
+
+            <div class="flex items-center gap-2">
+              <!-- Avatar -->
+              <div
+  class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+  :style="`background:${p.couleurLight}; color:${p.couleur};`"
+>
+  {{ initiales(p.contact) }}
+</div>
+              <div>
+                <div
+                  :class="[
+                    'text-lg font-semibold text-slate-900 dark:text-white leading-tight',
+                    p.interdit ? 'line-through opacity-50' : '',
+                  ]"
+                >
+                  {{ p.contact.prenom }} {{ p.contact.nom }}
+                </div>
+                <div
+                  v-if="p.contact.lien_familial"
+                  class="text-xs text-slate-400 leading-tight"
+                >
+                  {{ p.contact.lien_familial }}
+                </div>
+              </div>
+            </div>
+
             <a
-              v-if="urgenceContact.cellulaire"
-              :href="`tel:${urgenceContact.cellulaire}`"
-              class="text-sm text-red-700 dark:text-red-300 hover:underline flex items-center gap-1 whitespace-nowrap"
+              v-if="p.contact.telephone && !p.interdit"
+              :href="`tel:${p.contact.telephone}`"
+              class="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate flex items-center gap-1"
             >
-              <Smartphone :size="12" />
-              {{ formatPhone(urgenceContact.cellulaire) }}
+              <Phone :size="10" /> {{ formatPhone(p.contact.telephone) }}
             </a>
+
+            <div class="flex items-center gap-1 mt-auto">
+              <div
+                class="flex-1 h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+              >
+                <div
+                  class="h-full rounded-full"
+                  :style="`width:${(p.contact.force_lien / 10) * 100}%; background:${p.couleur};`"
+                ></div>
+              </div>
+              <span class="text-xs text-slate-400"
+                >{{ p.contact.force_lien }}/10</span
+              >
+            </div>
+
+            <div
+              v-if="p.contact.signalement_maltraitance === 1"
+              class="text-xs font-medium px-1.5 py-1 rounded text-center"
+              style="background: #fcebeb; color: #a32d2d"
+            >
+              ⚠ Maltraitance
+            </div>
+            <div
+              v-if="p.interdit"
+              class="text-xs font-medium px-1.5 py-1 rounded text-center"
+              style="background: #faeeda; color: #854f0b"
+            >
+              Contact interdit
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Grid 3 colonnes - Sans bordures individuelles -->
+      <!-- Grid 3 colonnes -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Colonne 1: Médical -->
         <div class="space-y-4">
@@ -139,8 +316,6 @@
             <Heart :size="14" class="text-teal-600 dark:text-teal-400" />
             Médical
           </h3>
-
-          <!-- Médecin de famille -->
           <div v-if="client.medecin_famille_No_Licence || medecinInfo">
             <div class="flex items-start justify-between mb-1">
               <div class="flex items-center gap-2">
@@ -173,10 +348,7 @@
               {{ client.medecin_famille_No_Licence }}
             </p>
           </div>
-
           <div class="h-px bg-slate-200 dark:bg-slate-700"></div>
-
-          <!-- RAMQ -->
           <div v-if="client.numero_assurance_maladie">
             <div class="flex items-center gap-2 mb-1">
               <CreditCard :size="14" class="text-blue-600 dark:text-blue-400" />
@@ -190,8 +362,6 @@
               {{ client.numero_assurance_maladie }}
             </p>
           </div>
-
-          <!-- Dossiers HCM/CHAUR -->
           <div v-if="client.no_hcm || client.no_chaur">
             <div class="h-px bg-slate-200 dark:bg-slate-700 mb-3"></div>
             <div class="flex items-center gap-2 mb-2">
@@ -228,8 +398,6 @@
             <MapPin :size="14" class="text-orange-600 dark:text-orange-400" />
             Localisation
           </h3>
-
-          <!-- Adresse -->
           <div v-if="client.adresse">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs text-slate-500 dark:text-slate-400"
@@ -239,31 +407,31 @@
                 @click="openGoogleMaps"
                 class="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
               >
-                <Map :size="12" />
-                Voir sur Maps
+                <Map :size="12" /> Voir sur Maps
               </button>
             </div>
-
             <p class="text-sm font-medium text-slate-900 dark:text-slate-100">
               {{ client.adresse }}
             </p>
-
             <div class="flex items-center gap-2 mt-1">
-  <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-2">
-    <span>{{ client.ville }}, {{ client.province }}</span>
-    <span v-if="paysAlpha2" class="inline-flex w-5 h-3.5 overflow-hidden rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm">
-      <img
-        :src="getFlagUrl(paysAlpha2)"
-        class="w-full h-full object-cover"
-        @error="(e) => (e.target.style.display = 'none')"
-      />
-    </span>
-    <span>{{ client.pays }} - {{ client.code_postal }}</span>
-  </p>
-</div>
+              <p
+                class="text-xs text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-2"
+              >
+                <span>{{ client.ville }}, {{ client.province }}</span>
+                <span
+                  v-if="paysAlpha2"
+                  class="inline-flex w-5 h-3.5 overflow-hidden rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm"
+                >
+                  <img
+                    :src="getFlagUrl(paysAlpha2)"
+                    class="w-full h-full object-cover"
+                    @error="(e) => (e.target.style.display = 'none')"
+                  />
+                </span>
+                <span>{{ client.pays }} - {{ client.code_postal }}</span>
+              </p>
+            </div>
           </div>
-
-          <!-- Établissement -->
           <div v-if="getEtablissement()">
             <div class="h-px bg-slate-200 dark:bg-slate-700 mb-3"></div>
             <div class="flex items-center gap-2 mb-1">
@@ -281,7 +449,7 @@
           </div>
         </div>
 
-        <!-- Colonne 3: Contact -->
+        <!-- Colonne 3: Coordonnées -->
         <div class="space-y-4">
           <h3
             class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-3"
@@ -289,8 +457,6 @@
             <Phone :size="14" class="text-slate-600 dark:text-slate-400" />
             Coordonnées
           </h3>
-
-          <!-- Téléphones et email -->
           <div class="space-y-3">
             <a
               v-if="client.telephone"
@@ -303,11 +469,9 @@
               />
               <span
                 class="text-sm font-medium text-slate-900 dark:text-slate-100"
+                >{{ formatPhone(client.telephone) }}</span
               >
-                {{ formatPhone(client.telephone) }}
-              </span>
             </a>
-
             <a
               v-if="client.cellulaire"
               :href="`tel:${client.cellulaire}`"
@@ -319,11 +483,9 @@
               />
               <span
                 class="text-sm font-medium text-slate-900 dark:text-slate-100"
+                >{{ formatPhone(client.cellulaire) }}</span
               >
-                {{ formatPhone(client.cellulaire) }}
-              </span>
             </a>
-
             <a
               v-if="client.email"
               :href="`mailto:${client.email}`"
@@ -335,18 +497,17 @@
               />
               <span
                 class="text-sm font-medium text-slate-900 dark:text-slate-100 truncate"
+                >{{ client.email }}</span
               >
-                {{ client.email }}
-              </span>
             </a>
           </div>
         </div>
       </div>
 
-      <!-- Notes importantes (si présentes) -->
+      <!-- Note fixe client -->
       <div
         v-if="client.note_fixe"
-        class="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700"
+        class="pt-2 border-t border-slate-200 dark:border-slate-700"
       >
         <div
           class="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 rounded"
@@ -355,7 +516,7 @@
             :size="16"
             class="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5"
           />
-          <div class="flex-1">
+          <div>
             <p
               class="text-xs font-bold text-amber-900 dark:text-amber-100 uppercase tracking-wide mb-1"
             >
@@ -383,13 +544,23 @@
       </div>
     </div>
   </div>
+  <ContactForm
+    v-if="contactOuvert"
+    :client-id="client.id"
+    :contact-data="contactOuvert"
+    @close="contactOuvert = null"
+    @saved="
+      contactOuvert = null;
+      loadContacts();
+    "
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import {
   Shield,
-  AlertCircle,
+  AlertTriangle,
   Heart,
   MapPin,
   Phone,
@@ -403,156 +574,326 @@ import {
   FileText,
   Map,
   Smartphone,
-  AlertTriangle,
+  Users,
+  List,
+  LayoutGrid,
+  Square,
 } from "lucide-vue-next";
-
+import ContactForm from "../Contacts/ContactForm.vue";
 const props = defineProps({
   client: { type: Object, required: true },
   paysAlpha2: { type: String, default: "" },
 });
-
-const emit = defineEmits(["view-medecin"]);
-
+const emit = defineEmits(["view-medecin", "open-contact"]);
+const contactOuvert = ref(null);
 const contacts = ref([]);
 const medecinInfo = ref(null);
+const vueActive = ref("liste");
 
-// Calcul de l'âge
-const age = computed(() => {
-  if (!props.client.date_naissance) return "?";
+const vues = [
+  { id: "liste", label: "Liste", icon: List },
+  { id: "grid3", label: "3 colonnes", icon: LayoutGrid },
+  { id: "grid2", label: "2 colonnes", icon: Square },
+  { id: "grid1", label: "1 colonne", icon: Square },
+];
 
-  const birthDate = new Date(props.client.date_naissance);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
+// ─── Personnes clés — logique sur les FLAGS existants ────────────────────────
+// On ne touche pas aux libellés de ref_listes.
+// On utilise uniquement les booléens déjà dans ta table.
 
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 && today.getDate() < birthDate.getDate())
-  ) {
-    age--;
+// ─── Détection par libellé ref_listes (mots-clés probables) ─────────────────
+// L'utilisateur définit ses libellés librement — on cherche des mots-clés.
+// Si son libellé contient "mandataire" → on enrichit l'affichage.
+const motsCles = {
+  mandataire: ["mandataire", "mandat"],
+  tuteur: ["tuteur", "curatelle", "curateur", "tutelle"],
+  conjoint: [
+    "conjoint",
+    "époux",
+    "épouse",
+    "conjointe",
+    "mari",
+    "femme",
+    "partenaire",
+  ],
+  aidant: ["aidant", "proche aidant"],
+  urgence: ["urgence"],
+  interdit: ["interdit", "refus", "banni"],
+};
+
+const contientMotCle = (texte, groupe) =>
+  motsCles[groupe]?.some((m) => (texte || "").toLowerCase().includes(m)) ??
+  false;
+
+// Label enrichi : si le type_de_contact donne plus d'info que le rôle générique, on l'affiche
+const labelEnrichi = (contact, labelDefaut) => {
+  const t = contact.type_de_contact || "";
+  return t.trim() !== "" ? t : labelDefaut;
+};
+
+const ROLES_CONFIG = [
+  {
+    id: "mandataire",
+    label: "Mandataire légal",
+    couleur: "#185FA5",
+    couleurLight: "#E6F1FB",
+    match: (c) =>
+      !!c.procuration_notariee ||
+      contientMotCle(c.type_de_contact, "mandataire") ||
+      contientMotCle(c.relation_type, "mandataire"),
+    sous: (c) =>
+      [
+        c.lien_familial,
+        c.relation_type,
+        c.procuration_bancaire ? "Proc. bancaire" : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    labelFn: (c) => labelEnrichi(c, "Mandataire légal"),
+  },
+  {
+    id: "tuteur",
+    label: "Tuteur / Curateur",
+    couleur: "#534AB7",
+    couleurLight: "#EEEDFE",
+    match: (c) =>
+      contientMotCle(c.type_de_contact, "tuteur") ||
+      contientMotCle(c.relation_type, "tuteur"),
+    sous: (c) => [c.lien_familial, c.relation_type].filter(Boolean).join(" · "),
+    labelFn: (c) => labelEnrichi(c, "Tuteur / Curateur"),
+  },
+  {
+    id: "conjoint",
+    label: "Conjoint(e)",
+    couleur: "#D4537E",
+    couleurLight: "#FBEAF0",
+    match: (c) =>
+      contientMotCle(c.lien_familial, "conjoint") ||
+      contientMotCle(c.type_de_contact, "conjoint") ||
+      contientMotCle(c.relation_type, "conjoint"),
+    sous: (c) =>
+      [
+        c.lien_familial,
+        c.aidant_naturel ? "Aidant(e) naturel(le)" : null,
+        c.procuration_bancaire ? "Proc. bancaire" : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    labelFn: (c) => labelEnrichi(c, "Conjoint(e)"),
+  },
+  {
+    id: "aidant_principal",
+    label: "Aidant principal",
+    couleur: "#3B6D11",
+    couleurLight: "#EAF3DE",
+    // Aidant naturel — seuil force_lien abaissé à 3 pour être réaliste
+    match: (c) =>
+      (!!c.aidant_naturel && c.force_lien >= 3) ||
+      (!!c.aidant_naturel && !c.procuration_notariee) ||
+      contientMotCle(c.type_de_contact, "aidant"),
+    sous: (c) =>
+      [
+        c.lien_familial,
+        c.relation_type && c.relation_type !== c.lien_familial
+          ? c.relation_type
+          : null,
+        `Lien ${c.force_lien > 0 ? "+" : ""}${c.force_lien}`,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    labelFn: (c) => labelEnrichi(c, "Aidant principal"),
+  },
+  {
+    id: "urgence",
+    label: "Contact d'urgence",
+    couleur: "#E24B4A",
+    couleurLight: "#FCEBEB",
+    match: (c) =>
+      !!c.contact_urgence || contientMotCle(c.type_de_contact, "urgence"),
+    sous: (c) => [c.lien_familial, c.relation_type].filter(Boolean).join(" · "),
+    labelFn: (c) => "Contact d'urgence",
+  },
+  {
+    id: "bancaire",
+    label: "Procuration bancaire",
+    couleur: "#0F6E56",
+    couleurLight: "#E1F5EE",
+    match: (c) => !!c.procuration_bancaire && !c.procuration_notariee,
+    sous: (c) => [c.lien_familial, c.relation_type].filter(Boolean).join(" · "),
+    labelFn: (c) => "Procuration bancaire",
+  },
+];
+
+const personnesCles = computed(() => {
+  const result = [];
+  const dejaVus = new Set();
+
+  // 1. Rôles prioritaires dans l'ordre
+  for (const role of ROLES_CONFIG) {
+    const contact = contacts.value.find(
+      (c) => !dejaVus.has(c.id) && role.match(c),
+    );
+    if (contact) {
+      dejaVus.add(contact.id);
+      result.push({
+        contact,
+        label: role.labelFn ? role.labelFn(contact) : role.label,
+        couleur: role.couleur,
+        couleurLight: role.couleurLight,
+        sous: role.sous(contact),
+        interdit: contact.contact_interdit === 1,
+      });
+    }
   }
 
-  return age;
+  // 2. Contacts interdits non encore affichés
+  for (const c of contacts.value) {
+    if (!dejaVus.has(c.id) && c.contact_interdit === 1) {
+      dejaVus.add(c.id);
+      result.push({
+        contact: c,
+        label: "Contact interdit",
+        couleur: "#BA7517",
+        couleurLight: "#FAEEDA",
+        sous: c.lien_familial || "",
+        interdit: true,
+      });
+    }
+  }
+
+  // 3. Signalements maltraitance non encore affichés
+  for (const c of contacts.value) {
+    if (!dejaVus.has(c.id) && c.signalement_maltraitance === 1) {
+      dejaVus.add(c.id);
+      result.push({
+        contact: c,
+        label: "Sous surveillance",
+        couleur: "#E24B4A",
+        couleurLight: "#FCEBEB",
+        sous: c.lien_familial || "",
+        interdit: false,
+      });
+    }
+  }
+
+  return result;
 });
 
-// Anniversaire aujourd'hui
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const initiales = (c) =>
+  ((c.prenom?.[0] || "") + (c.nom?.[0] || "")).toUpperCase();
+
+const age = computed(() => {
+  if (!props.client.date_naissance) return "?";
+  const b = new Date(props.client.date_naissance);
+  const t = new Date();
+  let a = t.getFullYear() - b.getFullYear();
+  if (
+    t.getMonth() < b.getMonth() ||
+    (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())
+  )
+    a--;
+  return a;
+});
+// Couleur dynamique force_lien -10 à +10
+const couleurForceLien = (v) => {
+  if (v < -5) return "#dc2626"; // rouge
+  if (v < 0) return "#f97316"; // orange
+  if (v === 0) return "#94a3b8"; // gris neutre
+  if (v <= 5) return "#0d9488"; // teal
+  return "#0f6e56"; // vert foncé
+};
+
+// Style du track force_lien
+const styleForceLien = (v) => {
+  const pct = ((v + 10) / 20) * 100;
+  if (v < 0)
+    return {
+      background: `linear-gradient(to right, #dc2626 0%, #f97316 ${pct * 0.6}%, #94a3b8 ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`,
+    };
+  if (v === 0) return { background: "#94a3b8" };
+  return {
+    background: `linear-gradient(to right, #e2e8f0 0%, #e2e8f0 50%, #0d9488 ${pct}%, #0f6e56 100%)`,
+  };
+};
+
 const isBirthdayToday = computed(() => {
   if (!props.client.date_naissance) return false;
-
-  const birthDate = new Date(props.client.date_naissance);
-  const today = new Date();
-
-  return (
-    birthDate.getMonth() === today.getMonth() &&
-    birthDate.getDate() === today.getDate()
-  );
+  const b = new Date(props.client.date_naissance);
+  const t = new Date();
+  return b.getMonth() === t.getMonth() && b.getDate() === t.getDate();
 });
 
-// Contact d'urgence
-const urgenceContact = computed(() => {
-  return contacts.value.find((c) => c.contact_urgence === 1) || null;
-});
-
-const getInitials = () => {
-  return `${props.client.prenom[0]}${props.client.nom[0]}`.toUpperCase();
-};
-
-const getSexeBadge = () => {
-  const sexe = props.client.sexe || "F";
-  return sexe === "M" ? "♂ " : "♀ ";
-};
-
+const getInitials = () =>
+  `${props.client.prenom[0]}${props.client.nom[0]}`.toUpperCase();
+const getSexeBadge = () => ((props.client.sexe || "F") === "M" ? "♂ " : "♀ ");
 const getStatusText = () => {
   if (props.client.dcd == 1) return "Décédé";
   if (props.client.actif == 1) return "Actif";
   return "Archivé";
 };
-
 const getStatusClass = () => {
   if (props.client.dcd == 1) return "bg-gray-200 text-gray-700";
   if (props.client.actif == 1) return "bg-green-100 text-green-700";
   return "bg-red-100 text-red-700";
 };
-
 const getEtablissement = () => {
   if (props.client.rpa_id) return `RPA #${props.client.rpa_id}`;
   if (props.client.chsld_id) return `CHSLD #${props.client.chsld_id}`;
   if (props.client.ri_id) return `RI #${props.client.ri_id}`;
   return null;
 };
-
 const getMedecinName = () => {
-  if (medecinInfo.value) {
+  if (medecinInfo.value)
     return `${medecinInfo.value.prenom} ${medecinInfo.value.nom}`;
-  }
   return props.client.medecin_famille_No_Licence || "Non spécifié";
 };
-
 const formatPhone = (phone) => {
   if (!phone) return "";
-  const cleaned = phone.replace(/\D/g, "");
-
-  if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-  }
-
-  if (cleaned.length === 11 && cleaned[0] === "1") {
-    return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
-  }
-
+  const c = phone.replace(/\D/g, "");
+  if (c.length === 10)
+    return `(${c.slice(0, 3)}) ${c.slice(3, 6)}-${c.slice(6)}`;
+  if (c.length === 11 && c[0] === "1")
+    return `+1 (${c.slice(1, 4)}) ${c.slice(4, 7)}-${c.slice(7)}`;
   return phone;
 };
-
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("fr-CA");
-};
-// Ajoute cette fonction
+const formatDate = (d) => (d ? new Date(d).toLocaleDateString("fr-CA") : "N/A");
 const getFlagUrl = (alpha2) => {
   if (!alpha2) return null;
-  const code = alpha2.toLowerCase().trim();
-  // Ajuste le chemin selon l'emplacement de ton fichier
-
-  return new URL(`../../assets/flags/${code}.svg`, import.meta.url).href;
+  return new URL(
+    `../../assets/flags/${alpha2.toLowerCase().trim()}.svg`,
+    import.meta.url,
+  ).href;
 };
-
 const openGoogleMaps = () => {
-  const address = `${props.client.adresse}, ${props.client.ville}, ${props.client.code_postal}`;
+  const addr = `${props.client.adresse}, ${props.client.ville}, ${props.client.code_postal}`;
   window.open(
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`,
     "_blank",
   );
 };
-
-const viewMedecinDetails = () => {
+const viewMedecinDetails = () =>
   emit("view-medecin", props.client.medecin_famille_No_Licence);
-};
-
-const exportToPDF = () => {
-  alert("Export PDF à implémenter");
-};
+const exportToPDF = () => alert("Export PDF à implémenter");
 
 const loadContacts = async () => {
   try {
-    const result = await window.go.main.App.GetAllContactsByClientID(
-      props.client.id,
-    );
-    contacts.value = result || [];
-  } catch (error) {
-    console.error("Erreur chargement contacts:", error);
+    contacts.value =
+      (await window.go.main.App.GetAllContactsByClientID(props.client.id)) ||
+      [];
+  } catch (e) {
+    console.error("Erreur chargement contacts:", e);
   }
 };
-
 const loadMedecinInfo = async () => {
   if (!props.client.medecin_famille_No_Licence) return;
-
   try {
-    const result = await window.go.main.App.GetMedecinByLicence(
+    medecinInfo.value = await window.go.main.App.GetMedecinByLicence(
       props.client.medecin_famille_No_Licence,
     );
-    medecinInfo.value = result;
-  } catch (error) {
-    console.error("Erreur chargement médecin:", error);
+  } catch (e) {
+    console.error("Erreur chargement médecin:", e);
   }
 };
 
@@ -563,7 +904,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Transitions fluides */
 a {
   transition: all 0.2s ease;
 }

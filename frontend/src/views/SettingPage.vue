@@ -52,7 +52,9 @@
 <div v-if="activeTab === 'listes'">
   <RefListesSettings :key="activeTab" />
 </div>
-        
+        <div v-if="activeTab === 'cim11'">
+  <Cim11Sync />
+</div>
         <!-- Onglet Apparence -->
         <div v-if="activeTab === 'appearance'" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
           <div>
@@ -249,7 +251,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { User, Palette, Lock, Bell, Moon, Sun, Building2, Heart, Shield, Globe, MapPin, List } from 'lucide-vue-next'
+import { User, Palette, Lock, Bell, Moon, Sun, Building2, Heart, Shield, Globe, MapPin, List, Stethoscope } from 'lucide-vue-next'
 import { useDarkMode } from '../composables/useDarkMode'
 import { 
   GetSettings, 
@@ -266,6 +268,7 @@ import CHSLDSync from '../components/CHSLD/CHSLDSync.vue'
 import MunImporter from '../components/settings/Munimporter.vue' // 
 import RefListesSettings from '../components/settings/Reflistsetting.vue' //
 
+import Cim11Sync from '../components/settings/Cim11Sync.vue'
 
 
 
@@ -290,6 +293,7 @@ const tabs = [
   { id: 'notaires', label: 'Importation de notaires', icon: Shield },
   { id: 'geo', label: 'Données géographiques', icon: MapPin },
   { id: 'listes', label: 'Listes de référence', icon: List },
+  { id: 'cim11', label: 'Diagnostics CIM-11', icon: Stethoscope },
 ]
 
 const settings = ref({

@@ -82,7 +82,7 @@
     class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-teal-700 focus:ring-4 focus:ring-teal-500/20 transition-all outline-none"
   >
     <option value="">Sélectionner...</option>
-    <option v-for="type in typesContact" :key="type" :value="type">
+    <option v-for="type in typesRelation" :key="type" :value="type">
       {{ type }}
     </option>
   </select>
@@ -118,21 +118,86 @@
 </select>
               </div>
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Force du lien (0-10)
+              <!-- Force du lien -10 à +10 — positionné par le client -->
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Force du lien affectif
+                  <span class="ml-1 text-xs font-normal text-gray-400">— évalué par le client</span>
                 </label>
-                <input 
+                <input
                   v-model.number="form.force_lien"
-                  type="range"
-                  min="0"
-                  max="10"
-                  class="w-full h-2 bg-slate-400 rounded-lg appearance-none cursor-pointer accent-teal-600 dark:accent-teal-600 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
+                  type="range" min="-10" max="10" step="1"
+                  class="w-full h-2 rounded-lg appearance-none cursor-pointer transition-all outline-none slider-lien"
+                  :style="styleLien"
                 />
-                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  <span>Faible</span>
-                  <span class="font-semibold text-stone-600 dark:text-stone-400">{{ form.force_lien }}/10</span>
-                  <span>Fort</span>
+                <div class="flex justify-between text-xs mt-1">
+                  <span class="text-red-500">-10 Lien rompu</span>
+                  <span :class="['font-bold', form.force_lien < -5 ? 'text-red-600' : form.force_lien < 0 ? 'text-orange-500' : form.force_lien === 0 ? 'text-slate-400' : 'text-teal-600']">
+                    {{ form.force_lien > 0 ? '+' : '' }}{{ form.force_lien }}
+                    <span class="font-normal ml-1 text-gray-500 dark:text-gray-400">{{ labelForceLien(form.force_lien) }}</span>
+                  </span>
+                  <span class="text-teal-600">+10 Lien pivot</span>
+                </div>
+              </div>
+
+              <!-- Indicateur maltraitance 0-5 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Indicateur maltraitance
+                  <span class="ml-1 text-xs font-normal text-gray-400">(0–5)</span>
+                </label>
+                <input
+                  v-model.number="form.force_niv_maltraitance"
+                  type="range" min="0" max="5" step="1"
+                  class="w-full h-2 rounded-lg appearance-none cursor-pointer transition-all outline-none slider-gradient"
+                  :style="styleMalt"
+                />
+                <div class="flex justify-between text-xs mt-1">
+                  <span class="text-slate-400">0 Aucun</span>
+                  <span :class="['font-semibold', form.force_niv_maltraitance === 0 ? 'text-slate-400' : form.force_niv_maltraitance <= 2 ? 'text-amber-600' : 'text-red-600']">
+                    {{ form.force_niv_maltraitance }} — {{ labelMaltraitance(form.force_niv_maltraitance) }}
+                  </span>
+                  <span class="text-red-500">5 Grave</span>
+                </div>
+              </div>
+
+              <!-- Niveau soutien 0-5 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Soutien apporté
+                  <span class="ml-1 text-xs font-normal text-gray-400">(0–5)</span>
+                </label>
+                <input
+                  v-model.number="form.force_niv_soutien"
+                  type="range" min="0" max="5" step="1"
+                  class="w-full h-2 rounded-lg appearance-none cursor-pointer transition-all outline-none slider-gradient"
+                  :style="styleSoutien"
+                />
+                <div class="flex justify-between text-xs mt-1">
+                  <span class="text-slate-400">0 Aucun</span>
+                  <span class="font-semibold text-blue-600">{{ form.force_niv_soutien }} — {{ labelSoutien(form.force_niv_soutien) }}</span>
+                  <span class="text-blue-600">5 Total</span>
+                </div>
+              </div>
+
+              <!-- Niveau épuisement 0-5 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Épuisement observé
+                  <span class="ml-1 text-xs font-normal text-gray-400">(0–5)</span>
+                </label>
+                <input
+                  v-model.number="form.force_niv_epuisement"
+                  type="range" min="0" max="5" step="1"
+                  class="w-full h-2 rounded-lg appearance-none cursor-pointer transition-all outline-none slider-gradient"
+                  :style="styleEpuisement"
+                />
+                <div class="flex justify-between text-xs mt-1">
+                  <span class="text-slate-400">0 Aucun</span>
+                  <span :class="['font-semibold', form.force_niv_epuisement === 0 ? 'text-slate-400' : form.force_niv_epuisement <= 2 ? 'text-amber-600' : 'text-orange-600']">
+                    {{ form.force_niv_epuisement }} — {{ labelEpuisement(form.force_niv_epuisement) }}
+                  </span>
+                  <span class="text-orange-600">5 Effondrement</span>
                 </div>
               </div>
             </div>
@@ -398,13 +463,17 @@ import { useRefListes } from '@/composables/useRefListes'
 
 
 const { getCategorie } = useRefListes()
-const typesContact = ref([])
+const typesRelation = ref([])   // type_relation  → grande catégorie (Famille, Légal, Social...)
+const typesContact  = ref([])   // type_contact   → rôle précis (Mandataire, Conjoint, Aidant...)
 const liensFamiliaux = ref([])
 
 onMounted(async () => {
+  const tr = await getCategorie('type_relation')
+  typesRelation.value = tr.map(t => t.Libelle)
+
   const tc = await getCategorie('type_contact')
   typesContact.value = tc.map(t => t.Libelle)
-  
+
   const lf = await getCategorie('lien_familial')
   liensFamiliaux.value = lf.map(t => t.Libelle)
 })
@@ -436,7 +505,10 @@ const form = ref({
   profession: null,
   relation_client: null,
   lien_familial: null,
-  force_lien: 5,
+  force_lien: 0,
+  force_niv_maltraitance: 0,
+  force_niv_soutien: 0,
+  force_niv_epuisement: 0,
   contact_urgence: 0,
   aidant_naturel: 0,
   type_de_contact: null,
@@ -476,21 +548,147 @@ watch(() => props.contactData, (newVal) => {
     form.value = { ...newVal, client_id: props.clientId }
   }
 }, { immediate: true })
+
+
+// ─── Styles dynamiques des sliders (track coloré) ────────────────────────────
+// Tailwind V4 ne colore pas le track — on utilise background inline
+
+const styleLien = computed(() => {
+  const v = form.value.force_lien  // -10 à +10
+  const pct = ((v + 10) / 20) * 100  // 0% à 100%
+
+  if (v < 0) {
+    // Rouge → Orange → Gris au centre
+    return {
+      background: `linear-gradient(to right, 
+        #dc2626 0%, 
+        #f97316 ${pct * 0.6}%, 
+        #94a3b8 ${pct}%, 
+        #e2e8f0 ${pct}%, 
+        #e2e8f0 100%)`,
+      accentColor: '#dc2626'
+    }
+  } else if (v === 0) {
+    return {
+      background: '#94a3b8',
+      accentColor: '#94a3b8'
+    }
+  } else {
+    // Gris → Teal → Vert foncé
+    return {
+      background: `linear-gradient(to right,
+        #e2e8f0 0%,
+        #e2e8f0 50%,
+        #0d9488 ${50 + (pct - 50)}%,
+        #0f6e56 100%)`,
+      accentColor: '#0d9488'
+    }
+  }
+})
+
+const styleMalt = computed(() => {
+  // Vert (0) → jaune → rouge (5)
+  const v = form.value.force_niv_maltraitance
+  const pct = (v / 5) * 100
+  const couleur = v === 0 ? '#94a3b8' : v <= 2 ? '#f59e0b' : '#ef4444'
+  return {
+    background: `linear-gradient(to right, #22c55e 0%, #eab308 50%, #ef4444 100%)`,
+    accentColor: couleur
+  }
+})
+
+const styleSoutien = computed(() => {
+  // Gris (0) → bleu (5)
+  const pct = (form.value.force_niv_soutien / 5) * 100
+  return {
+    background: `linear-gradient(to right, #3b82f6 0% ${pct}%, #e2e8f0 ${pct}% 100%)`,
+    accentColor: '#3b82f6'
+  }
+})
+
+const styleEpuisement = computed(() => {
+  // Vert (0) → amber → orange (5)
+  const v = form.value.force_niv_epuisement
+  const couleur = v === 0 ? '#94a3b8' : v <= 2 ? '#f59e0b' : '#ea580c'
+  return {
+    background: `linear-gradient(to right, #22c55e 0%, #f59e0b 60%, #ea580c 100%)`,
+    accentColor: couleur
+  }
+})
+
+// ─── Labels des échelles ─────────────────────────────────────────────────────
+
+const labelForceLien = (v) => {
+  if (v <= -8) return 'Lien rompu / rupture grave'
+  if (v <= -5) return 'Conflit sévère actif'
+  if (v <= -3) return 'Relation toxique / ambivalence'
+  if (v <= -1) return 'Lien fragilisé / distant'
+  if (v === 0) return 'Neutre / inconnu'
+  if (v <= 3)  return 'Lien présent'
+  if (v <= 5)  return 'Lien significatif'
+  if (v <= 7)  return 'Lien fort'
+  return 'Lien pivot / attachement profond'
+}
+
+const labelMaltraitance = (v) => {
+  const labels = [
+    'Aucun indicateur',
+    'Indicateurs suspectés (tiers)',
+    'Indicateurs détectés',
+    'Indicateurs admis',
+    'Maltraitance involontaire avérée',
+    'Maltraitance grave avérée'
+  ]
+  return labels[v] || ''
+}
+
+const labelSoutien = (v) => {
+  const labels = [
+    'Aucun soutien observable',
+    'Présence occasionnelle',
+    'Soutien régulier (AVQ, transport)',
+    'Soutien significatif / pivot informel',
+    'Aidant principal engagé',
+    'Présence et coordination totales'
+  ]
+  return labels[v] || ''
+}
+
+const labelEpuisement = (v) => {
+  const labels = [
+    'Aucun signe',
+    'Signes légers (fatigue, commentaires)',
+    'Épuisement modéré (isolement)',
+    'Épuisement élevé (santé affectée)',
+    'Risque d\'effondrement',
+    'Effondrement / retrait de l\'aide'
+  ]
+  return labels[v] || ''
+}
 </script>
 
 <style scoped>
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.95) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
+.animate-slideIn { animation: slideIn 0.3s ease-out; }
 
-.animate-slideIn {
-  animation: slideIn 0.3s ease-out;
+/* Track + thumb des sliders */
+.slider-lien, .slider-gradient {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+}
+.slider-lien::-webkit-slider-thumb,
+.slider-gradient::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #0d9488;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 </style>

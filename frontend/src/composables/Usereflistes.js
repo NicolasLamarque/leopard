@@ -107,7 +107,7 @@ export function useRefListes() {
     error.value = null
     try {
       const rapport = await OuvrirDialogCSVRefListes()
-      invaliderCache() // Vider tout le cache après import
+      invaliderCache() // Vider tout le acache après import
       return rapport
     } catch (err) {
       error.value = err.message

@@ -21,6 +21,38 @@ export namespace database {
 
 export namespace main {
 	
+	export class Cim11PageResult {
+	    codes: models.Cim11Code[];
+	    total: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Cim11PageResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.codes = this.convertValues(source["codes"], models.Cim11Code);
+	        this.total = source["total"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class ClientFolderInfo {
 	    path: string;
 	    subfoldersCount: number;
@@ -339,6 +371,78 @@ export namespace models {
 	        this.new_password = source["new_password"];
 	    }
 	}
+	export class Cim11Code {
+	    id: number;
+	    code: string;
+	    titre_fr: string;
+	    titre_en: string;
+	    chapitre_code: string;
+	    chapitre_titre: string;
+	    bloc_code: string;
+	    bloc_titre: string;
+	    parent_code: string;
+	    niveau: number;
+	    is_billable: number;
+	    actif: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Cim11Code(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.code = source["code"];
+	        this.titre_fr = source["titre_fr"];
+	        this.titre_en = source["titre_en"];
+	        this.chapitre_code = source["chapitre_code"];
+	        this.chapitre_titre = source["chapitre_titre"];
+	        this.bloc_code = source["bloc_code"];
+	        this.bloc_titre = source["bloc_titre"];
+	        this.parent_code = source["parent_code"];
+	        this.niveau = source["niveau"];
+	        this.is_billable = source["is_billable"];
+	        this.actif = source["actif"];
+	    }
+	}
+	export class Cim11ImportResult {
+	    nb_inseres: number;
+	    nb_mis_a_jour: number;
+	    duree: string;
+	    erreur?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Cim11ImportResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nb_inseres = source["nb_inseres"];
+	        this.nb_mis_a_jour = source["nb_mis_a_jour"];
+	        this.duree = source["duree"];
+	        this.erreur = source["erreur"];
+	    }
+	}
+	export class Cim11SyncMeta {
+	    derniere_sync?: string;
+	    version_oms: string;
+	    nb_codes_fr: number;
+	    nb_codes_en: number;
+	    statut: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Cim11SyncMeta(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.derniere_sync = source["derniere_sync"];
+	        this.version_oms = source["version_oms"];
+	        this.nb_codes_fr = source["nb_codes_fr"];
+	        this.nb_codes_en = source["nb_codes_en"];
+	        this.statut = source["statut"];
+	    }
+	}
 	export class Client {
 	    id: number;
 	    nom: string;
@@ -517,6 +621,9 @@ export namespace models {
 	    relation_client?: string;
 	    lien_familial?: string;
 	    force_lien: number;
+	    force_niv_maltraitance: number;
+	    force_niv_soutien: number;
+	    force_niv_epuisement: number;
 	    contact_urgence: number;
 	    aidant_naturel: number;
 	    type_de_contact?: string;
@@ -548,6 +655,9 @@ export namespace models {
 	        this.relation_client = source["relation_client"];
 	        this.lien_familial = source["lien_familial"];
 	        this.force_lien = source["force_lien"];
+	        this.force_niv_maltraitance = source["force_niv_maltraitance"];
+	        this.force_niv_soutien = source["force_niv_soutien"];
+	        this.force_niv_epuisement = source["force_niv_epuisement"];
 	        this.contact_urgence = source["contact_urgence"];
 	        this.aidant_naturel = source["aidant_naturel"];
 	        this.type_de_contact = source["type_de_contact"];
@@ -856,6 +966,9 @@ export namespace models {
 	    relation_client?: string;
 	    lien_familial?: string;
 	    force_lien: number;
+	    force_niv_maltraitance: number;
+	    force_niv_soutien: number;
+	    force_niv_epuisement: number;
 	    contact_urgence: number;
 	    aidant_naturel: number;
 	    type_de_contact?: string;
@@ -885,6 +998,9 @@ export namespace models {
 	        this.relation_client = source["relation_client"];
 	        this.lien_familial = source["lien_familial"];
 	        this.force_lien = source["force_lien"];
+	        this.force_niv_maltraitance = source["force_niv_maltraitance"];
+	        this.force_niv_soutien = source["force_niv_soutien"];
+	        this.force_niv_epuisement = source["force_niv_epuisement"];
 	        this.contact_urgence = source["contact_urgence"];
 	        this.aidant_naturel = source["aidant_naturel"];
 	        this.type_de_contact = source["type_de_contact"];
@@ -3342,6 +3458,9 @@ export namespace models {
 	    relation_client?: string;
 	    lien_familial?: string;
 	    force_lien: number;
+	    force_niv_maltraitance: number;
+	    force_niv_soutien: number;
+	    force_niv_epuisement: number;
 	    contact_urgence: number;
 	    aidant_naturel: number;
 	    type_de_contact?: string;
@@ -3372,6 +3491,9 @@ export namespace models {
 	        this.relation_client = source["relation_client"];
 	        this.lien_familial = source["lien_familial"];
 	        this.force_lien = source["force_lien"];
+	        this.force_niv_maltraitance = source["force_niv_maltraitance"];
+	        this.force_niv_soutien = source["force_niv_soutien"];
+	        this.force_niv_epuisement = source["force_niv_epuisement"];
 	        this.contact_urgence = source["contact_urgence"];
 	        this.aidant_naturel = source["aidant_naturel"];
 	        this.type_de_contact = source["type_de_contact"];

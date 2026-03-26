@@ -30,6 +30,10 @@ export function CreateCHSLD(arg1) {
   return window['go']['main']['App']['CreateCHSLD'](arg1);
 }
 
+export function CreateCim11Code(arg1) {
+  return window['go']['main']['App']['CreateCim11Code'](arg1);
+}
+
 export function CreateClient(arg1) {
   return window['go']['main']['App']['CreateClient'](arg1);
 }
@@ -104,6 +108,10 @@ export function DeleteAppel(arg1) {
 
 export function DeleteCHSLD(arg1) {
   return window['go']['main']['App']['DeleteCHSLD'](arg1);
+}
+
+export function DeleteCim11Code(arg1) {
+  return window['go']['main']['App']['DeleteCim11Code'](arg1);
 }
 
 export function DeleteClient(arg1) {
@@ -264,6 +272,30 @@ export function GetCHSLDCount() {
 
 export function GetCHSLDStats() {
   return window['go']['main']['App']['GetCHSLDStats']();
+}
+
+export function GetCim11ByCode(arg1) {
+  return window['go']['main']['App']['GetCim11ByCode'](arg1);
+}
+
+export function GetCim11Chapitres() {
+  return window['go']['main']['App']['GetCim11Chapitres']();
+}
+
+export function GetCim11DetailOMS(arg1) {
+  return window['go']['main']['App']['GetCim11DetailOMS'](arg1);
+}
+
+export function GetCim11Enfants(arg1) {
+  return window['go']['main']['App']['GetCim11Enfants'](arg1);
+}
+
+export function GetCim11Page(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['main']['App']['GetCim11Page'](arg1, arg2, arg3, arg4, arg5);
+}
+
+export function GetCim11SyncMeta() {
+  return window['go']['main']['App']['GetCim11SyncMeta']();
 }
 
 export function GetClientByID(arg1) {
@@ -474,6 +506,10 @@ export function ImportArrondissementsCSV(arg1) {
   return window['go']['main']['App']['ImportArrondissementsCSV'](arg1);
 }
 
+export function ImportCim11() {
+  return window['go']['main']['App']['ImportCim11']();
+}
+
 export function ImportIntervenants(arg1) {
   return window['go']['main']['App']['ImportIntervenants'](arg1);
 }
@@ -582,6 +618,10 @@ export function SearchCHSLD(arg1, arg2, arg3) {
   return window['go']['main']['App']['SearchCHSLD'](arg1, arg2, arg3);
 }
 
+export function SearchCim11(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SearchCim11'](arg1, arg2, arg3);
+}
+
 export function SearchMedecins(arg1) {
   return window['go']['main']['App']['SearchMedecins'](arg1);
 }
@@ -640,6 +680,10 @@ export function UpdateAppel(arg1, arg2) {
 
 export function UpdateCHSLD(arg1) {
   return window['go']['main']['App']['UpdateCHSLD'](arg1);
+}
+
+export function UpdateCim11Code(arg1) {
+  return window['go']['main']['App']['UpdateCim11Code'](arg1);
 }
 
 export function UpdateClient(arg1) {

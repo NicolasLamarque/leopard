@@ -246,10 +246,12 @@ const loadContacts = async () => {
   try {
     const result = await GetAllContactsByClientID(props.clientId);
     contacts.value = result || [];
+    console.log('CONTACTS:', JSON.stringify(contacts.value[0]))  // ← ajoute ça
   } catch (error) {
     // Si Go envoie une erreur, on la voit ici dans la console F12
     console.error('Erreur reçue de Go:', error);
     contacts.value = []; 
+    
   } finally {
     // QUOI QU'IL ARRIVE, on arrête le cercle qui tourne
     loading.value = false;

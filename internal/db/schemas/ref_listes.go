@@ -111,6 +111,15 @@ INSERT OR IGNORE INTO ref_listes (categorie, libelle, couleur, icone, is_systeme
 ('lien_familial', 'Petite-fille',   'cyan',   'user',   1, 9),
 ('lien_familial', 'Autre',          'slate',  'user',   1, 10);
 
+-- Types de relation (grande catégorie)
+INSERT OR IGNORE INTO ref_listes (categorie, libelle, couleur, icone, is_systeme, ordre) VALUES
+('type_relation', 'Famille',        'pink',    'heart',       1, 1),
+('type_relation', 'Légal',          'purple',  'scale',       1, 2),
+('type_relation', 'Professionnel',  'blue',    'briefcase',   1, 3),
+('type_relation', 'Social',         'teal',    'users',       1, 4),
+('type_relation', 'Institutionnel', 'amber',   'building',    1, 5),
+('type_relation', 'Autre',          'slate',   'user-circle', 1, 6);
+
 -- Civilités (universelle - médecins, notaires, contacts, etc.)
 INSERT OR IGNORE INTO ref_listes (categorie, libelle, couleur, icone, is_systeme, ordre) VALUES
 ('civilite', 'M.',          'blue',   'user', 1, 1),
@@ -153,4 +162,36 @@ INSERT OR IGNORE INTO ref_listes (categorie, libelle, couleur, icone, is_systeme
 ('statut_medecin', 'Retraité',  'slate',   'user',   1, 2),
 ('statut_medecin', 'En congé',  'amber',   'clock',  1, 3),
 ('statut_medecin', 'Autre',     'zinc',    'user',   1, 4);
+
+-- ============================================================
+-- Fréquences de suivi médical
+-- ============================================================
+INSERT OR IGNORE INTO ref_listes (categorie, libelle, couleur, icone, is_systeme, ordre) VALUES
+('frequence_suivi', 'Au besoin',         'slate',   'calendar',        1, 1),
+('frequence_suivi', 'Hebdomadaire',      'blue',    'calendar-days',   1, 2),
+('frequence_suivi', 'Aux 2 semaines',    'cyan',    'calendar-days',   1, 3),
+('frequence_suivi', 'Mensuel',           'teal',    'calendar',        1, 4),
+('frequence_suivi', 'Aux 2 mois',        'emerald', 'calendar',        1, 5),
+('frequence_suivi', 'Trimestriel',       'green',   'calendar',        1, 6),
+('frequence_suivi', 'Aux 6 mois',        'amber',   'calendar',        1, 7),
+('frequence_suivi', 'Annuel',            'orange',  'calendar',        1, 8),
+('frequence_suivi', 'Ponctuel',          'zinc',    'calendar-x',      1, 9),
+('frequence_suivi', 'Autre',             'slate',   'calendar',        1, 10);
+ 
+-- ============================================================
+-- Récurrences (nature du suivi dans le temps)
+-- ============================================================
+INSERT OR IGNORE INTO ref_listes (categorie, libelle, couleur, icone, is_systeme, ordre) VALUES
+('recurrence_suivi', 'Suivi actif continu',   'emerald', 'repeat',          1, 1),
+('recurrence_suivi', 'Suivi épisodique',      'blue',    'repeat-1',        1, 2),
+('recurrence_suivi', 'Suivi post-crise',      'amber',   'activity',        1, 3),
+('recurrence_suivi', 'Suivi préventif',       'teal',    'shield-check',    1, 4),
+('recurrence_suivi', 'Suivi post-opératoire', 'purple',  'heart-pulse',     1, 5),
+('recurrence_suivi', 'Suivi palliatif',       'zinc',    'heart-handshake', 1, 6),
+('recurrence_suivi', 'Consultation unique',   'slate',   'calendar-check',  1, 7),
+('recurrence_suivi', 'Suivi hospitalier',     'red',     'building-2',      1, 8),
+('recurrence_suivi', 'Autre',                 'slate',   'repeat',          1, 9);
+
+
+
 `
