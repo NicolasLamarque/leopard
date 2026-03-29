@@ -91,6 +91,8 @@ export function DeleteService(arg1:number):Promise<void>;
 
 export function DetectLeopardKey():Promise<boolean|string>;
 
+export function DownloadOfficialForm(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
+
 export function EnregistrerPaiement(arg1:models.CreatePaiementRequest):Promise<void>;
 
 export function ExportNotesToPDF(arg1:string,arg2:Array<number>,arg3:string):Promise<string>;
@@ -306,6 +308,8 @@ export function ResoudrePayeur(arg1:number):Promise<models.PayeurResolu>;
 export function SaveExcelFile(arg1:string,arg2:main.ExcelFileType):Promise<string>;
 
 export function SaveIntervenant(arg1:models.Intervenant):Promise<void>;
+
+export function SavePDFToClientFolder(arg1:Record<string, any>):Promise<main.ClientFolderResult>;
 
 export function SaveParametresFinance(arg1:models.ParametresFinance):Promise<void>;
 

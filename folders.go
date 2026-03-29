@@ -4,12 +4,16 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -41,6 +45,211 @@ func (a *App) GetBasePath() string {
 
 	// On crée le chemin spécifique
 	return filepath.Join(exeDir, "Leopard_Dossiers")
+}
+
+// SavePDFToClientFolder sauvegarde un PDF (encodé base64) dans le dossier d'un client
+// Appelé depuis le JS Wails via : window.go.main.App.SavePDFToClientFolder(...)
+//
+// Paramètres (map JSON depuis JS) :
+//   - leopardNumber : string — le numéro Léopard du client (ex: "LEO-2025-00042")
+//   - subfolder     : string — sous-dossier cible (ex: "Evaluations")
+//   - filename      : string — nom du fichier avec extension (ex: "annexe_personnes_consultees_LEO-2025-00042_20250701.pdf")
+//   - pdfBase64     : string — le PDF encodé en base64 (jsPDF → doc.output('datauristring') ou 'arraybuffer')
+func (a *App) SavePDFToClientFolder(data map[string]interface{}) ClientFolderResult {
+	leopardNumber, _ := data["leopardNumber"].(string)
+	subfolder, _ := data["subfolder"].(string)
+	filename, _ := data["filename"].(string)
+	pdfBase64, _ := data["pdfBase64"].(string)
+
+	// Validation
+	if leopardNumber == "" {
+		return ClientFolderResult{Success: false, Error: "Numéro Léopard manquant"}
+	}
+	if filename == "" {
+		return ClientFolderResult{Success: false, Error: "Nom de fichier manquant"}
+	}
+	if pdfBase64 == "" {
+		return ClientFolderResult{Success: false, Error: "Données PDF manquantes"}
+	}
+
+	// Nettoyer le préfixe data URI si présent
+	// jsPDF peut envoyer "data:application/pdf;base64,JVBERi0x..."
+	cleanBase64 := pdfBase64
+	if idx := strings.Index(pdfBase64, ","); idx != -1 {
+		cleanBase64 = pdfBase64[idx+1:]
+	}
+
+	// Décoder le base64
+	pdfBytes, err := base64.StdEncoding.DecodeString(cleanBase64)
+	if err != nil {
+		// Essayer avec RawStdEncoding (sans padding) si la première tentative échoue
+		pdfBytes, err = base64.RawStdEncoding.DecodeString(cleanBase64)
+		if err != nil {
+			return ClientFolderResult{
+				Success: false,
+				Error:   fmt.Sprintf("Erreur décodage PDF base64: %v", err),
+			}
+		}
+	}
+
+	// Trouver le dossier du client
+	basePath := a.GetBasePath()
+	clientsPath := filepath.Join(basePath, "Clients")
+
+	entries, err := os.ReadDir(clientsPath)
+	if err != nil {
+		return ClientFolderResult{Success: false, Error: "Impossible de lire le dossier Clients"}
+	}
+
+	var clientPath string
+	targetLength := len(leopardNumber)
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			name := entry.Name()
+			if len(name) >= targetLength && name[:targetLength] == leopardNumber {
+				clientPath = filepath.Join(clientsPath, name)
+				break
+			}
+		}
+	}
+
+	if clientPath == "" {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Dossier client introuvable pour: %s", leopardNumber),
+		}
+	}
+
+	// Construire le chemin de destination
+	var destPath string
+	if subfolder != "" {
+		destPath = filepath.Join(clientPath, subfolder)
+	} else {
+		destPath = clientPath
+	}
+
+	// Créer le sous-dossier s'il n'existe pas (sécurité)
+	if err := os.MkdirAll(destPath, 0755); err != nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Impossible de créer le dossier destination: %v", err),
+		}
+	}
+
+	// Écrire le fichier PDF
+	filePath := filepath.Join(destPath, filename)
+	if err := os.WriteFile(filePath, pdfBytes, 0644); err != nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Erreur écriture PDF: %v", err),
+		}
+	}
+
+	fmt.Printf("✅ PDF sauvegardé: %s\n", filePath)
+
+	return ClientFolderResult{
+		Success: true,
+		Path:    filePath,
+	}
+}
+
+// DownloadOfficialForm télécharge un formulaire officiel depuis une URL
+// et le sauvegarde dans le dossier du client
+// Utilisé pour les formulaires du Curateur public, etc.
+func (a *App) DownloadOfficialForm(data map[string]interface{}) ClientFolderResult {
+	leopardNumber, _ := data["leopardNumber"].(string)
+	subfolder, _ := data["subfolder"].(string)
+	filename, _ := data["filename"].(string)
+	url, _ := data["url"].(string)
+
+	if leopardNumber == "" || url == "" || filename == "" {
+		return ClientFolderResult{Success: false, Error: "Paramètres manquants (leopardNumber, url, filename requis)"}
+	}
+
+	// Télécharger le fichier
+	resp, err := http.Get(url)
+	if err != nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Erreur téléchargement: %v", err),
+		}
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Erreur HTTP %d lors du téléchargement", resp.StatusCode),
+		}
+	}
+
+	fileBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Erreur lecture réponse: %v", err),
+		}
+	}
+
+	// Trouver le dossier du client
+	basePath := a.GetBasePath()
+	clientsPath := filepath.Join(basePath, "Clients")
+
+	entries, err := os.ReadDir(clientsPath)
+	if err != nil {
+		return ClientFolderResult{Success: false, Error: "Impossible de lire le dossier Clients"}
+	}
+
+	var clientPath string
+	targetLength := len(leopardNumber)
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			name := entry.Name()
+			if len(name) >= targetLength && name[:targetLength] == leopardNumber {
+				clientPath = filepath.Join(clientsPath, name)
+				break
+			}
+		}
+	}
+
+	if clientPath == "" {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Dossier client introuvable pour: %s", leopardNumber),
+		}
+	}
+
+	// Destination
+	var destPath string
+	if subfolder != "" {
+		destPath = filepath.Join(clientPath, subfolder)
+	} else {
+		destPath = clientPath
+	}
+
+	if err := os.MkdirAll(destPath, 0755); err != nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Impossible de créer le dossier destination: %v", err),
+		}
+	}
+
+	filePath := filepath.Join(destPath, filename)
+	if err := os.WriteFile(filePath, fileBytes, 0644); err != nil {
+		return ClientFolderResult{
+			Success: false,
+			Error:   fmt.Sprintf("Erreur écriture fichier: %v", err),
+		}
+	}
+
+	fmt.Printf("✅ Formulaire officiel sauvegardé: %s\n", filePath)
+
+	return ClientFolderResult{
+		Success: true,
+		Path:    filePath,
+	}
 }
 
 // initializeLeopardFolders crée la structure de base des dossiers Leopard

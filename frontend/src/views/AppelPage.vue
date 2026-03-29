@@ -9,6 +9,7 @@
       :is-creating="isCreating || isEditing"
       @start-new="startNew"
       @cancel-new="cancelEdit"
+      @generate-report="handleReport"
     />
 
     <!-- Conteneur principal -->
@@ -24,7 +25,7 @@
       <!-- Zone principale -->
       <div class="flex-1 flex flex-col">
         
-        <!-- Vue par défaut (aucun appel sélectionné) -->
+        <!-- Vue par défaut -->
         <div v-if="!isCreating && !selectedAppel" class="flex-1 flex items-center justify-center bg-white dark:bg-stone-900">
           <div class="text-center">
             <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 dark:from-pink-900/30 dark:to-rose-900/30 flex items-center justify-center">
@@ -49,6 +50,7 @@
         <!-- Éditeur -->
         <AppelsEditor
           v-else
+          ref="editorRef"
           :appel="selectedAppel"
           :clients="clients"
           :users="users"
@@ -63,7 +65,7 @@
           :can-save="canSave"
           @save="submitForm"
           @cancel="cancelEdit"
-          @delete="deleteAppel"
+          @delete="handleDelete"
         />
       </div>
     </div>
@@ -78,8 +80,32 @@ import AppelsSidebar from '../components/appels/AppelSidebar.vue'
 import AppelsEditor from '../components/Appels/Appeleditor.vue'
 import AppelsFooter from '../components/Appels/Appelfooter.vue'
 import { useAppels } from '../composables/useAppels'
+import { useAppelReports } from '../composables/useAppelReports'
 
-// Composable
+
+// On extrait les fonctions de ton composable
+const { generateWeekly, generateMonthly } = useAppelReports()
+
+// Voici la fonction "handleReport" qui manquait
+const handleReport = (type) => {
+  console.log("Demande de rapport reçue :", type)
+  
+  // 'appels' est la variable qui contient ta liste d'appels dans AppelPage.vue
+  if (type === 'weekly') {
+    generateWeekly(appels.value)
+  } else if (type === 'monthly') {
+    generateMonthly(appels.value)
+  }
+}
+
+// Pour le rapport par client (à déclencher depuis l'éditeur ou la liste)
+const reportForCurrentClient = () => {
+    if (selectedAppel.value?.client_id) {
+        const name = `${selectedAppel.value.prospect_prenom} ${selectedAppel.value.prospect_nom}`;
+        generateByClient(appels.value, selectedAppel.value.client_id, name);
+    }
+}
+
 const {
   appels,
   stats,
@@ -88,22 +114,23 @@ const {
   loadAppels,
   loadStats,
   loadAppelById,
-  createAppel
+  createAppel,
+  updateAppel,
+  deleteAppel
 } = useAppels()
 
-// État local
 const selectedAppelId = ref(null)
 const selectedAppel = ref(null)
 const isCreating = ref(false)
 const isSaving = ref(false)
 const clients = ref([])
 const users = ref([])
-const formRef = ref(null)
+const editorRef = ref(null)
 
 const isEditing = computed(() => !!selectedAppel.value?.id)
 const canSave = computed(() => !isSaving.value)
 
-// ========== ACTIONS ==========
+// ── ACTIONS ──────────────────────────────────────────────────────────────────
 
 const startNew = () => {
   selectedAppel.value = {
@@ -136,68 +163,91 @@ const selectAppel = async (id) => {
 }
 
 const cancelEdit = () => {
-  if (isCreating.value || isEditing.value) {
-    isCreating.value = false
-    selectedAppel.value = null
-    selectedAppelId.value = null
-  } else {
-    router.push('/app') 
-  }
+  isCreating.value = false
+  selectedAppel.value = null
+  selectedAppelId.value = null
 }
 
-const handleFormSubmit = async (formData) => {
+/**
+ * Reçoit les données validées du FormKit (@submit de AppelsEditor)
+ * C'est ici que tout s'enregistre réellement
+ */
+const saveAppel = async (formData) => {
   isSaving.value = true
   try {
     const appelData = {
       date_appel: new Date().toISOString().split('T')[0],
       heure_appel: new Date().toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' }),
-      ...formData
+      ...formData,
+      // S'assurer que client_id est un int ou null
+      client_id: formData.client_id ? parseInt(formData.client_id) : null,
+      assigne_a: formData.assigne_a ? parseInt(formData.assigne_a) : null,
     }
-    await createAppel(appelData)
-    await loadAppels()
-    await loadStats()
+
+    if (selectedAppel.value?.id) {
+      // Mise à jour
+      await updateAppel(selectedAppel.value.id, appelData)
+    } else {
+      // Création
+      await createAppel(appelData)
+    }
+
     isCreating.value = false
     selectedAppel.value = null
+    selectedAppelId.value = null
   } catch (err) {
-    console.error('Erreur sauvegarde:', err)
+    console.error('❌ Erreur sauvegarde appel:', err)
   } finally {
     isSaving.value = false
   }
 }
 
-const deleteAppel = async () => {
-  if (!selectedAppel.value?.id) return
-  if (!confirm('Êtes-vous sûr de vouloir supprimer cet appel ?')) return
-  
-  try {
-    // await deleteAppel(selectedAppel.value.id)
-    await loadAppels()
-    await loadStats()
-    cancelEdit()
-  } catch (err) {
-    console.error('Erreur suppression:', err)
+/**
+ * Déclenche la soumission du FormKit depuis le bouton Sauvegarder du footer
+ * FormKit gère la validation avant d'émettre @submit
+ */
+const submitForm = () => {
+  const formEl = document.querySelector('.formkit-form')
+  if (formEl) {
+    formEl.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
   }
 }
 
-// ========== CHARGEMENT ==========
+const handleDelete = async () => {
+  if (!selectedAppel.value?.id) return
+  if (!confirm('Voulez-vous vraiment supprimer cet appel ?')) return
+
+  try {
+    await deleteAppel(selectedAppel.value.id)
+    cancelEdit()
+  } catch (err) {
+    console.error('❌ Erreur suppression:', err)
+  }
+}
+
+// ── CHARGEMENT ────────────────────────────────────────────────────────────────
 
 const loadClients = async () => {
   try {
-    // TODO: Importer GetClients depuis wailsjs
-    // const { GetClients } = await import('../../wailsjs/go/main/App')
-    // clients.value = await GetClients()
-    clients.value = [] // Temporaire
+    const { GetClients } = await import('../../wailsjs/go/main/App')
+    clients.value = await GetClients() || []
   } catch (err) {
     console.error('Erreur chargement clients:', err)
+    clients.value = []
   }
 }
 
 const loadUsers = async () => {
   try {
-    // TODO: Implémenter GetUsers dans app.go si nécessaire
-    users.value = [] // Temporaire
+    // On essaie, mais on ne laisse pas l'erreur tuer la page
+    const { GetUsers } = await import('../../wailsjs/go/main/App')
+    if (typeof GetUsers === 'function') {
+        users.value = await GetUsers() || []
+    }
   } catch (err) {
-    console.error('Erreur chargement users:', err)
+    // On simule un utilisateur par défaut pour que l'interface reste vivante
+    users.value = [{ id: 1, full_name: "Intervenant (Défaut)" }]
+    console.warn("GetUsers absent du backend. Interface débloquée avec user générique.")
   }
 }
 

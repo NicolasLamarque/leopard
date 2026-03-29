@@ -174,6 +174,10 @@ export function DetectLeopardKey() {
   return window['go']['main']['App']['DetectLeopardKey']();
 }
 
+export function DownloadOfficialForm(arg1) {
+  return window['go']['main']['App']['DownloadOfficialForm'](arg1);
+}
+
 export function EnregistrerPaiement(arg1) {
   return window['go']['main']['App']['EnregistrerPaiement'](arg1);
 }
@@ -604,6 +608,10 @@ export function SaveExcelFile(arg1, arg2) {
 
 export function SaveIntervenant(arg1) {
   return window['go']['main']['App']['SaveIntervenant'](arg1);
+}
+
+export function SavePDFToClientFolder(arg1) {
+  return window['go']['main']['App']['SavePDFToClientFolder'](arg1);
 }
 
 export function SaveParametresFinance(arg1) {

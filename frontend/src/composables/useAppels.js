@@ -1,6 +1,13 @@
 // frontend/src/composables/useAppels.js
 import { ref } from 'vue'
-import { GetAllAppels, GetStatsAppels, CreateAppel, GetAppelByID } from '../../wailsjs/go/main/App'
+import { 
+  GetAllAppels, 
+  GetStatsAppels, 
+  CreateAppel, 
+  GetAppelByID,
+  UpdateAppel,
+  DeleteAppel
+} from '../../wailsjs/go/main/App'
 
 const appels = ref([])
 const stats = ref({ aujourdhui: 0, enAttente: 0, urgents: 0, rdvPlanifies: 0, total: 0 })
@@ -55,6 +62,36 @@ export function useAppels() {
     }
   }
 
+  // AJOUT: mise à jour d'un appel existant
+  const updateAppel = async (id, appelData) => {
+    loading.value = true
+    try {
+      await UpdateAppel(id, appelData)
+      await loadAppels()
+      await loadStats()
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // AJOUT: suppression d'un appel
+  const deleteAppel = async (id) => {
+    loading.value = true
+    try {
+      await DeleteAppel(id)
+      await loadAppels()
+      await loadStats()
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   const getStatutBadge = (statut) => {
     const badges = {
       'nouveau': { class: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300', label: 'Nouveau' },
@@ -83,7 +120,8 @@ export function useAppels() {
 
   return {
     appels, stats, loading, error,
-    loadAppels, loadStats, loadAppelById, createAppel,
+    loadAppels, loadStats, loadAppelById,
+    createAppel, updateAppel, deleteAppel,
     getStatutBadge, getPrioriteBadge, formatDate
   }
 }

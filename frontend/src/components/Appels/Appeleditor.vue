@@ -79,24 +79,39 @@
 
           <!-- Toggle Client existant ou Prospect -->
           <div class="mb-4">
-            <FormKit
-              type="checkbox"
-              name="is_existing_client"
-              label="Client existant dans le système"
-              :value="!!formData.client_id"
-              @input="toggleClientType"
-            />
+            <label class="flex items-center gap-3 cursor-pointer select-none">
+              <div
+                @click="toggleClientType"
+                :class="[
+                  'w-10 h-6 rounded-full transition-colors duration-200 flex items-center px-1',
+                  isExistingClient ? 'bg-pink-500' : 'bg-stone-300 dark:bg-stone-600'
+                ]"
+              >
+                <div :class="[
+                  'w-4 h-4 bg-white rounded-full shadow transition-transform duration-200',
+                  isExistingClient ? 'translate-x-4' : 'translate-x-0'
+                ]"></div>
+              </div>
+              <span class="text-sm font-medium text-stone-700 dark:text-stone-300">
+                Client existant dans le système
+              </span>
+            </label>
           </div>
 
           <!-- Si client existant -->
-          <div v-if="formData.client_id !== null" class="mb-4">
-            <FormKit
-              type="select"
-              name="client_id"
-              label="Sélectionner le client"
-              :options="clientOptions"
-              placeholder="Choisir un client..."
-            />
+          <div v-if="isExistingClient" class="mb-4">
+            <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+              Sélectionner le client
+            </label>
+            <select
+              v-model="formData.client_id"
+              class="w-full px-3 py-2.5 border border-stone-300 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 text-sm outline-none focus:ring-2 focus:ring-pink-400"
+            >
+              <option :value="null">Choisir un client...</option>
+              <option v-for="opt in clientOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
+            </select>
           </div>
 
           <!-- Si prospect (nouveau) -->
@@ -253,6 +268,8 @@ const emit = defineEmits(['submit'])
 
 const isEditing = computed(() => !!props.appel?.id)
 
+const isExistingClient = ref(false)
+
 const formData = ref({
   appelant_nom: '',
   appelant_prenom: '',
@@ -271,17 +288,13 @@ const formData = ref({
   rdv_heure: '',
   rdv_lieu: '',
   assigne_a: null,
-  is_existing_client: false
 })
 
 // Charger les données si édition
 watch(() => props.appel, (newAppel) => {
   if (newAppel) {
-    formData.value = {
-      ...formData.value,
-      ...newAppel,
-      is_existing_client: !!newAppel.client_id
-    }
+    formData.value = { ...formData.value, ...newAppel }
+    isExistingClient.value = !!newAppel.client_id
   }
 }, { immediate: true })
 
@@ -305,8 +318,9 @@ const userOptions = computed(() => {
   ]
 })
 
-const toggleClientType = (value) => {
-  if (value) {
+const toggleClientType = () => {
+  isExistingClient.value = !isExistingClient.value
+  if (isExistingClient.value) {
     formData.value.prospect_nom = ''
     formData.value.prospect_prenom = ''
     formData.value.prospect_telephone = ''
@@ -316,7 +330,11 @@ const toggleClientType = (value) => {
 }
 
 const handleSubmit = (data) => {
-  emit('submit', data)
+  emit('submit', {
+    ...data,
+    client_id: isExistingClient.value ? formData.value.client_id : null,
+    is_existing_client: isExistingClient.value,
+  })
 }
 </script>
 
