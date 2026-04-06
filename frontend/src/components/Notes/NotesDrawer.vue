@@ -96,10 +96,14 @@
       </div>
     </div>
   </Transition>
+
+  <!-- Modale de confirmation -->
+  <ConfirmModal />
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useToast } from '../../composables/useToast.js'
 import { ClipboardList, Plus } from 'lucide-vue-next'
 import NotesHeader from './NotesHeader.vue'
 import NotesSidebar from './NotesSidebar.vue'
@@ -116,8 +120,12 @@ import {
   LockNote, 
   GetClientNotes, 
   GetNoteByID,
+  CheckNoteLieeExists,
   ExportNotesToPDF as ExportPDFBackend 
 } from '../../../wailsjs/go/main/App'
+
+import { useConfirm } from '../../composables/useConfirm.js'
+const { confirm } = useConfirm()
 
 const props = defineProps({
   isOpen: Boolean,
@@ -127,6 +135,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 // 2. INITIALISE LE COMPOSABLE ICI (Pas dans la fonction !)
 const { generateSingleNotePDF, generateNotesWithSummaryPDF, loadLogoAsBase64 } = useNotesPDF()
+const { toast } = useToast()
 // États principaux
 const notes = ref([])
 const selectedNote = ref(null)
@@ -167,7 +176,7 @@ const loadNotes = async () => {
   } catch (err) {
     console.error('❌ Erreur chargement notes:', err)
     notes.value = []
-    alert('Erreur chargement: ' + err)
+    toast.error('Erreur de chargement', err?.toString())
   }
 }
 
@@ -180,7 +189,7 @@ const viewNote = async (noteListItem) => {
     console.log('✅ Note chargée:', fullNote.titre)
   } catch (err) {
     console.error('❌ Erreur chargement note:', err)
-    alert('Erreur lors du chargement de la note')
+    toast.error('Impossible de charger la note')
   }
 }
 
@@ -191,7 +200,7 @@ const viewLinkedNote = async (noteId) => {
     isCreating.value = false
   } catch (err) {
     console.error('❌ Erreur chargement note liée:', err)
-    alert('Erreur lors du chargement de la note liée')
+    toast.error('Impossible de charger la note liée')
   }
 }
 
@@ -213,8 +222,20 @@ const startNewNote = () => {
   isCreating.value = true
 }
 
-const createCorrection = () => {
+const createCorrection = async () => {
   if (!selectedNote.value) return
+
+  if (!selectedNote.value.verrouille) {
+    toast.warning('Note non finalisée', 'Finalisez ce brouillon avant de créer une correction.')
+    return
+  }
+
+  // Vérifier qu'une correction n'existe pas déjà
+  const exists = await CheckNoteLieeExists(selectedNote.value.id, 'Correction')
+  if (exists) {
+    toast.warning('Correction déjà existante', 'Une correction existe déjà pour cette note.')
+    return
+  }
   
   formData.value = {
     titre: `Correction - ${selectedNote.value.titre}`,
@@ -239,8 +260,20 @@ const createCorrection = () => {
   isCreating.value = true
 }
 
-const createAddendum = () => {
+const createAddendum = async () => {
   if (!selectedNote.value) return
+
+  if (!selectedNote.value.verrouille) {
+    toast.warning('Note non finalisée', 'Finalisez ce brouillon avant de créer un addendum.')
+    return
+  }
+
+  // Vérifier qu'un addendum n'existe pas déjà
+  const exists = await CheckNoteLieeExists(selectedNote.value.id, 'Addendum')
+  if (exists) {
+    toast.warning('Addendum déjà existant', 'Un addendum existe déjà pour cette note.')
+    return
+  }
   
   formData.value = {
     titre: `Addendum - ${selectedNote.value.titre}`,
@@ -263,12 +296,17 @@ const createAddendum = () => {
   isCreating.value = true
 }
 
-const cancelCreation = () => {
+const cancelCreation = async () => {
   if (formData.value.contenu && formData.value.contenu !== getDefaultTemplate()) {
-    if (!confirm('Voulez-vous vraiment annuler ? Les modifications seront perdues.')) {
-      return
-    }
+    const ok = await confirm({
+      title: 'Annuler les modifications ?',
+      message: 'Les modifications non sauvegardées seront perdues.',
+      level: 'warning',
+      confirmLabel: 'Oui, annuler'
+    })
+    if (!ok) return
   }
+  toast.info('Édition annulée')
   isCreating.value = false
   selectedNote.value = null
 }
@@ -353,11 +391,11 @@ const handleSaveDraft = async () => {
     // Rafraîchir la liste
     await loadNotes()
     
-    alert('✅ Brouillon sauvegardé!')
+    toast.success('Brouillon sauvegardé', formData.value.titre || 'Note sans titre')
     
   } catch (err) {
     console.error('❌ Erreur sauvegarde:', err)
-    alert('❌ Erreur: ' + err)
+    toast.error('Erreur de sauvegarde', err?.toString())
   } finally {
     isSaving.value = false
   }
@@ -365,8 +403,14 @@ const handleSaveDraft = async () => {
 
 const handleFinalize = async () => {
   if (!validateForm()) return
-  if (!confirm('⚠️ Finaliser et signer ? Cette action est IRRÉVERSIBLE.')) return
-
+  const ok = await confirm({
+    title: 'Finaliser et signer ?',
+    message: 'La note sera verrouillée définitivement.',
+    detail: 'Cette action est irréversible.',
+    level: 'danger',
+    confirmLabel: 'Finaliser et signer'
+  })
+  if (!ok) return
   isSaving.value = true
   try {
     let noteIdToLock
@@ -413,31 +457,36 @@ const handleFinalize = async () => {
     selectedNote.value = lockedNote
     
     isCreating.value = false
+    const titreFinalise = formData.value.titre || 'Note sans titre'
     resetForm()
-    
-    alert('✅ Note finalisée et verrouillée!')
+    toast.success('Note finalisée et signée', titreFinalise)
     
   } catch (err) {
     console.error('❌ Erreur finalisation:', err)
-    alert('❌ Erreur: ' + err)
+    toast.error('Erreur de finalisation', err?.toString())
   } finally {
     isSaving.value = false
   }
 }
 
 const finalizeDraft = async (draftId) => {
+  const ok = await confirm({
+    title: 'Finaliser ce brouillon ?',
+    message: 'La note sera verrouillée définitivement.',
+    detail: 'Cette action est irréversible.',
+    level: 'danger',
+    confirmLabel: 'Finaliser et signer'
+  })
+  if (!ok) return
   try {
-    if (!confirm('⚠️ Voulez-vous vraiment finaliser et signer cette note?\n\nCette action est IRRÉVERSIBLE.')) {
-      return
-    }
 
     await LockNote(draftId)
     await loadNotes()
     
-    alert('✅ Note finalisée et verrouillée!')
+    toast.success('Note finalisée et signée')
   } catch (err) {
     console.error('Erreur finalisation brouillon:', err)
-    alert('❌ Erreur: ' + err)
+    toast.error('Erreur de finalisation', err?.toString())
   }
 }
 
@@ -471,15 +520,18 @@ const viewDraft = async (draft) => {
     console.log('✅ Brouillon chargé pour édition')
   } catch (err) {
     console.error('❌ Erreur chargement brouillon:', err)
-    alert('Impossible de charger ce brouillon')
+    toast.error('Impossible de charger ce brouillon')
   }
 }
 
 const deleteDraft = async (draftId) => {
-  if (!confirm('Voulez-vous vraiment supprimer ce brouillon ?')) {
-    return
-  }
-
+  const ok = await confirm({
+    title: 'Supprimer ce brouillon ?',
+    message: 'Ce brouillon sera supprimé définitivement.',
+    level: 'danger',
+    confirmLabel: 'Supprimer'
+  })
+  if (!ok) return
   try {
     await DeleteNote(draftId)
     await loadNotes()
@@ -490,18 +542,22 @@ const deleteDraft = async (draftId) => {
       isCreating.value = false
     }
     
-    alert('🗑️ Brouillon supprimé')
+    toast.success('Brouillon supprimé')
   } catch (err) {
     console.error('Erreur suppression brouillon:', err)
-    alert('❌ Erreur: ' + err)
+    toast.error('Erreur de suppression', err?.toString())
   }
 }
 
 const deleteAllDrafts = async () => {
-  if (!confirm(`Voulez-vous vraiment supprimer TOUS les brouillons (${brouillons.value.length}) ?\n\nCette action est irréversible.`)) {
-    return
-  }
-
+  const ok = await confirm({
+    title: 'Supprimer tous les brouillons ?',
+    message: `${brouillons.value.length} note(s) seront supprimées définitivement.`,
+    detail: 'Cette action est irréversible.',
+    level: 'danger',
+    confirmLabel: 'Tout supprimer'
+  })
+  if (!ok) return
   try {
     for (const draft of brouillons.value) {
       await DeleteNote(draft.id)
@@ -511,10 +567,10 @@ const deleteAllDrafts = async () => {
     selectedNote.value = null
     isCreating.value = false
     
-    alert('🗑️ Tous les brouillons ont été supprimés')
+    toast.success('Brouillons supprimés', `${brouillons.value.length} note(s) supprimée(s)`)
   } catch (err) {
     console.error('Erreur suppression brouillons:', err)
-    alert('❌ Erreur: ' + err)
+    toast.error('Erreur de suppression', err?.toString())
   }
 }
 
@@ -539,12 +595,30 @@ const toggleSelectAll = () => {
 
 // --- EXPORT PDF ---
 
-// 2. La fonction d'exportation simplifiée au maximum
-// Export PDF
-// Dans <script setup> de NotesDrawer.vue
+// Export d'une seule note (bouton dans NotesViewer)
+const exportSingleNote = async () => {
+  if (!selectedNote.value) return
+  isExporting.value = true
+  try {
+    const logo = await loadLogoAsBase64()
+    const doc = await generateSingleNotePDF(selectedNote.value, logo)
+    const pdfBase64 = doc.output('datauristring')
+    await ExportNotesToPDF(
+      props.client.no_dossier_leopard,
+      [selectedNote.value.id],
+      pdfBase64
+    )
+    toast.success('PDF exporté', `${selectedNote.value.titre}`)
+  } catch (err) {
+    toast.error("Erreur d'exportation PDF", err?.toString())
+  } finally {
+    isExporting.value = false
+  }
+}
+
 const exportToPDF = async () => {
   if (selectedNotes.value.length === 0) {
-    alert("Veuillez sélectionner au moins une note à exporter.")
+    toast.warning('Aucune note sélectionnée', 'Cochez au moins une note dans la liste.')
     return
   }
 
@@ -576,11 +650,11 @@ const exportToPDF = async () => {
       pdfBase64
     )
     
-    alert(`Document exporté avec succès !`)
+    toast.success('PDF exporté avec succès', `${notesCompletes.length} note(s) — ${props.client?.prenom} ${props.client?.nom}`)
     
   } catch (err) {
     console.error("Erreur d'exportation:", err)
-    alert("Erreur lors de la génération du PDF.")
+    toast.error('Erreur d\'exportation PDF', err?.toString())
   } finally {
     isExporting.value = false
   }
@@ -621,11 +695,15 @@ const resetForm = () => {
   }
 }
 
-const handleClose = () => {
+const handleClose = async () => {
   if (isCreating.value && formData.value.contenu) {
-    if (!confirm('Voulez-vous vraiment fermer ? Les modifications non sauvegardées seront perdues.')) {
-      return
-    }
+    const ok = await confirm({
+      title: 'Fermer sans sauvegarder ?',
+      message: 'Les modifications en cours seront perdues.',
+      level: 'warning',
+      confirmLabel: 'Fermer quand même'
+    })
+    if (!ok) return
   }
   isCreating.value = false
   selectedNote.value = null

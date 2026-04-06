@@ -1,45 +1,41 @@
 // ========================================
 // WRAPPERS PHARMACIES POUR APP.GO
-// À ajouter à la fin de ton fichier app.go
 // ========================================
 
 package main
 
 import (
+	"fmt"
 	models "leopard/internal/model"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // -----------------------------------------------------------------------------
-// READ : Récupérer les infos
+// READ
 // -----------------------------------------------------------------------------
 
-// GetAllPharmacies récupère toutes les pharmacies
 func (a *App) GetAllPharmacies() ([]models.Pharmacie, error) {
 	return a.db.GetAllPharmacies()
 }
 
-// GetPharmacieByID récupère une pharmacie par son ID
 func (a *App) GetPharmacieByID(id int) (*models.Pharmacie, error) {
 	return a.db.GetPharmacieByID(id)
 }
 
-// GetPharmacieForClient retourne la pharmacie assignée à un client
 func (a *App) GetPharmacieForClient(clientID int) (*models.Pharmacie, error) {
 	return a.db.GetPharmacieForClient(clientID)
 }
 
-// GetClientsForPharmacie - Pour ta fameuse liste "Clients en commun"
 func (a *App) GetClientsForPharmacie(pharmacieID int) ([]models.ClientPharmacieInfo, error) {
 	return a.db.GetClientsByPharmacie(pharmacieID, a.cryptoSvc)
 }
 
 // -----------------------------------------------------------------------------
-// CREATE & UPDATE : Sauvegarder (Le fameux Save)
+// CREATE / UPDATE
 // -----------------------------------------------------------------------------
 
-// SavePharmacie crée ou met à jour une pharmacie
 func (a *App) SavePharmacie(p models.Pharmacie) error {
-	// Si l'ID est 0, c'est une nouvelle pharmacie, sinon on met à jour
 	if p.ID == 0 {
 		_, err := a.db.CreatePharmacie(p)
 		return err
@@ -48,12 +44,76 @@ func (a *App) SavePharmacie(p models.Pharmacie) error {
 }
 
 // -----------------------------------------------------------------------------
-// DELETE : Ménage (Attention, c'est définitif !)
+// DELETE
 // -----------------------------------------------------------------------------
 
-// DeletePharmacie supprime une pharmacie
 func (a *App) DeletePharmacie(id int) error {
-	// Note: La fonction DeletePharmacie dans le repo met déjà
-	// pharmacie_id à NULL pour tous les clients liés avant de supprimer
 	return a.db.DeletePharmacie(id)
+}
+
+// -----------------------------------------------------------------------------
+// IMPORT CSV
+// -----------------------------------------------------------------------------
+
+// ImportPharmaciesCSVResult est le résultat retourné au frontend
+type ImportPharmaciesCSVResult struct {
+	Imported int    `json:"imported"`
+	Skipped  int    `json:"skipped"`
+	Message  string `json:"message"`
+}
+
+// ImportPharmaciesCSV ouvre un dialog de fichier natif puis importe le CSV.
+// Retourne le résultat avec les compteurs ou une erreur.
+func (a *App) ImportPharmaciesCSV() (*ImportPharmaciesCSVResult, error) {
+	// 1. Dialog natif pour sélectionner le fichier
+	filePath, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Importer des pharmacies (CSV)",
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "Fichiers CSV (*.csv)",
+				Pattern:     "*.csv",
+			},
+			{
+				DisplayName: "Tous les fichiers",
+				Pattern:     "*",
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// L'utilisateur a annulé
+	if filePath == "" {
+		return nil, nil
+	}
+
+	// 2. Import
+	imported, skipped, err := a.db.ImportPharmaciesFromCSV(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ImportPharmaciesCSVResult{
+		Imported: imported,
+		Skipped:  skipped,
+		Message:  formatImportMessage(imported, skipped),
+	}, nil
+}
+
+func formatImportMessage(imported, skipped int) string {
+	msg := ""
+	if imported > 0 {
+		msg += fmt.Sprintf("%d pharmacie(s) importée(s)", imported)
+	}
+	if skipped > 0 {
+		if msg != "" {
+			msg += ", "
+		}
+		msg += fmt.Sprintf("%d ligne(s) ignorée(s)", skipped)
+	}
+	if msg == "" {
+		msg = "Aucune pharmacie importée"
+	}
+	return msg
 }

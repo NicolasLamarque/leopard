@@ -103,6 +103,22 @@ export namespace main {
 	        this.role = source["role"];
 	    }
 	}
+	export class ImportPharmaciesCSVResult {
+	    imported: number;
+	    skipped: number;
+	    message: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ImportPharmaciesCSVResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.imported = source["imported"];
+	        this.skipped = source["skipped"];
+	        this.message = source["message"];
+	    }
+	}
 	export class Result {
 	    success: boolean;
 	    path: string;
@@ -1119,50 +1135,6 @@ export namespace models {
 	        this.notes = source["notes"];
 	    }
 	}
-	export class CreateEvaluationRequest {
-	    client_id: number;
-	    no_leopard: string;
-	    no_eval_leopard: string;
-	    type_evaluation?: string;
-	    contexte_evaluation?: string;
-	    motif_reference?: string;
-	    objet_evaluation?: string;
-	    capacites_cognitives?: string;
-	    etat_sante_physique?: string;
-	    dimensions_psycho_sociales?: string;
-	    roles_sociaux?: string;
-	    reseau_social_soutien?: string;
-	    analyse_clinique?: string;
-	    opinion_professionnelle?: string;
-	    recommandations?: string;
-	    verrouille: number;
-	    isDraft: number;
-	
-	    static createFrom(source: any = {}) {
-	        return new CreateEvaluationRequest(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.client_id = source["client_id"];
-	        this.no_leopard = source["no_leopard"];
-	        this.no_eval_leopard = source["no_eval_leopard"];
-	        this.type_evaluation = source["type_evaluation"];
-	        this.contexte_evaluation = source["contexte_evaluation"];
-	        this.motif_reference = source["motif_reference"];
-	        this.objet_evaluation = source["objet_evaluation"];
-	        this.capacites_cognitives = source["capacites_cognitives"];
-	        this.etat_sante_physique = source["etat_sante_physique"];
-	        this.dimensions_psycho_sociales = source["dimensions_psycho_sociales"];
-	        this.roles_sociaux = source["roles_sociaux"];
-	        this.reseau_social_soutien = source["reseau_social_soutien"];
-	        this.analyse_clinique = source["analyse_clinique"];
-	        this.opinion_professionnelle = source["opinion_professionnelle"];
-	        this.recommandations = source["recommandations"];
-	        this.verrouille = source["verrouille"];
-	        this.isDraft = source["isDraft"];
-	    }
-	}
 	export class CreateFactureLigneRequest {
 	    service_id?: number;
 	    revenu_id?: number;
@@ -1908,73 +1880,57 @@ export namespace models {
 		    return a;
 		}
 	}
-	export class EvaluationSocialeDetail {
+	export class EvaluationDefinition {
+	    id: string;
+	    nom: string;
+	    icone: string;
+	    couleur: string;
+	    schema_json: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EvaluationDefinition(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nom = source["nom"];
+	        this.icone = source["icone"];
+	        this.couleur = source["couleur"];
+	        this.schema_json = source["schema_json"];
+	    }
+	}
+	export class EvaluationV2 {
 	    id: number;
 	    client_id: number;
-	    no_eval_leopard: string;
-	    type_evaluation?: string;
-	    created_by: number;
-	    contexte_evaluation?: string;
-	    motif_reference?: string;
-	    objet_evaluation?: string;
-	    capacites_cognitives?: string;
-	    etat_sante_physique?: string;
-	    dimensions_psycho_sociales?: string;
-	    roles_sociaux?: string;
-	    reseau_social_soutien?: string;
-	    analyse_clinique?: string;
-	    opinion_professionnelle?: string;
-	    recommandations?: string;
+	    model_id: string;
+	    no_leopard: string;
+	    payload: string;
+	    statut: string;
 	    signature_nom?: string;
-	    verrouille: number;
-	    isDraft: number;
 	    // Go type: time
 	    date_signature?: any;
 	    // Go type: time
 	    created_at: any;
 	    // Go type: time
 	    updated_at: any;
-	    client_nom: string;
-	    client_prenom: string;
-	    client_dn?: string;
-	    client_nam?: string;
-	    client_leopard?: string;
-	    auteur_nom: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new EvaluationSocialeDetail(source);
+	        return new EvaluationV2(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.client_id = source["client_id"];
-	        this.no_eval_leopard = source["no_eval_leopard"];
-	        this.type_evaluation = source["type_evaluation"];
-	        this.created_by = source["created_by"];
-	        this.contexte_evaluation = source["contexte_evaluation"];
-	        this.motif_reference = source["motif_reference"];
-	        this.objet_evaluation = source["objet_evaluation"];
-	        this.capacites_cognitives = source["capacites_cognitives"];
-	        this.etat_sante_physique = source["etat_sante_physique"];
-	        this.dimensions_psycho_sociales = source["dimensions_psycho_sociales"];
-	        this.roles_sociaux = source["roles_sociaux"];
-	        this.reseau_social_soutien = source["reseau_social_soutien"];
-	        this.analyse_clinique = source["analyse_clinique"];
-	        this.opinion_professionnelle = source["opinion_professionnelle"];
-	        this.recommandations = source["recommandations"];
+	        this.model_id = source["model_id"];
+	        this.no_leopard = source["no_leopard"];
+	        this.payload = source["payload"];
+	        this.statut = source["statut"];
 	        this.signature_nom = source["signature_nom"];
-	        this.verrouille = source["verrouille"];
-	        this.isDraft = source["isDraft"];
 	        this.date_signature = this.convertValues(source["date_signature"], null);
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.updated_at = this.convertValues(source["updated_at"], null);
-	        this.client_nom = source["client_nom"];
-	        this.client_prenom = source["client_prenom"];
-	        this.client_dn = source["client_dn"];
-	        this.client_nam = source["client_nam"];
-	        this.client_leopard = source["client_leopard"];
-	        this.auteur_nom = source["auteur_nom"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -2476,6 +2432,9 @@ export namespace models {
 	    verrouille: number;
 	    note_tardive: number;
 	    type_lien?: string;
+	    note_liee_id?: number;
+	    note_liee_titre?: string;
+	    signature_nom?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new NoteListItem(source);
@@ -2491,6 +2450,9 @@ export namespace models {
 	        this.verrouille = source["verrouille"];
 	        this.note_tardive = source["note_tardive"];
 	        this.type_lien = source["type_lien"];
+	        this.note_liee_id = source["note_liee_id"];
+	        this.note_liee_titre = source["note_liee_titre"];
+	        this.signature_nom = source["signature_nom"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

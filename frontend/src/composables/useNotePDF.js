@@ -19,7 +19,7 @@ export function useNotesPDF() {
     // Logo à gauche (si disponible)
     if (logoBase64) {
       try {
-        doc.addImage(logoBase64, 'PNG', 15, 15, 30, 15)
+        doc.addImage(logoBase64, 'PNG', 15, 8, 22, 22)
       } catch (e) {
         console.warn('Impossible de charger le logo:', e)
       }
@@ -29,14 +29,14 @@ export function useNotesPDF() {
     doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...colors.slateDark)
-    doc.text(titre, pageWidth - 15, 22, { align: 'right' })
+    doc.text(titre, pageWidth - 15, 20, { align: 'right' })
     
     // Ligne de séparation
     doc.setDrawColor(...colors.teal)
     doc.setLineWidth(1)
-    doc.line(15, 35, pageWidth - 15, 35)
+    doc.line(15, 38, pageWidth - 15, 38)
     
-    return 40 // Position Y après l'en-tête
+    return 44 // Position Y après l'en-tête
   }
 
   // Fonction pour ajouter le pied de page confidentiel
@@ -280,8 +280,19 @@ export function useNotesPDF() {
 
   // Fonction pour ajouter la signature
   const addSignature = (doc, note, startY) => {
-    let y = startY + 10
+    const pageHeight = doc.internal.pageSize.getHeight()
     const pageWidth = doc.internal.pageSize.getWidth()
+    const spaceNeeded = 45 // hauteur estimée du bloc signature
+    const footerMargin = 35 // zone réservée au footer confidentiel
+
+    // Si pas assez de place sur la page courante → nouvelle page
+    let y
+    if (startY + spaceNeeded > pageHeight - footerMargin) {
+      doc.addPage()
+      y = 50
+    } else {
+      y = startY + 10
+    }
     
     // Ligne de séparation
     doc.setDrawColor(...colors.grayLight)

@@ -375,6 +375,21 @@ func (a *App) LockNote(noteID int) error {
 	return a.db.LockNote(noteID, signatureNom, a.cryptoSvc)
 }
 
+// CheckNoteLieeExists vérifie si une correction ou addendum existe déjà
+// typeLien = "Correction" ou "Addendum"
+func (a *App) CheckNoteLieeExists(noteID int, typeLien string) (bool, error) {
+	if a.currentUser == nil {
+		return false, errors.New("non authentifié")
+	}
+	if noteID == 0 {
+		return false, errors.New("ID note invalide")
+	}
+	if typeLien != "Correction" && typeLien != "Addendum" {
+		return false, errors.New("type de lien invalide")
+	}
+	return a.db.CheckNoteLieeExists(noteID, typeLien)
+}
+
 // ExportNotesToPDF reçoit le PDF généré par le frontend et le sauvegarde dans le dossier client sécurisé
 func (a *App) ExportNotesToPDF(leopardNumber string, noteIDs []int, pdfBase64 string) (string, error) {
 	// 1. VALIDATIONS DE SÉCURITÉ (Ton code solide)

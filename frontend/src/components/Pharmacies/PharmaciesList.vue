@@ -26,7 +26,7 @@
         v-for="pharmacie in pharmacies"
         :key="pharmacie.ID"
         @click="$emit('select', pharmacie)"
-        class="group bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg hover:border-teal-700 dark:hover:border-emerald-800 transition-all cursor-pointer"
+        class="group bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg hover:border-z-700 dark:hover:border-emerald-800 transition-all cursor-pointer"
       >
         <div class="flex items-start justify-between">
           <!-- Info principale -->

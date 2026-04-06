@@ -263,6 +263,36 @@
                 >
                   {{ p.contact.lien_familial }}
                 </div>
+                <div
+                  v-else
+                  class="text-xs text-slate-400 leading-tight opacity-50"
+                >
+                  Non renseigné
+                </div>
+                <div
+                  v-if="p.sous"
+                  class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"
+                >
+                  {{ p.sous }}
+                </div>
+                 <div
+                  v-if="p.contact.type_de_contact"
+                  class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"
+                >
+                  {{ p.contact.type_de_contact }}
+                </div>
+                 <div
+                  v-if="p.contact.relation_type && p.contact.relation_type !== p.contact.lien_familial"
+                  class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"
+                >
+                  {{ p.contact.relation_type }}
+                </div>
+                 <div
+                  v-if="p.contact.aidant_naturel"
+                  class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"
+                >
+                  Aidant naturel
+                </div>
               </div>
             </div>
 

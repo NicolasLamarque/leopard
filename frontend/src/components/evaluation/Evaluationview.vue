@@ -1,31 +1,30 @@
 <template>
   <Transition name="modal-fade">
-    <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div v-if="isOpen && client" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-gray-900/70 backdrop-blur-md" @click="handleClose" />
 
       <div class="relative bg-white dark:bg-gray-950 w-full max-w-7xl h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800">
 
-        <!-- HEADER -->
         <EvaluationHeader
           :client="client"
           :selected-evaluation="selectedEvaluation"
           :is-creating="isCreating"
           :is-exporting="isExporting"
-          :type-evaluation="formData.type_evaluation"
+          :current-model="currentModel"
           @start-new="openTypeSelector"
           @cancel-creation="cancelCreation"
-          @export-pdf="handleExportPDF"
+          @export-pdf="exportPdf"
           @close="handleClose"
         />
 
-        <!-- CORPS -->
         <div class="flex-1 flex overflow-hidden">
           <EvaluationSidebar
             :evaluations="evaluationsFinalisees"
             :selected-evaluation="selectedEvaluation"
             :is-creating="isCreating"
             :active-section="activeSection"
-            :sections="currentSections"
+            :current-model="currentModel"
+            :form-data="formData"
             @section-change="activeSection = $event"
             @view-evaluation="viewEvaluation"
           />
@@ -34,10 +33,8 @@
             :is-creating="isCreating"
             :selected-evaluation="selectedEvaluation"
             :form-data="formData"
-            :errors="errors"
             :active-section="activeSection"
-            :sections="currentSections"
-            :total-progress="totalProgress"
+            :current-model="currentModel"
             :is-saving="isSaving"
             :is-finalizing="isFinalizing"
             @update:form-data="formData = $event"
@@ -47,486 +44,544 @@
           />
         </div>
 
-        <!-- FOOTER BROUILLONS -->
         <EvaluationFooter
           v-if="!isCreating"
           :brouillons="brouillons"
           @view-draft="viewEvaluation"
-          @delete-draft="deleteDraft"
         />
       </div>
     </div>
   </Transition>
 
-  <!-- ===== MODAL SÉLECTION TYPE ===== -->
+  <!-- ── Sélecteur de modèle (vient de la DB) ── -->
   <Transition name="modal-fade">
-    <div v-if="showTypeSelector" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" @click="showTypeSelector = false" />
-      <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div v-if="showTypeSelector" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+      <div class="bg-white dark:bg-gray-950 rounded-2xl w-full max-w-4xl border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col" style="max-height: 88vh;">
 
-        <!-- En-tête modal -->
-        <div class="bg-gradient-to-r from-slate-800 to-slate-700 px-8 py-6">
-          <div class="flex items-center gap-3 mb-1">
-            <div class="p-2 bg-white/20 rounded-lg"><ClipboardPlus :size="22" class="text-white" /></div>
-            <h3 class="text-xl font-bold text-white">Nouvelle évaluation</h3>
+        <!-- ── En-tête modal ── -->
+        <div class="flex items-center justify-between px-6 py-4 border-b dark:border-gray-800 shrink-0">
+          <div>
+            <h3 class="text-lg font-bold dark:text-white text-gray-900">Nouvelle évaluation</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Sélectionnez un modèle pour commencer</p>
           </div>
-          <p class="text-slate-300 text-sm ml-13">Choisissez le type de régime à évaluer</p>
+          <button @click="showTypeSelector = false; hoveredDef = null"
+                  class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+            <X :size="18" class="text-gray-400" />
+          </button>
         </div>
 
-        <!-- Sélection type -->
-        <div class="p-8 space-y-4">
-          <div
-            v-for="type in typesEvaluation"
-            :key="type.id"
-            @click="startNewEvaluation(type.id)"
-            :class="[
-              'group relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200',
-              'hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:shadow-lg',
-              'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
-            ]"
-          >
-            <div class="flex items-center gap-4">
-              <div :class="['p-3 rounded-xl text-white transition-all', type.colorClass]">
-                <component :is="type.icon" :size="28" />
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <h4 class="text-base font-bold text-gray-900 dark:text-white">{{ type.label }}</h4>
-                  <span :class="['text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide', type.badgeClass]">
-                    {{ type.badge }}
-                  </span>
+        <!-- ── Corps : 2 panneaux ── -->
+        <div class="flex flex-1 overflow-hidden min-h-0">
+
+          <!-- Panneau gauche : liste des modèles -->
+          <div class="w-72 shrink-0 border-r dark:border-gray-800 flex flex-col">
+
+            <!-- Chargement -->
+            <div v-if="isLoadingDefs" class="flex items-center justify-center flex-1 gap-3 text-gray-400">
+              <Loader2 :size="20" class="animate-spin" />
+              <span class="text-sm">Chargement...</span>
+            </div>
+
+            <!-- Aucun modèle -->
+            <div v-else-if="!definitions.length" class="flex-1 flex flex-col items-center justify-center text-gray-400 p-6">
+              <FileX :size="36" class="mb-3 opacity-30" />
+              <p class="text-sm font-medium text-center">Aucun modèle disponible</p>
+              <p class="text-xs mt-1 opacity-70 text-center">Vérifiez la table evaluation_definitions</p>
+            </div>
+
+            <!-- Liste -->
+            <div v-else class="flex-1 overflow-y-auto p-3 space-y-1.5">
+              <button
+                v-for="def in definitions"
+                :key="def.id"
+                @mouseenter="hoveredDef = def"
+                @click="startNewEvaluation(def)"
+                :class="[
+                  'w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all group',
+                  hoveredDef?.id === def.id
+                    ? 'border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-900/20 shadow-sm'
+                    : 'border-gray-200 dark:border-gray-800 hover:border-teal-200 dark:hover:border-teal-800'
+                ]"
+              >
+                <!-- Icône colorée -->
+                <div :class="['p-2.5 rounded-xl text-white shadow-sm shrink-0 transition-transform group-hover:scale-105', colorClass(def.couleur)]">
+                  <component :is="iconComponent(def.icone)" :size="18" />
                 </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ type.description }}</p>
+
+                <div class="flex-1 min-w-0">
+                  <div :class="[
+                    'font-bold text-sm leading-tight transition-colors truncate',
+                    hoveredDef?.id === def.id
+                      ? 'text-teal-700 dark:text-teal-300'
+                      : 'text-gray-800 dark:text-gray-200'
+                  ]">
+                    {{ def.nom }}
+                  </div>
+                  <div class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                    <Layers :size="10" />
+                    {{ def.schema?.sections?.length || 0 }} sections
+                    <span v-if="def.schema?.sections?.length" class="mx-0.5">·</span>
+                    <span v-if="def.schema?.sections?.length">
+                      {{ def.schema.sections.reduce((acc, s) => acc + (s.fields?.length || s.columns?.flatMap(c => c.fields||[]).length || 0), 0) }} champs
+                    </span>
+                  </div>
+                </div>
+
+                <ChevronRight :size="14"
+                  :class="hoveredDef?.id === def.id ? 'text-teal-400' : 'text-gray-300'"
+                  class="shrink-0 transition-colors" />
+              </button>
+            </div>
+
+            <!-- Annuler -->
+            <div class="p-3 border-t dark:border-gray-800 shrink-0">
+              <button @click="showTypeSelector = false; hoveredDef = null"
+                      class="w-full py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium text-sm transition-colors rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
+                Annuler
+              </button>
+            </div>
+          </div>
+
+          <!-- Panneau droit : aperçu du modèle -->
+          <div class="flex-1 overflow-y-auto bg-slate-50 dark:bg-gray-900/40 min-w-0">
+
+            <!-- Aucun modèle survolé -->
+            <div v-if="!hoveredDef" class="flex flex-col items-center justify-center h-full text-gray-300 dark:text-gray-600 p-8">
+              <component :is="iconComponent('FileText')" :size="48" class="mb-4 opacity-30" />
+              <p class="text-sm font-medium text-center">Survolez un modèle<br>pour en voir l'aperçu</p>
+            </div>
+
+            <!-- Aperçu du modèle sélectionné -->
+            <div v-else class="p-6 space-y-5 animate-fadeIn">
+
+              <!-- En-tête du modèle -->
+              <div class="flex items-start gap-4">
+                <div :class="['p-3 rounded-2xl text-white shadow-md shrink-0', colorClass(hoveredDef.couleur)]">
+                  <component :is="iconComponent(hoveredDef.icone)" :size="26" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base font-black text-gray-900 dark:text-white leading-tight">
+                    {{ hoveredDef.nom }}
+                  </h4>
+                  <p v-if="hoveredDef.description" class="text-xs text-gray-500 mt-1 italic">
+                    {{ hoveredDef.description }}
+                  </p>
+                  <!-- Stats rapides -->
+                  <div class="flex items-center gap-3 mt-2">
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-2 py-0.5 rounded-full">
+                      <Layers :size="9" />
+                      {{ hoveredDef.schema?.sections?.length || 0 }} sections
+                    </span>
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-2 py-0.5 rounded-full">
+                      <ClipboardList :size="9" />
+                      {{ hoveredDef.schema?.sections?.reduce((acc, s) => {
+                          const flat = s.fields?.length || (s.columns||[]).flatMap(c=>c.fields||[]).length || 0
+                          return acc + flat
+                        }, 0) || 0 }} champs
+                    </span>
+                  </div>
+                </div>
               </div>
-              <ChevronRight :size="20" class="text-gray-300 group-hover:text-teal-500 transition-colors" />
+
+              <!-- Ligne de séparation -->
+              <div class="border-t border-gray-200 dark:border-gray-700" />
+
+              <!-- Plan des sections -->
+              <div class="space-y-3">
+                <p class="text-[9px] font-black tracking-[0.2em] uppercase text-gray-400">
+                  Structure du formulaire
+                </p>
+
+                <div
+                  v-for="(section, sIdx) in (hoveredDef.schema?.sections || [])"
+                  :key="section.id"
+                  class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden"
+                >
+                  <!-- En-tête de section -->
+                  <div :class="[
+                    'flex items-center gap-2.5 px-3 py-2.5 border-b border-gray-100 dark:border-gray-800',
+                    sectionBgClass(section.couleur)
+                  ]">
+                    <div class="flex items-center justify-center w-5 h-5 rounded-full bg-white/60 dark:bg-black/20 shrink-0">
+                      <span class="text-[9px] font-black text-gray-600 dark:text-gray-300">{{ sIdx + 1 }}</span>
+                    </div>
+                    <component :is="iconComponent(section.icone)" :size="12"
+                      :class="sectionIconColor(section.couleur)" class="shrink-0" />
+                    <span class="text-xs font-bold text-gray-700 dark:text-gray-200 leading-tight">
+                      {{ section.label }}
+                    </span>
+                    <span class="ml-auto text-[9px] text-gray-400 shrink-0">
+                      {{ (section.fields || (section.columns||[]).flatMap(c=>c.fields||[])).length }} champs
+                    </span>
+                  </div>
+
+                  <!-- Liste des champs -->
+                  <div class="px-3 py-2 space-y-1">
+                    <div
+                      v-for="field in (section.fields || (section.columns||[]).flatMap(c=>c.fields||[])).filter(f => f.type !== 'info')"
+                      :key="field.id"
+                      class="flex items-center gap-2 py-0.5"
+                    >
+                      <!-- Badge type de champ -->
+                      <span :class="['text-[8px] font-bold px-1.5 py-0.5 rounded font-mono shrink-0', fieldTypeBadge(field.type)]">
+                        {{ fieldTypeLabel(field.type) }}
+                      </span>
+                      <span class="text-[11px] text-gray-600 dark:text-gray-400 truncate leading-tight">
+                        {{ field.label }}
+                      </span>
+                      <span v-if="field.required" class="text-red-400 text-[9px] shrink-0">✱</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Aucune section -->
+                <div v-if="!hoveredDef.schema?.sections?.length"
+                     class="text-center py-8 text-gray-400 text-sm">
+                  Modèle sans sections définies
+                </div>
+              </div>
+
+              <!-- CTA -->
+              <button
+                @click="startNewEvaluation(hoveredDef)"
+                :class="['w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white shadow-lg transition-all active:scale-95', colorClass(hoveredDef.couleur)]"
+              >
+                <component :is="iconComponent(hoveredDef.icone)" :size="16" />
+                Commencer avec ce modèle
+              </button>
+
             </div>
           </div>
         </div>
 
-        <div class="px-8 pb-6 text-center">
-          <button @click="showTypeSelector = false" class="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-            Annuler
-          </button>
-        </div>
       </div>
     </div>
   </Transition>
 
-  <!-- ===== MODAL FINALISATION ===== -->
+  <!-- ── Modal de finalisation / signature ── -->
   <Transition name="modal-fade">
-    <div v-if="showFinalizeModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" @click="showFinalizeModal = false" />
-      <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-lg w-full p-8 border-2 border-emerald-500">
-
-        <div class="flex flex-col items-center text-center mb-6">
-          <div class="p-4 bg-emerald-100 dark:bg-emerald-900/30 rounded-full mb-4">
-            <ShieldCheck class="text-emerald-600 dark:text-emerald-400" :size="48" />
+    <div v-if="showFinalizeModal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-800 shadow-2xl">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
+            <ShieldCheck :size="22" class="text-emerald-600 dark:text-emerald-400" />
           </div>
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Sceller définitivement ?</h3>
-          <p class="text-gray-500 dark:text-gray-400 text-sm">
-            Cette action est <strong>irréversible</strong>. L'évaluation sera cryptée, verrouillée et signée.
+          <div>
+            <h3 class="text-lg font-bold dark:text-white">Sceller l'évaluation</h3>
+            <p class="text-xs text-gray-500 mt-0.5">Cette action est irréversible</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl mb-5">
+          <p class="text-sm text-amber-700 dark:text-amber-300">
+            En scellant ce document, vous attestez qu'il reflète fidèlement votre évaluation professionnelle. Il ne pourra plus être modifié.
           </p>
         </div>
 
-        <!-- Nom Léopard généré -->
-        <div class="mb-6 bg-slate-900 dark:bg-black rounded-xl p-4 border border-slate-700 font-mono text-center">
-          <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Identifiant Léopard</p>
-          <p class="text-teal-400 text-lg font-bold tracking-wider">{{ nomLeopardGenere }}</p>
-        </div>
-
-        <div class="space-y-2 mb-6 bg-slate-50 dark:bg-gray-800 rounded-xl p-4 text-sm text-gray-700 dark:text-gray-300">
-          <div class="flex items-center gap-2"><Check class="text-emerald-500 flex-shrink-0" :size="16" /><span>Verrouillée — aucune modification possible</span></div>
-          <div class="flex items-center gap-2"><Check class="text-emerald-500 flex-shrink-0" :size="16" /><span>Signée avec date et heure exactes</span></div>
-          <div class="flex items-center gap-2"><Check class="text-emerald-500 flex-shrink-0" :size="16" /><span>Cryptée en base de données (Loi 25)</span></div>
-          <div class="flex items-center gap-2"><Check class="text-emerald-500 flex-shrink-0" :size="16" /><span>PDF généré automatiquement</span></div>
-        </div>
-
-        <!-- Champ signature -->
-        <div class="mb-6">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nom de signature (T.S., OTSTCFQ)</label>
+        <div class="space-y-3 mb-5">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Nom du signataire <span class="text-red-500">*</span>
+          </label>
           <input
             v-model="signatureNom"
             type="text"
-            placeholder="Ex: Marie Tremblay, T.S."
-            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-emerald-500 font-medium"
+            placeholder="Prénom Nom, T.S."
+            class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:border-teal-500 text-sm"
           />
         </div>
 
         <div class="flex gap-3">
-          <button @click="showFinalizeModal = false" class="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl font-bold transition-all">
+          <button
+            @click="showFinalizeModal = false"
+            class="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-300 font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          >
             Annuler
           </button>
           <button
             @click="finalizeEvaluation"
-            :disabled="isFinalizing || !signatureNom.trim()"
-            class="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+            :disabled="!signatureNom.trim() || isFinalizing"
+            class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold text-sm shadow transition-all"
           >
-            <Loader2 v-if="isFinalizing" :size="18" class="animate-spin" />
-            <ShieldCheck v-else :size="18" />
-            <span>{{ isFinalizing ? 'Finalisation...' : 'Sceller et générer PDF' }}</span>
+            <Loader2 v-if="isFinalizing" :size="16" class="animate-spin" />
+            <ShieldCheck v-else :size="16" />
+            <span>{{ isFinalizing ? 'Scellement...' : 'Sceller et signer' }}</span>
           </button>
         </div>
       </div>
-    </div>
-  </Transition>
-
-  <!-- ===== TOAST NOTIFICATIONS ===== -->
-  <Transition name="toast-slide">
-    <div v-if="toast.visible" :class="['fixed bottom-6 right-6 z-[70] flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border text-sm font-bold max-w-sm', toast.type === 'success' ? 'bg-emerald-900 border-emerald-600 text-emerald-100' : toast.type === 'error' ? 'bg-red-900 border-red-600 text-red-100' : 'bg-slate-800 border-slate-600 text-slate-100']">
-      <CheckCircle v-if="toast.type === 'success'" :size="20" class="text-emerald-400 flex-shrink-0" />
-      <AlertCircle v-else-if="toast.type === 'error'" :size="20" class="text-red-400 flex-shrink-0" />
-      <Info v-else :size="20" class="text-slate-400 flex-shrink-0" />
-      <span>{{ toast.message }}</span>
     </div>
   </Transition>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { ShieldCheck, Check, ChevronRight, ClipboardPlus, Loader2, CheckCircle, AlertCircle, Info, Scale, FileHeart, FilePen, Stethoscope } from 'lucide-vue-next'
-import EvaluationHeader from './EvaluationHeader.vue'
-import EvaluationSidebar from './EvaluationSidebar.vue'
-import EvaluationViewer from './EvaluationViewer.vue'
-import EvaluationFooter from './EvaluationFooter.vue'
-import { generateEvaluationPDF } from './evaluationPdfGenerator.js'
-import { FileText, Brain, Heart, Activity, Briefcase, Users, Layers, CheckCircle as CheckCircleIcon, Target, Gavel, ScrollText, UserCheck } from 'lucide-vue-next'
+import { ref, computed, onMounted, watch } from 'vue'
+import {
+  X, Loader2, FileX, ChevronRight, ShieldCheck,
+  ClipboardList, Scale, FileText, Brain, Heart, Activity,
+  Briefcase, Users, Layers, CheckCircle, Target, Network
+} from 'lucide-vue-next'
 
-const props = defineProps({ isOpen: Boolean, client: Object })
+import EvaluationHeader  from './EvaluationHeader.vue'
+import EvaluationSidebar from './EvaluationSidebar.vue'
+import EvaluationViewer  from './EvaluationViewer.vue'
+import EvaluationFooter  from './EvaluationFooter.vue'
+
+// ── Props & emits ──────────────────────────────────────────
+const props = defineProps({
+  isOpen: Boolean,
+  client: Object
+})
 const emit = defineEmits(['close'])
 
-// ── États ──────────────────────────────────────────────────
+// ── États ─────────────────────────────────────────────────
 const evaluations     = ref([])
-const selectedEvaluation = ref(null)
+const definitions     = ref([])   // Chargé depuis la DB
+const isLoadingDefs   = ref(false)
 const isCreating      = ref(false)
+const activeSection   = ref('')
 const isSaving        = ref(false)
-const isExporting     = ref(false)
 const isFinalizing    = ref(false)
-const showFinalizeModal  = ref(false)
-const showTypeSelector   = ref(false)
-const activeSection   = ref('contexte')
+const isExporting     = ref(false)
+const showTypeSelector  = ref(false)
+const showFinalizeModal = ref(false)
+const hoveredDef        = ref(null)   // modèle survolé dans le sélecteur
+const selectedEvaluation = ref(null)
+const currentModel    = ref(null)  // Le modèle actif (avec schema parsé)
 const signatureNom    = ref('')
 
-const toast = ref({ visible: false, message: '', type: 'success' })
-
-const formData = ref(emptyForm())
-const errors   = ref({})
-
-// ── Types d'évaluation ─────────────────────────────────────
-const typesEvaluation = [
-  {
-    id: 'tutelle',
-    label: 'Régime de tutelle',
-    badge: 'Curateur Public',
-    description: 'Évaluation du fonctionnement social pour demande de tutelle au majeur inapte',
-    icon: Scale,
-    colorClass: 'bg-blue-600',
-    badgeClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-  },
-  {
-    id: 'mandat',
-    label: 'Homologation de mandat',
-    badge: 'Mandat de protection',
-    description: 'Évaluation pour homologation d\'un mandat donné en prévision d\'inaptitude',
-    icon: FileHeart,
-    colorClass: 'bg-purple-600',
-    badgeClass: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300'
-  },
-  {
-    id: 'conseil_tutelle',
-    label: 'Conseil de tutelle',
-    badge: 'Protection',
-    description: 'Évaluation pour la constitution d\'un conseil de tutelle au mineur ou majeur',
-    icon: UserCheck,
-    colorClass: 'bg-amber-600',
-    badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
-  },
-  {
-    id: 'suivi_psychosocial',
-    label: 'Suivi psychosocial',
-    badge: 'Note évolutive',
-    description: 'Note de suivi psychosocial, bilan d\'intervention ou rapport de situation',
-    icon: Stethoscope,
-    colorClass: 'bg-teal-600',
-    badgeClass: 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300'
-  }
-]
-
-// ── Sections par type ──────────────────────────────────────
-const sectionsByType = {
-  tutelle: [
-    { id: 'contexte',      label: 'Contexte',           icon: FileText },
-    { id: 'cognitif',      label: 'Cognitif',            icon: Brain },
-    { id: 'sante',         label: 'Santé physique',      icon: Heart },
-    { id: 'psycho',        label: 'Psycho-Social',       icon: Activity },
-    { id: 'roles',         label: 'Rôles sociaux',       icon: Briefcase },
-    { id: 'reseau',        label: 'Réseau soutien',      icon: Users },
-    { id: 'analyse',       label: 'Analyse clinique',    icon: Layers },
-    { id: 'opinion',       label: 'Opinion prof.',       icon: CheckCircleIcon },
-    { id: 'recommandations', label: 'Recommandations',   icon: Target }
-  ],
-  mandat: [
-    { id: 'contexte',      label: 'Contexte',            icon: FileText },
-    { id: 'inaptitude',    label: 'Inaptitude',          icon: Brain },
-    { id: 'sante',         label: 'Santé',               icon: Heart },
-    { id: 'psycho',        label: 'Psycho-Social',       icon: Activity },
-    { id: 'mandataire',    label: 'Mandataire',          icon: UserCheck },
-    { id: 'reseau',        label: 'Réseau soutien',      icon: Users },
-    { id: 'analyse',       label: 'Analyse',             icon: Layers },
-    { id: 'opinion',       label: 'Opinion',             icon: CheckCircleIcon },
-    { id: 'recommandations', label: 'Recommandations',   icon: Target }
-  ],
-  conseil_tutelle: [
-    { id: 'contexte',       label: 'Contexte',           icon: FileText },
-    { id: 'situation',      label: 'Situation globale',  icon: Activity },
-    { id: 'sante',          label: 'Santé',              icon: Heart },
-    { id: 'reseau',         label: 'Réseau',             icon: Users },
-    { id: 'analyse',        label: 'Analyse',            icon: Layers },
-    { id: 'recommandations', label: 'Recommandations',   icon: Target }
-  ],
-  suivi_psychosocial: [
-    { id: 'contexte',       label: 'Contexte',           icon: FileText },
-    { id: 'evolution',      label: 'Évolution',          icon: Activity },
-    { id: 'intervention',   label: 'Intervention',       icon: Briefcase },
-    { id: 'reseau',         label: 'Réseau',             icon: Users },
-    { id: 'analyse',        label: 'Analyse',            icon: Layers },
-    { id: 'plan',           label: 'Plan d\'action',     icon: Target }
-  ]
-}
-
-const currentSections = computed(() =>
-  sectionsByType[formData.value.type_evaluation] || sectionsByType.tutelle
-)
+const formData = ref({
+  id:         0,
+  client_id:  null,
+  model_id:   '',
+  no_leopard: '',
+  payload:    {}
+})
 
 // ── Computed ───────────────────────────────────────────────
-const brouillons = computed(() => evaluations.value.filter(e => e.verrouille === 0))
-const evaluationsFinalisees = computed(() => evaluations.value.filter(e => e.verrouille === 1))
+const evaluationsFinalisees = computed(() =>
+  (evaluations.value || []).filter(e => e.statut === 'verrouille' || e.statut === 'finalisee')
+)
+const brouillons = computed(() =>
+  (evaluations.value || []).filter(e => e.statut === 'brouillon')
+)
 
-const totalProgress = computed(() => {
-  const fields = Object.keys(formData.value).filter(k =>
-    !['client_id', 'type_evaluation', 'nom_leopard'].includes(k) && typeof formData.value[k] === 'string'
-  )
-  if (!fields.length) return 0
-  const filled = fields.filter(f => formData.value[f]?.trim()).length
-  return Math.round((filled / fields.length) * 100)
-})
+// ── Icônes dynamiques ──────────────────────────────────────
+const iconMap = {
+  ClipboardList, Scale, FileText, Brain, Heart, Activity,
+  Briefcase, Users, Layers, CheckCircle, Target, Network,
+  ShieldCheck
+}
+const iconComponent = (name) => iconMap[name] || FileText
 
-const nomLeopardGenere = computed(() => {
-  if (!props.client?.no_dossier_leopard) return 'EVA-XXXXXXXX'
-  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-  const type = (formData.value.type_evaluation || 'tutelle').slice(0, 3).toUpperCase()
-  return `EVA-${props.client.no_dossier_leopard}-${type}-${date}`
-})
+const colorMap = {
+  teal:    'bg-teal-600',
+  blue:    'bg-blue-600',
+  purple:  'bg-purple-600',
+  amber:   'bg-amber-600',
+  emerald: 'bg-emerald-600',
+  slate:   'bg-slate-600',
+  red:     'bg-red-600',
+}
+const colorClass = (c) => colorMap[c] || 'bg-teal-600'
 
-// ── Helpers ────────────────────────────────────────────────
-function emptyForm(type = 'tutelle') {
-  return {
-    client_id:               null,
-    type_evaluation:         type,
-    nom_leopard:             '',
-    // sections communes
-    contexte_evaluation:     '',
-    motif_reference:         '',
-    objet_evaluation:        '',
-    // cognitif / inaptitude
-    capacites_cognitives:    '',
-    inaptitude_constatee:    '',
-    // santé
-    etat_sante_physique:     '',
-    // psycho-social
-    dimensions_psycho_sociales: '',
-    // rôles
-    roles_sociaux:           '',
-    // réseau
-    reseau_social_soutien:   '',
-    // mandat spécifique
-    evaluation_mandataire:   '',
-    // suivi
-    evolution_situation:     '',
-    objectifs_intervention:  '',
-    plan_action:             '',
-    // analyse / opinion / reco
-    analyse_clinique:        '',
-    opinion_professionnelle: '',
-    recommandations:         ''
+// ── Helpers aperçu modèle ─────────────────────────────────
+const sectionBgMap = {
+  teal:    'bg-teal-50 dark:bg-teal-900/20',
+  blue:    'bg-blue-50 dark:bg-blue-900/20',
+  purple:  'bg-purple-50 dark:bg-purple-900/20',
+  amber:   'bg-amber-50 dark:bg-amber-900/20',
+  emerald: 'bg-emerald-50 dark:bg-emerald-900/20',
+  red:     'bg-red-50 dark:bg-red-900/20',
+  slate:   'bg-slate-50 dark:bg-slate-800/40',
+}
+const sectionBgClass = (c) => sectionBgMap[c] || sectionBgMap.teal
+
+const colorIconMap = {
+  blue:    'text-blue-500', teal: 'text-teal-500', emerald: 'text-emerald-500',
+  purple:  'text-purple-500', amber: 'text-amber-500', red: 'text-red-500',
+  slate:   'text-slate-400',
+}
+const sectionIconColor = (c) => colorIconMap[c] || 'text-gray-400'
+
+const fieldTypeLabelMap = {
+  text: 'TXT', textarea: 'AREA', date: 'DATE', select: 'SEL',
+  checkboxes: 'CHK', table: 'TAB', grid_checkbox: 'GRID',
+  obs_select: 'OBS', score_radar: 'RADAR', info: 'INFO',
+}
+const fieldTypeLabel = (t) => fieldTypeLabelMap[t] || t?.toUpperCase()?.slice(0,4) || '?'
+
+const fieldTypeBadgeMap = {
+  text:          'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400',
+  textarea:      'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+  date:          'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+  select:        'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
+  checkboxes:    'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400',
+  table:         'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+  grid_checkbox: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+  obs_select:    'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
+  score_radar:   'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400',
+  info:          'bg-slate-100 dark:bg-slate-800 text-slate-400',
+}
+const fieldTypeBadge = (t) => fieldTypeBadgeMap[t] || 'bg-gray-100 text-gray-500'
+
+// ── Chargement depuis la DB ────────────────────────────────
+const loadDefinitions = async () => {
+  isLoadingDefs.value = true
+  try {
+    const res = await window.go.main.EvalHandler.GetDefinitions()
+    definitions.value = (res || []).map(d => ({
+      ...d,
+      schema: d.schema_json ? JSON.parse(d.schema_json) : { sections: [] }
+    }))
+  } catch (e) {
+    console.error('Erreur chargement definitions:', e)
+    definitions.value = []
+  } finally {
+    isLoadingDefs.value = false
   }
 }
 
-function showToast(message, type = 'success', duration = 4000) {
-  toast.value = { visible: true, message, type }
-  setTimeout(() => { toast.value.visible = false }, duration)
-}
-
-// ── Actions ────────────────────────────────────────────────
 const loadEvaluations = async () => {
   if (!props.client?.id) return
   try {
-    const result = await window.go.main.EvalHandler.GetEvaluationsByClient(props.client.id)
-    evaluations.value = result || []
-  } catch (err) {
-    console.error('❌ Erreur chargement évaluations:', err)
+    const res = await window.go.main.EvalHandler.GetClientEvaluationsV2(props.client.id)
+    evaluations.value = (res || []).map(e => ({
+      ...e,
+      payload: e.payload
+        ? (typeof e.payload === 'string' ? JSON.parse(e.payload) : e.payload)
+        : {}
+    }))
+  } catch (e) {
+    console.error('Erreur chargement evaluations:', e)
     evaluations.value = []
   }
 }
 
+// ── Actions ────────────────────────────────────────────────
+const handleClose = () => emit('close')
+
 const openTypeSelector = () => {
+  hoveredDef.value = null
   showTypeSelector.value = true
 }
 
-const startNewEvaluation = (type) => {
-  showTypeSelector.value = false
-  formData.value = emptyForm(type)
-  formData.value.client_id = props.client?.id
-  formData.value.nom_leopard = nomLeopardGenere.value
-  errors.value = {}
-  isCreating.value = true
-  selectedEvaluation.value = null
-  activeSection.value = 'contexte'
-}
-
 const cancelCreation = () => {
-  if (totalProgress.value > 10 && !confirm('Quitter sans sauvegarder ?')) return
-  isCreating.value = false
-  formData.value = emptyForm()
+  isCreating.value      = false
+  showTypeSelector.value = false
+  selectedEvaluation.value = null
+  currentModel.value    = null
+  formData.value = { id: 0, client_id: null, model_id: '', no_leopard: '', payload: {} }
 }
 
-const viewEvaluation = async (evalItem) => {
-  try {
-    const fullEval = await window.go.main.EvalHandler.GetEvaluationByID(evalItem.id)
-    selectedEvaluation.value = fullEval
-    if (fullEval.verrouille === 0) {
-      // Reprise brouillon
-      formData.value = { ...emptyForm(fullEval.type_evaluation || 'tutelle'), ...fullEval, client_id: props.client?.id }
-      isCreating.value = true
-    } else {
-      isCreating.value = false
+const startNewEvaluation = (def) => {
+  showTypeSelector.value = false
+  hoveredDef.value = null
+  currentModel.value = def
+
+  const date = new Date()
+  const stamp = `${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}`
+
+  formData.value = {
+    id:         0,
+    client_id:  props.client.id,
+    model_id:   def.id,
+    no_leopard: `EVA-${props.client.no_dossier_leopard || '000'}-${stamp}`,
+    payload:    {}
+  }
+
+  // Activer la première section
+  if (def.schema?.sections?.length) {
+    activeSection.value = def.schema.sections[0].id
+  }
+
+  selectedEvaluation.value = null
+  isCreating.value = true
+}
+
+const viewEvaluation = (evalItem) => {
+  // Retrouver le modèle correspondant
+  const def = definitions.value.find(d => d.id === evalItem.model_id)
+  currentModel.value = def || null
+
+  formData.value = {
+    ...evalItem,
+    payload: typeof evalItem.payload === 'string'
+      ? JSON.parse(evalItem.payload)
+      : (evalItem.payload || {})
+  }
+  selectedEvaluation.value = evalItem
+
+  // Si brouillon → mode édition, sinon → mode lecture
+  if (evalItem.statut === 'brouillon') {
+    isCreating.value = true
+    if (def?.schema?.sections?.length) {
+      activeSection.value = def.schema.sections[0].id
     }
-  } catch (err) {
-    console.error('❌ Erreur:', err)
-    showToast('Erreur lors du chargement', 'error')
+  } else {
+    isCreating.value = false
   }
-}
-
-const validateForm = () => {
-  errors.value = {}
-  if (!formData.value.contexte_evaluation?.trim()) {
-    errors.value.contexte_evaluation = 'Le contexte est requis'
-    return false
-  }
-  if (!formData.value.motif_reference?.trim()) {
-    errors.value.motif_reference = 'Le motif est requis'
-    return false
-  }
-  return true
 }
 
 const saveDraft = async () => {
-  if (!validateForm()) {
-    showToast('⚠️ Veuillez remplir les champs obligatoires', 'error')
-    return
-  }
   isSaving.value = true
   try {
-    await window.go.main.EvalHandler.CreateEvaluation({ ...formData.value, client_id: props.client?.id })
-    showToast('Brouillon sauvegardé', 'success')
-    isCreating.value = false
+    const payloadString = JSON.stringify(formData.value.payload)
+    if (formData.value.id === 0) {
+      const newId = await window.go.main.EvalHandler.CreateEvaluationV2({
+        client_id:  formData.value.client_id,
+        model_id:   formData.value.model_id,
+        no_leopard: formData.value.no_leopard,
+        payload:    payloadString
+      })
+      formData.value.id = Number(newId)
+    } else {
+      await window.go.main.EvalHandler.UpdateEvaluationV2(formData.value.id, payloadString)
+    }
     await loadEvaluations()
   } catch (err) {
-    showToast('Erreur lors de la sauvegarde: ' + err, 'error')
+    console.error('Erreur sauvegarde:', err)
   } finally {
     isSaving.value = false
   }
 }
 
 const finalizeEvaluation = async () => {
-  if (!signatureNom.value.trim()) return
-  showFinalizeModal.value = false
+  if (!signatureNom.value.trim() || formData.value.id === 0) return
   isFinalizing.value = true
-
   try {
-    const nomLeopard = nomLeopardGenere.value
-    const result = await window.go.main.EvalHandler.CreateEvaluation({
-      ...formData.value,
-      client_id: props.client?.id,
-      nom_leopard: nomLeopard
-    })
-
-    await window.go.main.EvalHandler.LockEvaluation(result, signatureNom.value)
-
-    const fullEval = await window.go.main.EvalHandler.GetEvaluationByID(result)
-    selectedEvaluation.value = fullEval
-
-    // Génération PDF automatique
-    await handleExportPDF(fullEval)
-
-    await loadEvaluations()
-    isCreating.value = false
+    // Sauvegarder d'abord si nécessaire
+    await saveDraft()
+    // Puis sceller
+    await window.go.main.EvalHandler.SignerEvaluation(formData.value.id, signatureNom.value.trim())
+    showFinalizeModal.value = false
     signatureNom.value = ''
-    showToast('✅ Évaluation scellée — PDF généré avec succès', 'success')
-
+    await loadEvaluations()
+    cancelCreation()
   } catch (err) {
     console.error('Erreur finalisation:', err)
-    showToast('Erreur lors de la finalisation: ' + err, 'error')
   } finally {
     isFinalizing.value = false
   }
 }
 
-const handleExportPDF = async (evalOverride = null) => {
-  const evalData = evalOverride || selectedEvaluation.value
-  if (!evalData) {
-    showToast('Aucune évaluation sélectionnée', 'error')
-    return
-  }
-  isExporting.value = true
-  try {
-    await generateEvaluationPDF(evalData, props.client)
-    showToast('PDF généré avec succès', 'success')
-  } catch (err) {
-    console.error('❌ Erreur PDF:', err)
-    showToast('Erreur génération PDF: ' + err.message, 'error')
-  } finally {
-    isExporting.value = false
-  }
+const exportPdf = () => {
+  // TODO: brancher le générateur PDF existant
+  console.log('Export PDF à brancher')
 }
 
-const deleteDraft = async (draftId) => {
-  if (!confirm('Supprimer ce brouillon définitivement ?')) return
-  try {
-    await window.go.main.EvalHandler.DeleteEvaluation(draftId)
-    showToast('Brouillon supprimé', 'success')
-    await loadEvaluations()
-  } catch (err) {
-    showToast('Erreur lors de la suppression', 'error')
-  }
-}
+// ── Lifecycle ──────────────────────────────────────────────
+onMounted(() => {
+  loadDefinitions()
+  loadEvaluations()
+})
 
-const handleClose = () => {
-  if (isCreating.value && totalProgress.value > 10) {
-    if (!confirm('Fermer sans sauvegarder ?')) return
-  }
-  isCreating.value = false
-  selectedEvaluation.value = null
-  emit('close')
-}
-
-watch(() => props.isOpen, (newVal) => {
-  if (newVal && props.client?.id) {
-    loadEvaluations()
-    selectedEvaluation.value = null
-    isCreating.value = false
-    signatureNom.value = localStorage.getItem('user_full_name') || ''
-  }
+watch(() => props.client?.id, (newId) => {
+  if (props.isOpen && newId) loadEvaluations()
 })
 </script>
 
 <style scoped>
 .modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.25s ease; }
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
-
-.toast-slide-enter-active, .toast-slide-leave-active { transition: all 0.3s ease; }
-.toast-slide-enter-from { opacity: 0; transform: translateX(2rem); }
-.toast-slide-leave-to { opacity: 0; transform: translateX(2rem); }
-
 .animate-spin { animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>

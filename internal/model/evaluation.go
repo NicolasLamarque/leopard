@@ -1,71 +1,32 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
-// EvaluationSociale est le reflet exact de ta table SQL
-type EvaluationSociale struct {
-	ID            int    `db:"id" json:"id"`
-	ClientID      int    `db:"client_id" json:"client_id"`
-	NoEvalLeopard string `db:"no_eval_leopard" json:"no_eval_leopard"`
+// EvaluationV2 représente une instance d'évaluation en DB
+type EvaluationV2 struct {
+	ID        int    `json:"id" db:"id"`
+	ClientID  int    `json:"client_id" db:"client_id"`
+	ModelID   string `json:"model_id" db:"model_id"`
+	NoLeopard string `json:"no_leopard" db:"no_leopard"`
 
-	TypeEvaluation *string `db:"type_evaluation" json:"type_evaluation"`
-	CreatedBy      int     `db:"created_by" json:"created_by"`
+	// On dit à Go : "Ne cherche pas de colonne 'payload' en DB, je le gère moi-même"
+	Payload string `json:"payload" db:"-"`
 
-	// Contenu clinique (Champs chiffrés en DB)
-	ContexteEvaluation       *string `db:"contexte_evaluation" json:"contexte_evaluation"`
-	MotifReference           *string `db:"motif_reference" json:"motif_reference"`
-	ObjetEvaluation          *string `db:"objet_evaluation" json:"objet_evaluation"`
-	CapacitesCognitives      *string `db:"capacites_cognitives" json:"capacites_cognitives"`
-	EtatSantePhysique        *string `db:"etat_sante_physique" json:"etat_sante_physique"`
-	DimensionsPsychoSociales *string `db:"dimensions_psycho_sociales" json:"dimensions_psycho_sociales"`
-	RolesSociaux             *string `db:"roles_sociaux" json:"roles_sociaux"`
-	ReseauSocialSoutien      *string `db:"reseau_social_soutien" json:"reseau_social_soutien"`
-	AnalyseClinique          *string `db:"analyse_clinique" json:"analyse_clinique"`
-	OpinionProfessionnelle   *string `db:"opinion_professionnelle" json:"opinion_professionnelle"`
-	Recommandations          *string `db:"recommandations" json:"recommandations"`
+	// On dit à Go : "Va lire/écrire le crypté dans la colonne 'payload_crypte'"
+	PayloadCrypte string `json:"-" db:"payload_crypte"`
 
-	// Workflow
-	SignatureNom  *string    `db:"signature_nom" json:"signature_nom"`
-	Verrouille    int        `db:"verrouille" json:"verrouille"`
-	IsDraft       int        `db:"isDraft" json:"isDraft"`
-	DateSignature *time.Time `db:"date_signature" json:"date_signature"`
-	CreatedAt     time.Time  `db:"created_at" json:"created_at"`
-	UpdatedAt     time.Time  `db:"updated_at" json:"updated_at"`
+	Statut        string     `json:"statut" db:"statut"`
+	SignatureNom  *string    `json:"signature_nom" db:"signature_nom"`
+	DateSignature *time.Time `json:"date_signature" db:"date_signature"`
+	CreatedAt     time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at" db:"updated_at"`
 }
 
-// EvaluationSocialeDetail représente les données venant de la VUE v_evaluation_details
-// C'est ce que tu vas envoyer à ton Frontend Vue 3
-type EvaluationSocialeDetail struct {
-	EvaluationSociale
-
-	// Champs additionnels venant de la jointure dans la Vue
-	ClientNom     string  `db:"client_nom" json:"client_nom"`
-	ClientPrenom  string  `db:"client_prenom" json:"client_prenom"`
-	ClientDN      *string `db:"client_dn" json:"client_dn"`
-	ClientNAM     *string `db:"client_nam" json:"client_nam"`
-	ClientLeopard *string `db:"client_leopard" json:"client_leopard"`
-	AuteurNom     string  `db:"auteur_nom" json:"auteur_nom"`
-}
-
-// CreateEvaluationRequest est utilisé pour le binding FormKit -> Wails -> Go
-type CreateEvaluationRequest struct {
-	ClientID                 int     `json:"client_id"`
-	NoLeopard                string  `db:"no_leopard" json:"no_leopard"`
-	NoEvalLeopard            string  `db:"no_eval_leopard" json:"no_eval_leopard"`
-	TypeEvaluation           *string `db:"type_evaluation" json:"type_evaluation"`
-	ContexteEvaluation       *string `json:"contexte_evaluation"`
-	MotifReference           *string `json:"motif_reference"`
-	ObjetEvaluation          *string `json:"objet_evaluation"`
-	CapacitesCognitives      *string `json:"capacites_cognitives"`
-	EtatSantePhysique        *string `json:"etat_sante_physique"`
-	DimensionsPsychoSociales *string `json:"dimensions_psycho_sociales"`
-	RolesSociaux             *string `json:"roles_sociaux"`
-	ReseauSocialSoutien      *string `json:"reseau_social_soutien"`
-	AnalyseClinique          *string `json:"analyse_clinique"`
-	OpinionProfessionnelle   *string `json:"opinion_professionnelle"`
-	Recommandations          *string `json:"recommandations"`
-	Verrouille int `db:"verrouille" json:"verrouille"`
-	IsDraft                  int     `db:"isDraft" json:"isDraft"`
+// EvaluationDefinition définit le "moule" du formulaire
+type EvaluationDefinition struct {
+	ID         string `json:"id" db:"id"`
+	Nom        string `json:"nom" db:"nom"`
+	Icone      string `json:"icone" db:"icone"`
+	Couleur    string `json:"couleur" db:"couleur"`
+	SchemaJSON string `json:"schema_json" db:"schema_json"` // AJOUTE db:"schema_json"
 }

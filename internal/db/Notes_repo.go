@@ -16,11 +16,14 @@ func (db *Database) GetAllNotesByClientID(clientID int, cryptoSvc *crypto.Crypto
 
 	query := `
 		SELECT 
-			id, date_note, date_intervention, type_note, titre, 
-			verrouille, note_tardive, type_lien
-		FROM notes 
-		WHERE client_id = ? 
-		ORDER BY date_note DESC, created_at DESC
+			n.id, n.date_note, n.date_intervention, n.type_note, n.titre,
+			n.verrouille, n.note_tardive, n.type_lien,
+			n.note_liee_id, n.signature_nom,
+			COALESCE(parent.titre, '') as note_liee_titre
+		FROM notes n
+		LEFT JOIN notes parent ON parent.id = n.note_liee_id
+		WHERE n.client_id = ? 
+		ORDER BY n.date_note DESC, n.created_at DESC
 	`
 
 	err := db.Select(&notes, query, clientID)
@@ -28,15 +31,24 @@ func (db *Database) GetAllNotesByClientID(clientID int, cryptoSvc *crypto.Crypto
 		return nil, fmt.Errorf("erreur récupération notes client %d: %w", clientID, err)
 	}
 
-	// Déchiffrer uniquement le titre pour l'affichage
+	// Déchiffrer les titres et la signature
 	for i := range notes {
 		if notes[i].Titre != "" {
-			decrypted, err := cryptoSvc.Decrypt(notes[i].Titre)
-			if err != nil {
-				// Si erreur de déchiffrement, on garde le titre original
-				continue
+			if decrypted, err := cryptoSvc.Decrypt(notes[i].Titre); err == nil {
+				notes[i].Titre = decrypted
 			}
-			notes[i].Titre = decrypted
+		}
+		// Déchiffrer le titre de la note parente si présent
+		if notes[i].NoteLieeTitre != "" {
+			if decrypted, err := cryptoSvc.Decrypt(notes[i].NoteLieeTitre); err == nil {
+				notes[i].NoteLieeTitre = decrypted
+			}
+		}
+		// Déchiffrer la signature pour affichage sidebar
+		if notes[i].SignatureNom != nil && *notes[i].SignatureNom != "" {
+			if decrypted, err := cryptoSvc.Decrypt(*notes[i].SignatureNom); err == nil {
+				notes[i].SignatureNom = &decrypted
+			}
 		}
 	}
 
@@ -220,6 +232,20 @@ func (db *Database) LockNote(noteID int, signatureNom string, cryptoSvc *crypto.
 	}
 
 	return nil
+}
+
+// CheckNoteLieeExists vérifie si une correction ou addendum existe déjà pour une note
+// Retourne true si une note du type demandé est déjà liée à cette note
+func (db *Database) CheckNoteLieeExists(noteID int, typeLien string) (bool, error) {
+	var count int
+	err := db.Get(&count, `
+		SELECT COUNT(*) FROM notes 
+		WHERE note_liee_id = ? AND type_lien = ?
+	`, noteID, typeLien)
+	if err != nil {
+		return false, fmt.Errorf("erreur vérification note liée: %w", err)
+	}
+	return count > 0, nil
 }
 
 // DeleteNote supprime définitivement une note (seulement si brouillon)

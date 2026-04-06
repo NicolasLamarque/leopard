@@ -6,204 +6,147 @@ import (
 	models "leopard/internal/model"
 )
 
-// GetAllEvaluationsByClientID récupère les évaluations via la VUE
-func (db *Database) GetAllEvaluationsByClientID(clientID int, cryptoSvc *crypto.CryptoService) ([]models.EvaluationSocialeDetail, error) {
-	var list []models.EvaluationSocialeDetail
+// GetEvaluationDefinitions : Match h.db.GetEvaluationDefinitions()
+func (db *Database) GetEvaluationDefinitions() ([]models.EvaluationDefinition, error) {
+	var defs []models.EvaluationDefinition
+	query := `SELECT id, nom, icone, couleur, schema_json FROM evaluation_definitions WHERE active = 1`
 
-	query := `SELECT * FROM v_evaluation_details WHERE client_id = ? ORDER BY created_at DESC`
+	err := db.Select(&defs, query)
+	if err != nil {
+		return nil, fmt.Errorf("repo: erreur lecture definitions: %w", err)
+	}
+	return defs, nil
+}
+
+// CreateEvaluationV2 : Match h.db.CreateEvaluationV2(eval, h.cryptoSvc)
+func (db *Database) CreateEvaluationV2(eval models.EvaluationV2, cryptoSvc *crypto.CryptoService) (int64, error) {
+	// Loi 25 : On chiffre le payload JSON complet
+	encrypted, err := cryptoSvc.EncryptString(eval.Payload)
+	if err != nil {
+		return 0, fmt.Errorf("repo: erreur crypto: %w", err)
+	}
+
+	query := `INSERT INTO evaluations_sociales_v2 
+			  (client_id, model_id, no_leopard, payload_crypte, statut) 
+			  VALUES (?, ?, ?, ?, 'brouillon')`
+
+	res, err := db.Exec(query, eval.ClientID, eval.ModelID, eval.NoLeopard, encrypted)
+	if err != nil {
+		return 0, err
+	}
+	return res.LastInsertId()
+}
+
+// GetEvaluationsByClientIDV2 : Match h.db.GetEvaluationsByClientIDV2(clientID, h.cryptoSvc)
+func (db *Database) GetEvaluationsByClientIDV2(clientID int, cryptoSvc *crypto.CryptoService) ([]models.EvaluationV2, error) {
+	var list []models.EvaluationV2
+	query := `SELECT id, client_id, model_id, no_leopard, payload_crypte, statut, created_at 
+			  FROM evaluations_sociales_v2 WHERE client_id = ? ORDER BY created_at DESC`
 
 	err := db.Select(&list, query, clientID)
 	if err != nil {
-		return nil, fmt.Errorf("erreur lors de la récupération des évaluations: %w", err)
+		return nil, err
 	}
 
 	for i := range list {
-		if err := decryptEvaluationDetail(&list[i], cryptoSvc); err != nil {
-			return nil, err
+		if list[i].PayloadCrypte != "" {
+			decrypted, err := cryptoSvc.DecryptString(list[i].PayloadCrypte)
+			if err == nil {
+				list[i].Payload = decrypted
+			}
 		}
 	}
-
 	return list, nil
 }
 
-// GetEvaluationByID récupère une évaluation spécifique via la VUE
-func (db *Database) GetEvaluationByID(id int, cryptoSvc *crypto.CryptoService) (*models.EvaluationSocialeDetail, error) {
-	var eval models.EvaluationSocialeDetail
-	query := `SELECT * FROM v_evaluation_details WHERE id = ?`
+// UpdateEvaluationV2 : Match h.db.UpdateEvaluationV2(id, payload, h.cryptoSvc)
+func (db *Database) UpdateEvaluationV2(id int, payload string, cryptoSvc *crypto.CryptoService) error {
+	encrypted, err := cryptoSvc.EncryptString(payload)
+	if err != nil {
+		return err
+	}
+
+	query := `UPDATE evaluations_sociales_v2 SET payload_crypte = ?, updated_at = CURRENT_TIMESTAMP 
+			  WHERE id = ? AND statut = 'brouillon'`
+
+	_, err = db.Exec(query, encrypted, id)
+	return err
+}
+
+// DeleteEvaluationV2 : Match h.db.DeleteEvaluationV2(id)
+func (db *Database) DeleteEvaluationV2(id int) error {
+	_, err := db.Exec("DELETE FROM evaluations_sociales_v2 WHERE id = ? AND statut = 'brouillon'", id)
+	return err
+}
+
+// VerrouillerEvaluation : Scelle l'évaluation (V2) et ajoute la signature
+func (db *Database) VerrouillerEvaluation(id int, nomSignature string) error {
+	query := `
+		UPDATE evaluations_sociales_v2 
+		SET statut = 'verrouille', 
+		    signature_nom = ?, 
+		    date_signature = CURRENT_TIMESTAMP,
+		    updated_at = CURRENT_TIMESTAMP 
+		WHERE id = ?`
+
+	_, err := db.Exec(query, nomSignature, id)
+	if err != nil {
+		return fmt.Errorf("repo: erreur lors du verrouillage: %w", err)
+	}
+	return nil
+}
+
+// GetEvaluationByIDV2 : Récupère une seule évaluation complète et décryptée
+func (db *Database) GetEvaluationByIDV2(id int, cryptoSvc *crypto.CryptoService) (*models.EvaluationV2, error) {
+	var eval models.EvaluationV2
+	query := `SELECT * FROM evaluations_sociales_v2 WHERE id = ?`
 
 	err := db.Get(&eval, query, id)
 	if err != nil {
-		return nil, fmt.Errorf("évaluation %d non trouvée: %w", id, err)
+		return nil, fmt.Errorf("repo: évaluation introuvable: %w", err)
 	}
 
-	if err := decryptEvaluationDetail(&eval, cryptoSvc); err != nil {
-		return nil, err
+	// Décryptage du payload pour le Front
+	if eval.PayloadCrypte != "" {
+		decrypted, err := cryptoSvc.DecryptString(eval.PayloadCrypte)
+		if err == nil {
+			eval.Payload = decrypted
+		}
 	}
 
 	return &eval, nil
 }
 
-// CreateEvaluation crée l'évaluation dans la TABLE
-// no_leopard et type_evaluation sont en clair — pas de chiffrement
-func (db *Database) CreateEvaluation(req models.CreateEvaluationRequest, createdBy int, cryptoSvc *crypto.CryptoService) (int64, error) {
-	encryptedReq, err := encryptEvaluationRequest(req, cryptoSvc)
-	if err != nil {
-		return 0, err
-	}
-
+// SaveEvaluationDefinition : INSERT OR REPLACE d'un modèle
+func (db *Database) SaveEvaluationDefinition(def models.EvaluationDefinition) error {
 	query := `
-		INSERT INTO evaluations_sociales (
-			client_id, created_by, no_leopard, no_eval_leopard, type_evaluation,
-			contexte_evaluation, motif_reference, objet_evaluation,
-			capacites_cognitives, etat_sante_physique, dimensions_psycho_sociales,
-			roles_sociaux, reseau_social_soutien, analyse_clinique,
-			opinion_professionnelle, recommandations, verrouille, isDraft
-		) VALUES (
-			:client_id, :created_by, :no_leopard, :no_eval_leopard, :type_evaluation,
-			:contexte_evaluation, :motif_reference, :objet_evaluation,
-			:capacites_cognitives, :etat_sante_physique, :dimensions_psycho_sociales,
-			:roles_sociaux, :reseau_social_soutien, :analyse_clinique,
-			:opinion_professionnelle, :recommandations, :verrouille, :isDraft
-		)`
-
-	data := map[string]interface{}{
-		"client_id":                  req.ClientID,
-		"created_by":                 createdBy,
-		"no_leopard":                 req.NoLeopard,
-		"no_eval_leopard":            req.NoEvalLeopard,  // EN CLAIR
-		"type_evaluation":            req.TypeEvaluation, // EN CLAIR
-		"contexte_evaluation":        encryptedReq.ContexteEvaluation,
-		"motif_reference":            encryptedReq.MotifReference,
-		"objet_evaluation":           encryptedReq.ObjetEvaluation,
-		"capacites_cognitives":       encryptedReq.CapacitesCognitives,
-		"etat_sante_physique":        encryptedReq.EtatSantePhysique,
-		"dimensions_psycho_sociales": encryptedReq.DimensionsPsychoSociales,
-		"roles_sociaux":              encryptedReq.RolesSociaux,
-		"reseau_social_soutien":      encryptedReq.ReseauSocialSoutien,
-		"analyse_clinique":           encryptedReq.AnalyseClinique,
-		"opinion_professionnelle":    encryptedReq.OpinionProfessionnelle,
-		"recommandations":            encryptedReq.Recommandations,
-		"verrouille":                 0,
-		"isDraft":                    1,
-	}
-
-	result, err := db.NamedExec(query, data)
+		INSERT INTO evaluation_definitions (id, nom, icone, couleur, schema_json, active)
+		VALUES (?, ?, ?, ?, ?, 1)
+		ON CONFLICT(id) DO UPDATE SET
+			nom        = excluded.nom,
+			icone      = excluded.icone,
+			couleur    = excluded.couleur,
+			schema_json = excluded.schema_json,
+			version    = version + 1
+	`
+	_, err := db.Exec(query,
+		def.ID,
+		def.Nom,
+		def.Icone,
+		def.Couleur,
+		def.SchemaJSON,
+	)
 	if err != nil {
-		return 0, fmt.Errorf("erreur insertion évaluation: %w", err)
+		return fmt.Errorf("repo: erreur sauvegarde definition: %w", err)
 	}
-
-	return result.LastInsertId()
-}
-
-func (db *Database) UpdateEvaluationBrouillon(id int, req models.CreateEvaluationRequest, cryptoSvc *crypto.CryptoService) error {
-	enc, err := encryptEvaluationRequest(req, cryptoSvc)
-	if err != nil {
-		return err
-	}
-
-	query := `
-        UPDATE evaluations_sociales SET
-            type_evaluation            = :type_evaluation,
-            contexte_evaluation        = :contexte_evaluation,
-            motif_reference            = :motif_reference,
-            objet_evaluation           = :objet_evaluation,
-            capacites_cognitives       = :capacites_cognitives,
-            etat_sante_physique        = :etat_sante_physique,
-            dimensions_psycho_sociales = :dimensions_psycho_sociales,
-            roles_sociaux              = :roles_sociaux,
-            reseau_social_soutien      = :reseau_social_soutien,
-            analyse_clinique           = :analyse_clinique,
-            opinion_professionnelle    = :opinion_professionnelle,
-            recommandations            = :recommandations,
-            updated_at                 = CURRENT_TIMESTAMP
-        WHERE id = :id AND verrouille = 0`
-
-	data := map[string]interface{}{
-		"id":                         id,
-		"type_evaluation":            req.TypeEvaluation, // EN CLAIR
-		"contexte_evaluation":        enc.ContexteEvaluation,
-		"motif_reference":            enc.MotifReference,
-		"objet_evaluation":           enc.ObjetEvaluation,
-		"capacites_cognitives":       enc.CapacitesCognitives,
-		"etat_sante_physique":        enc.EtatSantePhysique,
-		"dimensions_psycho_sociales": enc.DimensionsPsychoSociales,
-		"roles_sociaux":              enc.RolesSociaux,
-		"reseau_social_soutien":      enc.ReseauSocialSoutien,
-		"analyse_clinique":           enc.AnalyseClinique,
-		"opinion_professionnelle":    enc.OpinionProfessionnelle,
-		"recommandations":            enc.Recommandations,
-	}
-
-	_, err = db.NamedExec(query, data)
-	return err
-}
-
-// VerrouillerEvaluation signe et verrouille — non modifiable après
-func (db *Database) VerrouillerEvaluation(id int, signatureNom string) error {
-	query := `
-        UPDATE evaluations_sociales SET
-            verrouille     = 1,
-            isDraft        = 0,
-            signature_nom  = :signature_nom,
-            date_signature = CURRENT_TIMESTAMP
-        WHERE id = :id AND verrouille = 0`
-
-	data := map[string]interface{}{
-		"id":            id,
-		"signature_nom": signatureNom,
-	}
-
-	_, err := db.NamedExec(query, data)
-	return err
-}
-
-// DeleteEvaluation supprime un brouillon seulement
-func (db *Database) DeleteEvaluation(id int) error {
-	var verrouille int
-	err := db.Get(&verrouille, "SELECT verrouille FROM evaluations_sociales WHERE id = ?", id)
-	if err != nil {
-		return fmt.Errorf("évaluation non trouvée: %w", err)
-	}
-
-	if verrouille == 1 {
-		return fmt.Errorf("impossible de supprimer une évaluation verrouillée")
-	}
-
-	_, err = db.Exec("DELETE FROM evaluations_sociales WHERE id = ?", id)
-	return err
-}
-
-// --- Helpers chiffrement ---
-
-func decryptEvaluationDetail(e *models.EvaluationSocialeDetail, cryptoSvc *crypto.CryptoService) error {
-	// no_leopard et type_evaluation : EN CLAIR, on ne déchiffre pas
-	e.ContexteEvaluation, _ = cryptoSvc.DecryptStringPtr(e.ContexteEvaluation)
-	e.MotifReference, _ = cryptoSvc.DecryptStringPtr(e.MotifReference)
-	e.ObjetEvaluation, _ = cryptoSvc.DecryptStringPtr(e.ObjetEvaluation)
-	e.CapacitesCognitives, _ = cryptoSvc.DecryptStringPtr(e.CapacitesCognitives)
-	e.EtatSantePhysique, _ = cryptoSvc.DecryptStringPtr(e.EtatSantePhysique)
-	e.DimensionsPsychoSociales, _ = cryptoSvc.DecryptStringPtr(e.DimensionsPsychoSociales)
-	e.RolesSociaux, _ = cryptoSvc.DecryptStringPtr(e.RolesSociaux)
-	e.ReseauSocialSoutien, _ = cryptoSvc.DecryptStringPtr(e.ReseauSocialSoutien)
-	e.AnalyseClinique, _ = cryptoSvc.DecryptStringPtr(e.AnalyseClinique)
-	e.OpinionProfessionnelle, _ = cryptoSvc.DecryptStringPtr(e.OpinionProfessionnelle)
-	e.Recommandations, _ = cryptoSvc.DecryptStringPtr(e.Recommandations)
 	return nil
 }
 
-func encryptEvaluationRequest(req models.CreateEvaluationRequest, cryptoSvc *crypto.CryptoService) (models.CreateEvaluationRequest, error) {
-	enc := req
-	// no_leopard et type_evaluation restent EN CLAIR
-	enc.ContexteEvaluation, _ = cryptoSvc.EncryptStringPtr(req.ContexteEvaluation)
-	enc.MotifReference, _ = cryptoSvc.EncryptStringPtr(req.MotifReference)
-	enc.ObjetEvaluation, _ = cryptoSvc.EncryptStringPtr(req.ObjetEvaluation)
-	enc.CapacitesCognitives, _ = cryptoSvc.EncryptStringPtr(req.CapacitesCognitives)
-	enc.EtatSantePhysique, _ = cryptoSvc.EncryptStringPtr(req.EtatSantePhysique)
-	enc.DimensionsPsychoSociales, _ = cryptoSvc.EncryptStringPtr(req.DimensionsPsychoSociales)
-	enc.RolesSociaux, _ = cryptoSvc.EncryptStringPtr(req.RolesSociaux)
-	enc.ReseauSocialSoutien, _ = cryptoSvc.EncryptStringPtr(req.ReseauSocialSoutien)
-	enc.AnalyseClinique, _ = cryptoSvc.EncryptStringPtr(req.AnalyseClinique)
-	enc.OpinionProfessionnelle, _ = cryptoSvc.EncryptStringPtr(req.OpinionProfessionnelle)
-	enc.Recommandations, _ = cryptoSvc.EncryptStringPtr(req.Recommandations)
-	return enc, nil
+// DeleteEvaluationDefinition : Soft delete (active = 0)
+func (db *Database) DeleteEvaluationDefinition(id string) error {
+	_, err := db.Exec(
+		`UPDATE evaluation_definitions SET active = 0 WHERE id = ? AND is_systeme = 0`,
+		id,
+	)
+	return err
 }

@@ -21,62 +21,59 @@ func NewEvalHandler(db *database.Database, cryptoSvc *crypto.CryptoService) *Eva
 	}
 }
 
-func (h *EvalHandler) startup(ctx context.Context) {
+func (h *EvalHandler) Startup(ctx context.Context) {
 	h.ctx = ctx
 }
 
-// CreateEvaluation crée une nouvelle évaluation sociale
-func (h *EvalHandler) CreateEvaluation(req models.CreateEvaluationRequest) (int64, error) {
-	userID := 1
+// --- MÉTHODES V2 (Nouveau Système JSON) ---
 
-	if req.ClientID == 0 {
+// GetDefinitions retourne les modèles de formulaires disponibles (Annexe, Curateur, etc.)
+func (h *EvalHandler) GetDefinitions() ([]models.EvaluationDefinition, error) {
+	return h.db.GetEvaluationDefinitions()
+}
+
+// CreateEvaluationV2 crée une évaluation à partir du gros JSON de Vue
+func (h *EvalHandler) CreateEvaluationV2(eval models.EvaluationV2) (int64, error) {
+	if eval.ClientID == 0 {
 		return 0, fmt.Errorf("ID client manquant")
 	}
-
-	id, err := h.db.CreateEvaluation(req, userID, h.cryptoSvc)
-	if err != nil {
-		return 0, err
-	}
-
-	return id, nil
+	// On passe l'objet au repo qui s'occupera du chiffrement
+	return h.db.CreateEvaluationV2(eval, h.cryptoSvc)
 }
 
-// UpdateEvaluationBrouillon met à jour un brouillon existant (jamais un verrouillé)
-func (h *EvalHandler) UpdateEvaluationBrouillon(id int, req models.CreateEvaluationRequest) error {
-	if id == 0 {
-		return fmt.Errorf("ID évaluation manquant")
-	}
-	return h.db.UpdateEvaluationBrouillon(id, req, h.cryptoSvc)
+// GetClientEvaluationsV2 récupère toutes les évals d'un client (décryptées)
+func (h *EvalHandler) GetClientEvaluationsV2(clientID int) ([]models.EvaluationV2, error) {
+	return h.db.GetEvaluationsByClientIDV2(clientID, h.cryptoSvc)
 }
 
-// GetEvaluationsByClient récupère la liste via la VUE (avec infos clients)
-func (h *EvalHandler) GetEvaluationsByClient(clientID int) ([]models.EvaluationSocialeDetail, error) {
-	return h.db.GetAllEvaluationsByClientID(clientID, h.cryptoSvc)
+// UpdateEvaluationV2 met à jour le payload JSON d'un brouillon
+func (h *EvalHandler) UpdateEvaluationV2(id int, payload string) error {
+	return h.db.UpdateEvaluationV2(id, payload, h.cryptoSvc)
 }
 
-// GetEvaluationByID récupère une évaluation précise (via la VUE)
-func (h *EvalHandler) GetEvaluationByID(id int) (*models.EvaluationSocialeDetail, error) {
-	eval, err := h.db.GetEvaluationByID(id, h.cryptoSvc)
-	if err != nil {
-		return nil, err
-	}
-	return eval, nil
+// DeleteEvaluationV2 supprime un brouillon V2
+func (h *EvalHandler) DeleteEvaluationV2(id int) error {
+	return h.db.DeleteEvaluationV2(id)
 }
 
-// SignerEvaluation verrouille le document pour l'OTSTCFQ
 func (h *EvalHandler) SignerEvaluation(id int, nomSignature string) error {
 	if nomSignature == "" {
 		return fmt.Errorf("le nom du signataire est obligatoire")
 	}
+	// On appelle la fonction du Repo qu'on vient d'ajouter
 	return h.db.VerrouillerEvaluation(id, nomSignature)
 }
 
-// LockEvaluation verrouille une évaluation sociale
-func (h *EvalHandler) LockEvaluation(evalID int, signatureNom string) error {
-	return h.db.VerrouillerEvaluation(evalID, signatureNom)
+// GetEvaluationByID : Pour charger une éval spécifique (ex: pour le PDF ou l'édition)
+func (h *EvalHandler) GetEvaluationByID(id int) (*models.EvaluationV2, error) {
+	return h.db.GetEvaluationByIDV2(id, h.cryptoSvc)
 }
 
-// DeleteEvaluation supprime une évaluation (brouillon seulement)
-func (h *EvalHandler) DeleteEvaluation(id int) error {
-	return h.db.DeleteEvaluation(id)
+func (h *EvalHandler) SaveDefinition(def models.EvaluationDefinition) error {
+	return h.db.SaveEvaluationDefinition(def)
+}
+
+// DeleteDefinition : Désactive un modèle (soft delete)
+func (h *EvalHandler) DeleteDefinition(id string) error {
+	return h.db.DeleteEvaluationDefinition(id)
 }

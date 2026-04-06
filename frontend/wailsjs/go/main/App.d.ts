@@ -13,6 +13,8 @@ export function ArchiverService(arg1:number):Promise<void>;
 
 export function ChangePassword(arg1:models.ChangePasswordRequest):Promise<void>;
 
+export function CheckNoteLieeExists(arg1:number,arg2:string):Promise<boolean>;
+
 export function ClientFolderExists(arg1:string):Promise<boolean>;
 
 export function CreateAppel(arg1:models.CreateAppelRequest):Promise<void>;
@@ -274,6 +276,8 @@ export function ImportNotaires(arg1:string):Promise<string>;
 export function ImportNotairesWithUpdate(arg1:string):Promise<string>;
 
 export function ImportPharmacies(arg1:string):Promise<string>;
+
+export function ImportPharmaciesCSV():Promise<main.ImportPharmaciesCSVResult>;
 
 export function InsertResidence(arg1:models.Residence):Promise<void>;
 

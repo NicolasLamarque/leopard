@@ -5,7 +5,7 @@
     <div class="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-800">
       
       <!-- HEADER - Palette slate/teal subtile -->
-      <div class="relative px-8 py-6 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-800 dark:via-slate-850 dark:to-slate-800 border-b border-slate-200 dark:border-slate-700">
+      <div class="relative px-8 py-6 bg-gradient-to-br from-slate-500 via-slate-900 to-slate-500 dark:from-slate-800 dark:via-slate-850 dark:to-slate-800 border-b border-slate-700 dark:border-slate-700">
         <div class="flex justify-between items-start">
           <div class="flex items-center gap-5">
             <!-- Icône pilule avec accent teal subtil -->
@@ -304,7 +304,7 @@
       <!-- LISTE DES CLIENTS -->
       <div v-if="!isEditMode" class="px-8 pb-8">
         <PharmacieClientsList 
-          :pharmacie-id="pharmacie.id"
+          :pharmacie-id="pharmacie.ID"
           @view-client="$emit('view-client', $event)"
         />
       </div>

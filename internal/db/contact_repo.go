@@ -288,6 +288,46 @@ func encryptCreateContactRequest(req models.CreateContactRequest, cryptoSvc *cry
 		return req, err
 	}
 
+	encrypted.Ville, err = cryptoSvc.EncryptStringPtr(req.Ville)
+	if err != nil {
+		return req, err
+	}
+
+	encrypted.Pays, err = cryptoSvc.EncryptStringPtr(req.Pays)
+	if err != nil {
+		return req, err
+	}
+
+	encrypted.Employeur, err = cryptoSvc.EncryptStringPtr(req.Employeur)
+	if err != nil {
+		return req, err
+	}
+
+	encrypted.Profession, err = cryptoSvc.EncryptStringPtr(req.Profession)
+	if err != nil {
+		return req, err
+	}
+
+	encrypted.RelationClient, err = cryptoSvc.EncryptStringPtr(req.RelationClient)
+	if err != nil {
+		return req, err
+	}
+
+	encrypted.LienFamilial, err = cryptoSvc.EncryptStringPtr(req.LienFamilial)
+	if err != nil {
+		return req, err
+	}
+
+	encrypted.TypeDeContact, err = cryptoSvc.EncryptStringPtr(req.TypeDeContact)
+	if err != nil {
+		return req, err
+	}
+
+	encrypted.NoteFixe, err = cryptoSvc.EncryptStringPtr(req.NoteFixe)
+	if err != nil {
+		return req, err
+	}
+
 	return encrypted, nil
 }
 
@@ -327,6 +367,38 @@ func encryptUpdateContactRequest(req models.UpdateContactRequest, cryptoSvc *cry
 	}
 
 	encrypted.CodePostal, err = cryptoSvc.EncryptStringPtr(req.CodePostal)
+	if err != nil {
+		return req, err
+	}
+	encrypted.Ville, err = cryptoSvc.EncryptStringPtr(req.Ville)
+	if err != nil {
+		return req, err
+	}
+	encrypted.Pays, err = cryptoSvc.EncryptStringPtr(req.Pays)
+	if err != nil {
+		return req, err
+	}
+	encrypted.Employeur, err = cryptoSvc.EncryptStringPtr(req.Employeur)
+	if err != nil {
+		return req, err
+	}
+	encrypted.Profession, err = cryptoSvc.EncryptStringPtr(req.Profession)
+	if err != nil {
+		return req, err
+	}
+	encrypted.RelationClient, err = cryptoSvc.EncryptStringPtr(req.RelationClient)
+	if err != nil {
+		return req, err
+	}
+	encrypted.LienFamilial, err = cryptoSvc.EncryptStringPtr(req.LienFamilial)
+	if err != nil {
+		return req, err
+	}
+	encrypted.TypeDeContact, err = cryptoSvc.EncryptStringPtr(req.TypeDeContact)
+	if err != nil {
+		return req, err
+	}
+	encrypted.NoteFixe, err = cryptoSvc.EncryptStringPtr(req.NoteFixe)
 	if err != nil {
 		return req, err
 	}

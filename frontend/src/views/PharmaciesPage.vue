@@ -1,10 +1,12 @@
 <!-- frontend/src/pages/PharmaciesPage.vue -->
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+
     <!-- Header -->
     <div class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10">
       <div class="max-w-7xl mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
+
           <div class="flex items-center gap-3">
             <Pill :size="32" class="text-emerald-600 dark:text-emerald-400" />
             <div>
@@ -30,25 +32,55 @@
               </div>
             </div>
 
+            <!-- Bouton Import CSV -->
             <button
-              @click="showNewPharmacie = true"
-              class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              @click="handleImportCSV"
+              :disabled="importLoading"
+              class="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium"
+              title="Importer des pharmacies depuis un fichier CSV"
+            >
+              <Loader2 v-if="importLoading" :size="16" class="animate-spin" />
+              <Upload v-else :size="16" />
+              {{ importLoading ? 'Import...' : 'Importer CSV' }}
+            </button>
+
+            <!-- Bouton Ajouter -->
+            <button
+              @click="handleNewPharmacie"
+              class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-medium"
             >
               <Plus :size="18" />
               Ajouter
             </button>
           </div>
         </div>
+
+        <!-- Notification import -->
+        <transition name="fade">
+          <div
+            v-if="importNotif"
+            :class="[
+              'mt-3 px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2',
+              importNotif.type === 'success'
+                ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
+            ]"
+          >
+            <CheckCircle v-if="importNotif.type === 'success'" :size="16" />
+            <AlertCircle v-else :size="16" />
+            {{ importNotif.message }}
+          </div>
+        </transition>
       </div>
     </div>
 
     <!-- Contenu principal -->
     <div class="max-w-7xl mx-auto p-6">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        
-        <!-- Sidebar - Filtres -->
+
+        <!-- Sidebar Filtres -->
         <div class="lg:col-span-1">
-          <PharmacieFilters 
+          <PharmacieFilters
             v-model:filters="filters"
             @search="handleSearch"
             @reset="handleResetFilters"
@@ -68,44 +100,70 @@
       </div>
     </div>
 
-    <!-- Modal détails/édition pharmacie -->
+    <!-- Modal détails / édition -->
     <PharmacieDetailsModal
       v-if="selectedPharmacie"
       :pharmacie="selectedPharmacie"
       @close="selectedPharmacie = null"
       @save="handleSavePharmacie"
-      @delete="handleDeletePharmacie"
+      @delete="handleDeleteFromModal"
       @view-client="handleViewClient"
     />
 
     <!-- Modal nouvelle pharmacie -->
     <PharmacieDetailsModal
       v-if="showNewPharmacie"
-      :pharmacie="null"
+      :pharmacie="newPharmacieTemplate"
       mode="create"
       @close="showNewPharmacie = false"
       @save="handleCreatePharmacie"
     />
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Pill, Plus } from 'lucide-vue-next'
+import { Pill, Plus, Upload, Loader2, CheckCircle, AlertCircle } from 'lucide-vue-next'
 import PharmacieList from '../components/Pharmacies/PharmaciesList.vue'
 import PharmacieDetailsModal from '../components/Pharmacies/Pharmaciesdetailsmodal.vue'
 import PharmacieFilters from '../components/Pharmacies/Pharmaciesfilters.vue'
-import { 
-  GetAllPharmacies, 
-  SavePharmacie, 
-  DeletePharmacie 
+import {
+  GetAllPharmacies,
+  SavePharmacie,
+  DeletePharmacie,
+  ImportPharmaciesCSV
 } from '../../wailsjs/go/main/App'
 
-const pharmacies = ref([])
-const loading = ref(false)
-const selectedPharmacie = ref(null)
-const showNewPharmacie = ref(false)
+// ─── État ────────────────────────────────────────────────────────────────────
+const pharmacies    = ref([])
 const allPharmacies = ref([])
+const loading       = ref(false)
+const selectedPharmacie = ref(null)
+const showNewPharmacie  = ref(false)
+const importLoading = ref(false)
+const importNotif   = ref(null)
+
+// Template vide pour "nouvelle pharmacie" — évite le crash pharmacie=null
+const newPharmacieTemplate = {
+  ID: 0,
+  NomOrganisation: '',
+  Banniere: '',
+  Adresse: '',
+  Ville: '',
+  Region: '',
+  Tel: '',
+  Fax: '',
+  DimancheOuvert: 0,  HeureOuvertureDimanche: '', HeureFermetureDimanche: '',
+  LundiOuvert: 0,     HeureOuvertureLundi: '',    HeureFermetureLundi: '',
+  MardiOuvert: 0,     HeureOuvertureMardi: '',    HeureFermetureMardi: '',
+  MercrediOuvert: 0,  HeureOuvertureMercredi: '', HeureFermetureMercredi: '',
+  JeudiOuvert: 0,     HeureOuvertureJeudi: '',    HeureFermetureJeudi: '',
+  VendrediOuvert: 0,  HeureOuvertureVendredi: '', HeureFermetureVendredi: '',
+  SamediOuvert: 0,    HeureOuvertureSamedi: '',   HeureFermetureSamedi: '',
+  DateMaj: '',
+  note: ''
+}
 
 const filters = ref({
   nom: '',
@@ -115,187 +173,160 @@ const filters = ref({
   ouvertDimanche: false
 })
 
-// Stats
+// ─── Stats ───────────────────────────────────────────────────────────────────
 const stats = computed(() => {
   const data = pharmacies.value || []
-  const aujourdhui = new Date().getDay() // 0 = Dimanche, 1 = Lundi, etc.
-  
-  let ouvertes = 0
-  data.forEach(p => {
-    switch(aujourdhui) {
-      case 0: if (p.DimancheOuvert) ouvertes++; break;
-      case 1: if (p.LundiOuvert) ouvertes++; break;
-      case 2: if (p.MardiOuvert) ouvertes++; break;
-      case 3: if (p.MercrediOuvert) ouvertes++; break;
-      case 4: if (p.JeudiOuvert) ouvertes++; break;
-      case 5: if (p.VendrediOuvert) ouvertes++; break;
-      case 6: if (p.SamediOuvert) ouvertes++; break;
-    }
-  })
+  const aujourd_hui = new Date().getDay()
+  const joursKeys = ['DimancheOuvert','LundiOuvert','MardiOuvert','MercrediOuvert','JeudiOuvert','VendrediOuvert','SamediOuvert']
+  const key = joursKeys[aujourd_hui]
 
   return {
     total: data.length,
-    ouvertes: ouvertes
+    ouvertes: data.filter(p => p[key] && p[key] !== 0).length
   }
 })
 
-// Filtrage local
+// ─── Chargement ──────────────────────────────────────────────────────────────
+const loadAllPharmacies = async () => {
+  loading.value = true
+  try {
+    const result = await GetAllPharmacies()
+    allPharmacies.value = result || []
+    pharmacies.value    = result || []
+    console.log('✅ Pharmacies chargées:', pharmacies.value.length)
+  } catch (err) {
+    console.error('❌ Erreur chargement pharmacies:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// ─── Filtrage ─────────────────────────────────────────────────────────────────
 const handleSearch = () => {
-  console.log('🔍 Filtrage pharmacies:', filters.value)
-  
   pharmacies.value = allPharmacies.value.filter(pharma => {
-    // Filtre nom - gère null/undefined et recherche insensible à la casse
-    if (filters.value.nom && filters.value.nom.trim()) {
-      const searchTerm = filters.value.nom.toLowerCase().trim()
-      const pharmacieName = (pharma.NomOrganisation || '').toLowerCase()
-      if (!pharmacieName.includes(searchTerm)) {
-        return false
-      }
+    if (filters.value.nom?.trim()) {
+      const term = filters.value.nom.toLowerCase().trim()
+      if (!(pharma.NomOrganisation || '').toLowerCase().includes(term)) return false
     }
-    
-    // Filtre ville - min 3 caractères, gère null/undefined
-    if (filters.value.ville && filters.value.ville.trim().length >= 3) {
-      const searchTerm = filters.value.ville.toLowerCase().trim()
-      const ville = (pharma.Ville || '').toLowerCase()
-      if (!ville.includes(searchTerm)) {
-        return false
-      }
+    if (filters.value.ville?.trim().length >= 3) {
+      const term = filters.value.ville.toLowerCase().trim()
+      if (!(pharma.Ville || '').toLowerCase().includes(term)) return false
     }
-    
-    // Filtre région - comparaison exacte mais flexible (trim + casse)
-    if (filters.value.region && filters.value.region.trim()) {
-      const filterRegion = filters.value.region.trim()
-      const pharmaRegion = (pharma.Region || '').trim()
-      
-      // Gère "Mauricie et Centre-du-Québec" vs "Mauricie" vs "Centre-du-Québec"
-      const regionMatch = pharmaRegion.toLowerCase().includes(filterRegion.toLowerCase()) ||
-                         filterRegion.toLowerCase().includes(pharmaRegion.toLowerCase())
-      
-      if (!regionMatch) {
-        return false
-      }
+    if (filters.value.region?.trim()) {
+      const fr = filters.value.region.trim().toLowerCase()
+      const pr = (pharma.Region || '').trim().toLowerCase()
+      if (!pr.includes(fr) && !fr.includes(pr)) return false
     }
-    
-    // Filtre bannière - gère null, espaces, et casse
-    if (filters.value.banniere && filters.value.banniere.trim()) {
-      const filterBanniere = filters.value.banniere.toLowerCase().trim()
-      const pharmaBanniere = (pharma.Banniere || '').toLowerCase().trim()
-      
-      if (pharmaBanniere !== filterBanniere) {
-        return false
-      }
+    if (filters.value.banniere?.trim()) {
+      const fb = filters.value.banniere.toLowerCase().trim()
+      const pb = (pharma.Banniere || '').toLowerCase().trim()
+      if (pb !== fb) return false
     }
-    
-    // Filtre ouvert dimanche - gère int (1/0) et boolean (true/false)
     if (filters.value.ouvertDimanche) {
-      if (!pharma.DimancheOuvert || pharma.DimancheOuvert === 0) {
-        return false
-      }
+      if (!pharma.DimancheOuvert || pharma.DimancheOuvert === 0) return false
     }
-    
     return true
   })
-  
-  console.log('📊 Résultats filtrés:', pharmacies.value.length, '/', allPharmacies.value.length)
 }
-// Réinitialiser les filtres
+
 const handleResetFilters = () => {
-  filters.value = {
-    nom: '',
-    ville: '',
-    region: '',
-    banniere: '',
-    ouvertDimanche: false
-  }
+  filters.value = { nom: '', ville: '', region: '', banniere: '', ouvertDimanche: false }
   pharmacies.value = [...allPharmacies.value]
 }
 
-// Sélectionner une pharmacie
+// ─── Import CSV ───────────────────────────────────────────────────────────────
+const handleImportCSV = async () => {
+  importLoading.value = true
+  importNotif.value   = null
+  try {
+    const result = await ImportPharmaciesCSV()
+    if (!result) {
+      // L'utilisateur a annulé le dialog
+      return
+    }
+    importNotif.value = { type: 'success', message: `✅ ${result.message}` }
+    await loadAllPharmacies()
+
+    // Effacer la notif après 5 secondes
+    setTimeout(() => { importNotif.value = null }, 5000)
+  } catch (err) {
+    console.error('❌ Erreur import CSV:', err)
+    importNotif.value = { type: 'error', message: `Erreur lors de l'import : ${err}` }
+  } finally {
+    importLoading.value = false
+  }
+}
+
+// ─── CRUD ─────────────────────────────────────────────────────────────────────
 const handleSelectPharmacie = (pharmacie) => {
   selectedPharmacie.value = pharmacie
 }
 
-// Sauvegarder les modifications
-// Sauvegarder les modifications
+const handleNewPharmacie = () => {
+  showNewPharmacie.value = true
+}
+
 const handleSavePharmacie = async (updatedPharmacie) => {
   try {
-    // Utilise la fonction SavePharmacie que tu as importée (qui gère Create et Update)
-    await SavePharmacie(updatedPharmacie) 
+    await SavePharmacie(updatedPharmacie)
     selectedPharmacie.value = null
     await loadAllPharmacies()
-    // Optionnel: utilise une notification plus moderne que alert si tu as le temps
   } catch (err) {
-    console.error('Erreur sauvegarde pharmacie:', err)
+    console.error('❌ Erreur sauvegarde pharmacie:', err)
   }
 }
 
-// Créer une nouvelle pharmacie
 const handleCreatePharmacie = async (newPharmacie) => {
   try {
-    // Même chose ici, on utilise SavePharmacie
     await SavePharmacie(newPharmacie)
     showNewPharmacie.value = false
     await loadAllPharmacies()
   } catch (err) {
-    console.error('Erreur création pharmacie:', err)
+    console.error('❌ Erreur création pharmacie:', err)
   }
 }
 
-// Supprimer une pharmacie
+// Suppression depuis la liste (card)
 const handleDeletePharmacie = async (pharmacie) => {
-  if (!confirm(`Supprimer "${pharmacie.NomOrganisation}" ?`)) return
-  
+  if (!confirm(`Supprimer "${pharmacie.NomOrganisation}" ?\n\nCette action est irréversible.`)) return
   try {
     await DeletePharmacie(pharmacie.ID)
     selectedPharmacie.value = null
     await loadAllPharmacies()
-    alert('✅ Pharmacie supprimée!')
   } catch (err) {
-    console.error('Erreur suppression pharmacie:', err)
-    alert('Erreur lors de la suppression')
+    console.error('❌ Erreur suppression:', err)
   }
 }
 
-// Voir le dossier d'un client
+// Suppression depuis le modal (le modal a déjà son propre confirm)
+const handleDeleteFromModal = async (pharmacie) => {
+  try {
+    await DeletePharmacie(pharmacie.ID)
+    selectedPharmacie.value = null
+    await loadAllPharmacies()
+  } catch (err) {
+    console.error('❌ Erreur suppression:', err)
+  }
+}
+
 const handleViewClient = (clientId) => {
-  // Rediriger vers la page du client
   console.log('Voir client:', clientId)
   // router.push({ name: 'client', params: { id: clientId } })
 }
-const loadAllPharmacies = async () => {
-  try {
-    const result = await GetAllPharmacies()  // ✅ Utilise l'import
-    allPharmacies.value = result || []       // ✅ Stock dans allPharmacies
-    pharmacies.value = result || []          // ✅ Et aussi dans pharmacies
-    console.log('✅ Pharmacies chargées:', pharmacies.value.length)
-    console.log('📦 Première pharmacie:', JSON.stringify(pharmacies.value[0], null, 2))
-  } catch (err) {
-    console.error('❌ Erreur:', err)
-  }
-}
 
-const formatPhone = (phone) => {
-  if (!phone) return ''
-  
-  // Enlever tout sauf les chiffres
-  const cleaned = phone.replace(/\D/g, '')
-  
-  // Si 10 chiffres : format (819) 999-0011
-  if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
-  }
-  
-  // Si 11 chiffres commençant par 1 : format 1 (819) 999-0011
-  if (cleaned.length === 11 && cleaned.startsWith('1')) {
-    return `1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`
-  }
-  
-  // Sinon retourner tel quel
-  return phone
-}
-
-// Charger au démarrage
+// ─── Init ─────────────────────────────────────────────────────────────────────
 onMounted(() => {
   loadAllPharmacies()
 })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

@@ -38,7 +38,9 @@ func New(path string) (*Database, error) {
 		schema.TableClients + // Pivot - Nécessite Users, Medecins, Résidences
 		schema.TableContacts + // Nécessite Clients
 		schema.TableNotes + // Nécessite Clients, Users
-		schema.TableEval + // Nécessite Clients (Vue incluse)
+		schema.TableEvalDefinitions +
+		schema.TableEvaluations + // Nécessite Clients (Vue incluse)
+		schema.EvalFonctionnementSocialSeed +
 		schema.TablePI + // Nécessite Clients (Vue incluse)
 		schema.TableAppels + // Nécessite Clients, Users
 		schema.TableIntervenants + // Nécessite Clients (Vue incluse)
@@ -51,15 +53,18 @@ func New(path string) (*Database, error) {
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de la création du schéma: %w", err)
 	}
-	// ÉTAPE B : Tes finances (Le tableau !)
-	// On boucle sur chaque élément du tableau "AllFinanceTables"
+	// ÉTAPE B : Tes finances
 	for _, tableSQL := range schema.AllFinanceTables {
 		_, err := db.Exec(tableSQL)
 		if err != nil {
-			// C'est ICI que c'est puissant :
-			// Si ça plante, il va te dire EXACTEMENT quelle table pose problème
 			return nil, fmt.Errorf("Erreur SQL Finance sur : %s \nErreur: %w", tableSQL, err)
 		}
+	}
+
+	// ÉTAPE C : Seed des modèles d'évaluation par défaut
+	_, err = db.Exec(schema.EvalDefinitionsSeed)
+	if err != nil {
+		return nil, fmt.Errorf("erreur seed evaluation_definitions: %w", err)
 	}
 
 	return &Database{db}, nil

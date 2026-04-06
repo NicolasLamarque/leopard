@@ -222,6 +222,11 @@
 </template>
 
 <script setup>
+import { useToast } from '../../composables/useToast.js'
+
+import { useConfirm } from '../../composables/useConfirm.js'
+const { confirm } = useConfirm()
+
 import { ref, computed, watch, onMounted } from 'vue'
 import { 
   Type, FileText, FileType, ChevronDown, Link2, Mic, Keyboard, 
@@ -300,6 +305,13 @@ HISTORIQUE PERTINENT
 
 ÉVALUATION INITIALE
 [Premières observations et impressions cliniques]
+
+ANALYSE PRÉLIMINAIRE
+[Interprétation initiale basée sur les données recueillies]
+
+SÉQUENCE DES INTERVENTIONs
+[Approches envisagées, objectifs généraux]
+
 
 OBJECTIFS IDENTIFIÉS
 1. [Objectif 1]
@@ -451,6 +463,7 @@ TRANSFERT/RÉFÉRENCE
 [Si applicable: à qui, pour quoi, coordonnées]`
   }
 ])
+
 
 const insertTemplate = (template) => {
   if (props.modelValue.contenu && props.modelValue.contenu.trim().length > 0) {

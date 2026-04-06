@@ -93,8 +93,11 @@ type NoteListItem struct {
 	DateNote         time.Time  `db:"date_note" json:"date_note"`
 	DateIntervention *time.Time `db:"date_intervention" json:"date_intervention,omitempty"`
 	TypeNote         *string    `db:"type_note" json:"type_note,omitempty"`
-	Titre            string     `db:"titre" json:"titre"` // Ajout du tag db:"titre"
+	Titre            string     `db:"titre" json:"titre"`
 	Verrouille       int        `db:"verrouille" json:"verrouille"`
 	NoteTardive      int        `db:"note_tardive" json:"note_tardive"`
 	TypeLien         *string    `db:"type_lien" json:"type_lien,omitempty"`
+	NoteLieeID       *int       `db:"note_liee_id" json:"note_liee_id,omitempty"`
+	NoteLieeTitre    string     `db:"note_liee_titre" json:"note_liee_titre,omitempty"`
+	SignatureNom     *string    `db:"signature_nom" json:"signature_nom,omitempty"`
 }

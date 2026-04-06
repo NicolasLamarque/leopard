@@ -363,6 +363,13 @@
                   </label>
                 </div>
 
+                <!-- Communauté (visible si Premières Nations coché) -->
+                <Transition name="card-fade">
+                  <div v-if="formData.premiere_nation" class="col-span-2">
+                    <FormKit type="text" v-model="formData.premiere_nation_communaute" label="Nation / Communauté" placeholder="ex: Cris | Mistissini" :classes="fkClasses" />
+                  </div>
+                </Transition>
+
               </div>
             </div>
 
@@ -458,6 +465,129 @@
                   </span>
                 </label>
               </div>
+
+              <div class="section-divider mb-3 mt-5">Tutelle & curatelle</div>
+
+              <!-- Tutelle active toggle -->
+              <div class="mb-4">
+                <label class="flex items-center gap-2.5 cursor-pointer group w-fit">
+                  <input
+                    type="checkbox"
+                    v-model="formData.tutelle_active"
+                    :true-value="1"
+                    :false-value="0"
+                    class="w-3.5 h-3.5 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                  />
+                  <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+                    Mesure de protection active
+                  </span>
+                </label>
+              </div>
+
+              <!-- Détails tutelle (visible si active) -->
+              <Transition name="card-fade">
+                <div v-if="formData.tutelle_active" class="space-y-4">
+
+                  <!-- Type + portée -->
+                  <div class="grid grid-cols-3 gap-x-4 gap-y-3">
+                    <div>
+                      <FormKit
+                        type="select"
+                        v-model="formData.tutelle_type"
+                        label="Type de mesure"
+                        :options="[
+                          { label: '—', value: '' },
+                          { label: 'Tutelle', value: 'Tutelle' },
+                          { label: 'Curatelle', value: 'Curatelle' },
+                          { label: 'Mandat de protection', value: 'Mandat' },
+                          { label: 'Conseil de tutelle', value: 'Conseil' },
+                        ]"
+                        :classes="fkClasses"
+                      />
+                    </div>
+                    <div>
+                      <label class="fk-label">Date de début</label>
+                      <div class="fk-inner">
+                        <CalendarDays :size="13" class="text-gray-400 shrink-0 ml-2.5" />
+                        <input type="date" v-model="formData.tutelle_date_debut" class="fk-input" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="fk-label">Date de renouvellement</label>
+                      <div class="fk-inner">
+                        <CalendarDays :size="13" class="text-gray-400 shrink-0 ml-2.5" />
+                        <input type="date" v-model="formData.tutelle_date_renouvellement" class="fk-input" />
+                      </div>
+                    </div>
+
+                    <!-- Portée -->
+                    <div class="col-span-3 flex flex-wrap gap-4 pt-1">
+                      <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" v-model="formData.tutelle_personne" :true-value="1" :false-value="0"
+                          class="w-3.5 h-3.5 text-teal-600 border-gray-300 rounded focus:ring-teal-500" />
+                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200">
+                          À la personne
+                        </span>
+                      </label>
+                      <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" v-model="formData.tutelle_bien" :true-value="1" :false-value="0"
+                          class="w-3.5 h-3.5 text-teal-600 border-gray-300 rounded focus:ring-teal-500" />
+                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200">
+                          Aux biens
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Tuteur / curateur -->
+                  <div class="section-divider mb-2 mt-2">Tuteur / Curateur / Mandataire</div>
+                  <div class="grid grid-cols-3 gap-x-4 gap-y-3">
+                    <div>
+                      <FormKit type="text" v-model="formData.tuteur_nom" label="Nom" :classes="fkClasses" />
+                    </div>
+                    <div>
+                      <FormKit type="text" v-model="formData.tuteur_prenom" label="Prénom" :classes="fkClasses" />
+                    </div>
+                    <div>
+                      <label class="fk-label">Téléphone</label>
+                      <div class="fk-inner">
+                        <Phone :size="13" class="text-gray-400 shrink-0 ml-2.5" />
+                        <input type="tel"
+                          :value="formatPhone(formData.tuteur_telephone)"
+                          @change="formData.tuteur_telephone = $event.target.value.replace(/\D/g, '')"
+                          placeholder="(819) 555-0123" class="fk-input" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="fk-label">Cellulaire</label>
+                      <div class="fk-inner">
+                        <Smartphone :size="13" class="text-gray-400 shrink-0 ml-2.5" />
+                        <input type="tel"
+                          :value="formatPhone(formData.tuteur_cellulaire)"
+                          @change="formData.tuteur_cellulaire = $event.target.value.replace(/\D/g, '')"
+                          placeholder="(819) 555-0456" class="fk-input" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="fk-label">Courriel</label>
+                      <div class="fk-inner">
+                        <Mail :size="13" class="text-gray-400 shrink-0 ml-2.5" />
+                        <input type="email" v-model="formData.tuteur_email" placeholder="tuteur@email.com" class="fk-input" />
+                      </div>
+                    </div>
+                    <div class="col-span-2">
+                      <FormKit type="text" v-model="formData.tuteur_adresse" label="Adresse" :classes="fkClasses" />
+                    </div>
+                    <div>
+                      <FormKit type="text" v-model="formData.tuteur_ville" label="Ville" :classes="fkClasses" />
+                    </div>
+                    <div>
+                      <FormKit type="text" v-model="formData.tuteur_code_postal" label="Code postal" :classes="fkClasses" />
+                    </div>
+                  </div>
+                </div>
+              </Transition>
+
             </div>
 
             <!-- ══ NOTES & STATUT ══ -->
@@ -839,4 +969,9 @@ onMounted(async () => {
 .fade-leave-active { transition: opacity 0.25s ease; }
 .fade-enter-from,
 .fade-leave-to { opacity: 0; }
+
+.card-fade-enter-active,
+.card-fade-leave-active { transition: all 0.2s ease; }
+.card-fade-enter-from,
+.card-fade-leave-to { opacity: 0; transform: translateY(4px); }
 </style>

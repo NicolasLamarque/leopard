@@ -129,3 +129,16 @@ func (cs *CryptoService) DecryptStringPtr(ciphertext *string) (*string, error) {
 
 	return &decrypted, nil
 }
+
+// EncryptString chiffre une string simple (pour le Payload JSON V2)
+// EncryptString est maintenant un simple alias de Encrypt pour la clarté en V2
+func (cs *CryptoService) EncryptString(plainText string) (string, error) {
+	// On appelle directement ta fonction Encrypt existante
+	return cs.Encrypt(plainText)
+}
+
+// DecryptString est maintenant un simple alias de Decrypt
+func (cs *CryptoService) DecryptString(cipherText string) (string, error) {
+	// On appelle directement ta fonction Decrypt existante
+	return cs.Decrypt(cipherText)
+}

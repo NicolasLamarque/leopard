@@ -77,7 +77,7 @@
     </div>
 
     <!-- Liste des notes -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-3">
+    <div class="flex-1 overflow-y-auto p-4 pt-3 pr-3 space-y-3" style="overflow-x: visible;">
       <div v-if="filteredNotes.length === 0" class="text-center py-8 text-gray-400 text-sm">
         <ClipboardList :size="32" class="mx-auto mb-2 opacity-30" />
         <p>Aucune note</p>
@@ -87,7 +87,7 @@
         v-for="note in filteredNotes" 
         :key="note.id"
         :class="[
-          'p-3 rounded-xl border dark:border-gray-800 bg-white dark:bg-gray-900 cursor-pointer transition-all group relative',
+          'p-3 rounded-xl border dark:border-gray-800 bg-white dark:bg-gray-900 cursor-pointer transition-all group relative overflow-visible',
           selectedNote?.id === note.id 
             ? 'ring-2 ring-teal-500 border-teal-200' 
             : 'hover:ring-2 hover:ring-teal-300'
@@ -114,19 +114,32 @@
     <span class="text-[10px] text-gray-400">{{ formatDate(note.date_note) }}</span>
   </div>
   
-  <p class="text-sm font-bold text-gray-800 dark:text-gray-200 truncate mb-1">
-    {{ note.titre || 'Sans titre' }} </p>
+  <!-- Titre + ID de cette note -->
+  <div class="flex items-center justify-between gap-1.5 mb-1">
+    <p class="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">
+      {{ note.titre || 'Sans titre' }}
+    </p>
+    <span class="text-[9px] font-mono bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded shrink-0">
+      #{{ note.id }}
+    </span>
+  </div>
 
-  <div v-if="note.note_liee_id" class="flex items-center gap-1 mb-2">
-    <Link2 :size="10" class="text-sky-500" />
-    <span class="text-[9px] text-sky-600 dark:text-sky-400">
-      {{ note.type_lien || 'Lié' }} à: {{ note.note_liee_titre || 'Note #' + note.note_liee_id }}
+  <!-- Lien vers la note parente (correction/addendum) -->
+  <div v-if="note.note_liee_id" class="flex items-center justify-between gap-1 mb-2 bg-sky-950/40 border border-sky-900/40 rounded px-1.5 py-0.5">
+    <div class="flex items-center gap-1 min-w-0">
+      <Link2 :size="9" class="text-sky-400 shrink-0" />
+      <span class="text-[9px] text-sky-400 truncate">
+        {{ note.type_lien || 'Lié' }} → {{ note.note_liee_titre || 'Note' }}
+      </span>
+    </div>
+    <span class="text-[9px] font-mono bg-sky-900/50 text-sky-300 px-1.5 py-0.5 rounded shrink-0">
+      #{{ note.note_liee_id }}
     </span>
   </div>
   
   <div class="flex items-center justify-between">
     <span class="text-[9px] text-gray-400 italic truncate">
-      {{ note.signature_nom?.split(',')[0] || 'Non signé' }}
+      {{ (note.verrouille === true || note.verrouille === 1) ? (note.signature_nom?.split(',')[0] || 'Signé') : 'Non signé' }}
     </span>
     <div class="flex items-center gap-1">
       <Lock v-if="note.verrouille === true || note.verrouille === 1" :size="12" class="text-green-500" />
@@ -137,7 +150,7 @@
         </div>
 
         <!-- Badge brouillon si non verrouillé -->
-        <div v-if="!note.verrouille" class="absolute -top-1 -right-1">
+        <div v-if="!note.verrouille" class="absolute -top-2 -right-2 z-10">
           <span class="inline-flex items-center gap-1 bg-orange-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">
             <FileEdit :size="8" />
             BROUILLON

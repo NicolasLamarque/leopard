@@ -18,6 +18,10 @@ export function ChangePassword(arg1) {
   return window['go']['main']['App']['ChangePassword'](arg1);
 }
 
+export function CheckNoteLieeExists(arg1, arg2) {
+  return window['go']['main']['App']['CheckNoteLieeExists'](arg1, arg2);
+}
+
 export function ClientFolderExists(arg1) {
   return window['go']['main']['App']['ClientFolderExists'](arg1);
 }
@@ -540,6 +544,10 @@ export function ImportNotairesWithUpdate(arg1) {
 
 export function ImportPharmacies(arg1) {
   return window['go']['main']['App']['ImportPharmacies'](arg1);
+}
+
+export function ImportPharmaciesCSV() {
+  return window['go']['main']['App']['ImportPharmaciesCSV']();
 }
 
 export function InsertResidence(arg1) {
